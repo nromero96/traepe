@@ -23,6 +23,7 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 11. [Preparación técnica completada](sprints/preparation/README.md)
 12. [Sprint 00](sprints/sprint-00/README.md)
 13. [Entorno base de instalación](installation/environment.md)
+14. [Docker Compose local](installation/docker.md)
 
 ## Reglas de gobernanza
 

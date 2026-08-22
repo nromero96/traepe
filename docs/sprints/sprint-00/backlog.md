@@ -4,7 +4,7 @@
 
 - Orden obligatorio salvo paralelización indicada por dependencias.
 - Estados: `BLOCKED_APPROVAL`, `READY`, `IN_PROGRESS`, `DONE`.
-- Checkpoint 00A está autorizado. Las tareas posteriores permanecen bloqueadas por la aprobación secuencial de checkpoints.
+- Checkpoint 00A está aprobado y cerrado. Checkpoint 00B está ejecutado y pendiente de aprobación; las tareas posteriores permanecen bloqueadas.
 - Las actividades PRE-001 a PRE-004 están cerradas fuera del sprint en [Preparación técnica](../preparation/README.md).
 
 ## Mapa de dependencias
@@ -94,7 +94,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Objetivo:** ejecutar el stack de desarrollo de forma reproducible.
 
-**Trabajo:** definir servicios API, PostgreSQL/PostGIS, Redis, MinIO y Mailpit; redes, volúmenes, healthchecks y perfiles necesarios.
+**Trabajo:** definir Nginx, PHP-FPM 8.4, PostgreSQL/PostGIS y Redis; red exclusiva, volúmenes nombrados, puertos locales configurables y healthchecks. MinIO y Mailpit pertenecen a 00C.
 
 **Archivos esperados:** `compose.yaml`, archivos bajo `infrastructure/docker/`, `.dockerignore`.
 
@@ -106,7 +106,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** diferencias Windows/Linux, puertos ocupados, imágenes no fijadas o datos locales difíciles de recuperar.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — pendiente de aprobación del Checkpoint 00B.
 
 ## S00-005 — PostgreSQL, PostGIS y Redis
 
@@ -120,11 +120,11 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Criterios de aceptación:** conexión estable; PostGIS disponible; Redis responde; PostgreSQL sigue siendo fuente transaccional; migración es repetible y compatible hacia adelante.
 
-**Pruebas:** consulta de versión PostGIS, ping Redis, migración fresh sobre base de prueba y rollback cuando corresponda.
+**Pruebas:** consulta de versión PostGIS, caché Redis write/read/delete, dispatch y consumo de job técnico, migraciones sobre volumen nuevo, suite en contenedor y persistencia tras reinicio. La migración idempotente de PostGIS no elimina la extensión en rollback para evitar pérdida de datos espaciales.
 
 **Riesgos:** privilegios insuficientes, extensiones ausentes o uso accidental de Redis como fuente de verdad.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — pendiente de aprobación del Checkpoint 00B.
 
 ## S00-006 — Horizon y base de colas
 

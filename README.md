@@ -1,6 +1,6 @@
 # trae.pe
 
-Marketplace peruano multitienda, multicategoría y logístico. Checkpoint 00A del Sprint 00 instaló la base del backend; todavía no existen funcionalidades comerciales.
+Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 00A y 00B del Sprint 00 preparan la base del backend y su infraestructura local; todavía no existen funcionalidades comerciales.
 
 ## Estado actual
 
@@ -8,8 +8,9 @@ Marketplace peruano multitienda, multicategoría y logístico. Checkpoint 00A de
 - Arquitectura aprobada: monolito modular sobre Laravel 13 y PHP 8.4.
 - Backend base instalado en `apps/api`: Laravel 13.26.1 sobre PHP 8.4.
 - Interfaces futuras: cliente, comercio y administrador maestro como aplicaciones separadas.
-- S00-001, S00-002 y S00-003 completadas; Checkpoint 00B requiere nueva aprobación.
-- No se ejecutaron Docker, PostgreSQL, Redis, Horizon, Reverb, MinIO, Mailpit ni GitHub Actions.
+- S00-001 a S00-005 completadas; el Checkpoint 00B queda pendiente de aprobación antes de continuar.
+- Docker Compose ejecuta Nginx, PHP-FPM 8.4, PostgreSQL/PostGIS y Redis con imágenes fijadas.
+- Horizon, Reverb, MinIO, Mailpit, Sanctum y GitHub Actions aún no se instalaron ni configuraron.
 - No se implementaron autenticación funcional ni dominios comerciales.
 
 ## Navegación
@@ -22,6 +23,7 @@ Marketplace peruano multitienda, multicategoría y logístico. Checkpoint 00A de
 - [Eventos](docs/events/README.md)
 - [Producto](docs/product/README.md)
 - [Sprint 00](docs/sprints/sprint-00/README.md)
+- [Instalación con Docker](docs/installation/docker.md)
 - [Guía para agentes y contribuciones](AGENTS.md)
 
 ## Estructura objetivo

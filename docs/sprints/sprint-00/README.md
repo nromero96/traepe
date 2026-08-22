@@ -43,7 +43,7 @@ Las tecnologías enumeradas están aprobadas en ADR-001 a ADR-005. CD, hosting, 
 - Reglas específicas de Tienda Siete o cualquier vertical.
 - CD, hosting o despliegue productivo.
 
-Los módulos se crean solo como límites estructurales comprobables; no contienen casos de uso ni reglas de negocio.
+Platform y Shared se crearán como límites estructurales comprobables en 00D; los demás módulos permanecen solo documentados. Ninguno contendrá casos de uso ni reglas de negocio en este sprint.
 
 ## Orden de ejecución
 
@@ -77,6 +77,6 @@ El orden detallado y las dependencias están en el [backlog](backlog.md).
 - [Definición de terminado](definition-of-done.md)
 - [Decisiones pendientes](../../architecture/decisions/pending-decisions.md)
 
-## Condición de inicio
+## Estado de checkpoints
 
-Checkpoint 00A está autorizado. No iniciar 00B hasta presentar pruebas, diff, archivos y riesgos de 00A y recibir aprobación explícita. DP-012, DP-013B y proveedores productivos permanecen fuera del alcance ejecutable.
+Checkpoint 00A está aprobado y cerrado. S00-004 y S00-005 de 00B están implementadas y verificadas; no iniciar 00C hasta presentar pruebas, diff, archivos y riesgos de 00B y recibir aprobación explícita. DP-012, DP-013B y proveedores productivos permanecen fuera del alcance ejecutable.

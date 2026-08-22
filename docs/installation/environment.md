@@ -1,4 +1,4 @@
-# Entorno base — Checkpoint 00A
+# Entorno local — Checkpoints 00A y 00B
 
 ## Versiones aprobadas
 
@@ -6,14 +6,14 @@
 - Laravel 13.
 - Composer 2.x.
 
-En la estación Windows usada para 00A se instaló PHP 8.4 de forma portátil fuera del repositorio en `C:\tools\traepe-php84`. XAMPP conserva su PHP existente y no debe usarse para este proyecto mientras no cumpla PHP 8.4.
+Checkpoint 00B establece Docker Compose como entorno reproducible. XAMPP, Apache, MySQL y el PHP instalado en Windows no son necesarios para trae.pe. El runtime portátil usado durante 00A queda como antecedente local, no como dependencia del proyecto.
 
 ## Instalación de dependencias PHP
 
-Ejecutar Composer con un binario PHP 8.4 explícito. Desde `apps/api`:
+Ejecutar Composer dentro del contenedor PHP desde la raíz:
 
 ```powershell
-& 'C:\tools\traepe-php84\php.exe' 'C:\tools\composer-latest.phar' install --no-interaction
+docker compose --env-file .env.docker exec api composer install --no-interaction
 ```
 
 El entorno de desarrollo desactiva `optimize-autoloader` por el costo observado en Windows. CI/producción podrán solicitar optimización explícita cuando se definan sus comandos.
@@ -24,8 +24,9 @@ El entorno de desarrollo desactiva `optimize-autoloader` por el costo observado 
 2. Generar una clave local con `php artisan key:generate` usando PHP 8.4.
 3. No versionar `.env`; ya está excluido por `.gitignore`.
 4. No colocar secretos reales en `.env.example`.
+5. Copiar la `APP_KEY` local a `TRAEPE_APP_KEY` en `.env.docker`; ninguno de esos archivos se versiona.
 
-Durante 00A, antes de PostgreSQL/Redis:
+Durante 00A, antes de PostgreSQL/Redis, se usaron temporalmente:
 
 - `DB_CONNECTION=sqlite`;
 - `QUEUE_CONNECTION=sync`;
@@ -35,18 +36,18 @@ Durante 00A, antes de PostgreSQL/Redis:
 - `MAIL_MAILER=log`;
 - sesiones: `file`.
 
-Estas configuraciones son temporales y serán sustituidas progresivamente desde Checkpoint 00B según ADR-003 y el orden aprobado. No anticipar conexiones ni servicios posteriores en 00A.
+En 00B fueron sustituidas por `DB_CONNECTION=pgsql`, `CACHE_STORE=redis` y `QUEUE_CONNECTION=redis`. Continúan temporalmente `BROADCAST_CONNECTION=log`, `FILESYSTEM_DISK=local` y `MAIL_MAILER=log` hasta sus checkpoints autorizados. Consulta la [guía Docker](docker.md).
 
-## Validación 00A
+## Validación actual
 
 ```powershell
-php --version
-php artisan --version
-php artisan test
-php artisan serve --host=127.0.0.1 --port=8013
+docker compose --env-file .env.docker config
+docker compose --env-file .env.docker up -d
+docker compose --env-file .env.docker exec api php artisan --version
+docker compose --env-file .env.docker exec api php artisan test
 ```
 
-La ejecución debe usar PHP 8.4 aunque el ejemplo abrevie el path. La aplicación debe responder HTTP 200 y no requerir servicios de 00B.
+La aplicación debe responder HTTP 200 en `http://localhost:8000` usando exclusivamente el stack Docker de 00B.
 
 ## Seguridad
 
