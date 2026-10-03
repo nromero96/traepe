@@ -1,5 +1,6 @@
 <?php
 
+use App\Shared\Observability\ConfigureSafeLogging;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -18,7 +19,7 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', 'safe'),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,6 +52,16 @@ return [
     */
 
     'channels' => [
+
+        'safe' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/technical.jsonl'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'tap' => [ConfigureSafeLogging::class],
+            'replace_placeholders' => false,
+            'permission' => 0660,
+            'locking' => true,
+        ],
 
         'stack' => [
             'driver' => 'stack',

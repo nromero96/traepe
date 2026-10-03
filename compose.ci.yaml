@@ -1,0 +1,37 @@
+# Disposable CI resources; never shares development volumes or published ports.
+services:
+  api:
+    volumes:
+      - ./.ci-cache/composer:/tmp/composer-cache
+  nginx:
+    ports: !reset []
+  postgres:
+    ports: !reset []
+  redis:
+    ports: !reset []
+  minio:
+    ports: !reset []
+  reverb:
+    ports: !reset []
+  mailpit:
+    ports: !reset []
+
+networks:
+  traepe_internal:
+    name: ${COMPOSE_PROJECT_NAME}_internal
+  traepe_host:
+    name: ${COMPOSE_PROJECT_NAME}_host
+
+volumes:
+  traepe_postgres_data:
+    name: ${COMPOSE_PROJECT_NAME}_postgres_data
+  traepe_redis_data:
+    name: ${COMPOSE_PROJECT_NAME}_redis_data
+  traepe_api_vendor:
+    name: ${COMPOSE_PROJECT_NAME}_api_vendor
+  traepe_composer_cache:
+    name: ${COMPOSE_PROJECT_NAME}_composer_cache
+  traepe_mailpit_data:
+    name: ${COMPOSE_PROJECT_NAME}_mailpit_data
+  traepe_minio_data:
+    name: ${COMPOSE_PROJECT_NAME}_minio_data

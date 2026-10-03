@@ -14,3 +14,11 @@
 ## Consecuencias
 
 Dashboards técnicos y canales privados requieren autorización. Ningún componente introduce reglas comerciales durante Sprint 00.
+
+## Autorización técnica local aprobada — 3 de octubre de 2026
+
+El usuario aprobó una credencial técnica exclusiva de desarrollo en `.env.docker` ignorado, sin usuarios ni adelantar Sanctum. Horizon usa HTTP Basic; Reverb autoriza exclusivamente `private-technical.v1` mediante el mismo acceso técnico. Se deniega fuera de local, con secreto vacío/corto, credencial incorrecta o canal ajeno. Estar en local nunca basta para autorizar. Esto no define identidad ni permisos de negocio.
+
+## Fundación Sanctum de 00D — 3 de octubre de 2026
+
+Tras aprobar 00C, el usuario autorizó explícitamente 00D. Sanctum 4.3.3 queda instalado con configuración de hosts stateful locales, guard web y middleware cookie/CSRF en el grupo API. Se conserva la ruta nativa GET `/sanctum/csrf-cookie`. Pruebas verifican cookies, denegación sin autenticación, orígenes ajenos y rechazo/aceptación CSRF real sin el bypass habitual del entorno testing. No se publican flujos de identidad, tokens ni permisos de negocio, ni se modifica la credencial técnica de 00C.

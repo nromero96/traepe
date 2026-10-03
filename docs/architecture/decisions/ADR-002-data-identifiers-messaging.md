@@ -17,3 +17,13 @@
 ## Consecuencias
 
 Migraciones, contratos y pruebas deben verificar integridad, concurrencia, deduplicación y no exposición de IDs internos.
+
+## Concreción técnica de 00E — 3 de octubre de 2026
+
+El usuario aprobó 00D y autorizó 00E. Platform mantiene tablas privadas prefijadas para claves, outbox, inbox y operación/efecto ficticios. PostgreSQL garantiza bigint interno, ULID público válido/único, hashes SHA-256 válidos, estados, FK e índices de las consultas reales. Un trigger rechaza actualizar contenido/identidad del outbox o eliminar filas; solo los campos de entrega son mutables. El envelope se cifra con la clave ignorada de Laravel y su hash es inmutable.
+
+Idempotencia identifica `(scope_hash, actor_hash, key_hash)` y recibe expiración UTC explícita del llamador. Solo se almacena un fingerprint y una referencia pública, nunca la petición ni una respuesta HTTP sensible. La reserva, cambio ficticio, evento y referencia se confirman en una transacción; concurrencia usa unicidad y bloqueo de fila. Expiración no reutiliza ni borra automáticamente la clave. Las políticas comerciales de scope/actor, expiración, retención y resolución de respuesta requieren especificación antes de adoptar estas primitivas en un dominio.
+
+Inbox conserva tanto `UNIQUE(event_id)` aprobado como `UNIQUE(source,message_id)` exigido por el maestro §45. Deduplicación y efecto ficticio se guardan en la misma transacción. Publicación mediante job Redis/Horizon ocurre antes de marcar entrega; un crash entre ambos puede redeliver. `FOR UPDATE SKIP LOCKED` evita que dos dispatchers seleccionen el mismo lote simultáneamente; no se afirma entrega exactamente una vez.
+
+La migración es aditiva, transaccional y específica de PostgreSQL; rollback se verificó exclusivamente en bases temporales propias. Las tablas ficticias permiten demostrar atomicidad/efecto único sin anticipar Ordering, Payments ni consumidores comerciales. No definen finanzas, auditoría, retención productiva ni migraciones de otros módulos.

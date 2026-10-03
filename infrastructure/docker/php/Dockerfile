@@ -29,6 +29,8 @@ RUN apk add --no-cache \
 COPY --from=composer_binary /usr/bin/composer /usr/local/bin/composer
 COPY infrastructure/docker/php/conf.d/traepe.ini /usr/local/etc/php/conf.d/traepe.ini
 COPY infrastructure/docker/php/php-fpm.d/zz-traepe.conf /usr/local/etc/php-fpm.d/zz-traepe.conf
+COPY infrastructure/docker/php/runtime-entrypoint.sh /usr/local/bin/traepe-entrypoint
+RUN chmod 0755 /usr/local/bin/traepe-entrypoint
 
 WORKDIR /var/www/html
 
@@ -36,6 +38,8 @@ COPY apps/api/composer.json apps/api/composer.lock ./
 RUN composer install --no-interaction --no-scripts --prefer-dist
 
 COPY apps/api/ ./
+COPY docs/api/ /var/www/docs/api/
 RUN composer dump-autoload --no-interaction --no-scripts
 
+ENTRYPOINT ["/usr/local/bin/traepe-entrypoint"]
 CMD ["php-fpm", "-F"]

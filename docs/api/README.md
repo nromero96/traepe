@@ -26,6 +26,27 @@ Autenticación OTP; resolución de mercado; tiendas/catálogos; carrito/cotizaci
 
 Las rutas exactas del maestro se conservan como propuesta inicial, no como implementación. Antes de codificar se deberá producir un contrato versionado sin ampliar reglas de negocio.
 
+## Contrato técnico implementado en 00D
+
+[OpenAPI 3.0.3](openapi.yaml) describe exclusivamente readiness, firma técnica Reverb heredada de 00C y cookies CSRF de Sanctum. El archivo usa sintaxis JSON, subconjunto de YAML 1.2, para permitir su lectura sin instalar otro parser. Se valida contra el esquema oficial fijado y además contra rutas/respuestas reales.
+
+GET `/api/v1/health/ready` devuelve `data: {type: health, id: ready, attributes: {status, checks}}` y `meta.correlation_id`. El identificador `ready` identifica el diagnóstico técnico, no un registro persistido. `attributes.status` conserva los estados y códigos HTTP de 00C. Los consumidores del payload anterior deben cambiar `status`/`checks` por `data.attributes.status`/`data.attributes.checks`.
+
+Los errores REST usan `error: {code, message, details, correlation_id}`. Validación incluye `details: [{field, code, message}]`. Se conservan `Allow` en 405 y `Retry-After` en 429; 500 nunca devuelve mensaje de excepción, stack ni rutas, incluso con debug habilitado. Desde 00E, `X-Correlation-ID` conserva un ULID entrante válido en mayúsculas o genera uno nuevo cuando falta/es inválido. No refleja texto arbitrario. La correlación se propaga a logs, jobs y al evento técnico; no confiere autenticación ni autorización.
+
+El helper de colección usa `data[]` y `meta: {correlation_id, next_cursor, has_more, filters}`. No existe un endpoint de colección ni una consulta comercial en este checkpoint.
+
+POST `/api/v1/technical/broadcasting/auth` conserva la respuesta nativa `{auth}` de Pusher/Reverb probada y aprobada en 00C: es un adaptador de protocolo, no un recurso REST. Sus errores ahora usan el formato común. Conserva HTTP Basic local y el único canal `private-technical.v1`; no se convierte en un flujo de identidad. `/up` mantiene el diagnóstico nativo de Laravel fuera del contrato REST versionado.
+
+Sanctum 4.3.3 registra la base cookie/CSRF y `auth:sanctum`, conforme al maestro §60 y la [documentación oficial](https://laravel.com/framework/docs/13.x/sanctum). GET `/sanctum/csrf-cookie` inicializa cookies sin autenticar. `SANCTUM_STATEFUL_DOMAINS` contiene solo los hosts locales configurados; ajustar los puertos si cambia `TRAEPE_HTTP_PORT`. No hay login, OTP, MFA, usuarios nuevos, emisión de tokens, migración de tokens ni permisos comerciales. No se incorpora `HasApiTokens` al modelo generado por Laravel.
+
+```powershell
+docker compose --env-file .env.docker exec api php tests/Support/lint-openapi.php
+docker compose --env-file .env.docker exec api php artisan test
+```
+
+El lint usa el validador Draft-04 ya incluido en Composer 2.8.12 y el [esquema oficial](https://spec.openapis.org/oas/3.0/schema/2024-10-18), con prueba negativa de documento malformado. Véase [procedencia y licencia](schemas/README.md).
+
 ## Webhooks
 
 Validar tamaño, cuerpo crudo, timestamp, firma y cuenta; persistir inbox; responder 2xx a duplicados; procesar por job idempotente y enviar a dead-letter según política de reintentos.

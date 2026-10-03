@@ -1,4 +1,4 @@
-# Entorno local — Checkpoints 00A y 00B
+# Entorno local — Sprint 00
 
 ## Versiones aprobadas
 
@@ -36,20 +36,26 @@ Durante 00A, antes de PostgreSQL/Redis, se usaron temporalmente:
 - `MAIL_MAILER=log`;
 - sesiones: `file`.
 
-En 00B fueron sustituidas por `DB_CONNECTION=pgsql`, `CACHE_STORE=redis` y `QUEUE_CONNECTION=redis`. Continúan temporalmente `BROADCAST_CONNECTION=log`, `FILESYSTEM_DISK=local` y `MAIL_MAILER=log` hasta sus checkpoints autorizados. Consulta la [guía Docker](docker.md).
+En 00B fueron sustituidas por `DB_CONNECTION=pgsql`, `CACHE_STORE=redis` y `QUEUE_CONNECTION=redis`. 00C agrega `BROADCAST_CONNECTION=reverb`, `FILESYSTEM_DISK=s3` y `MAIL_MAILER=smtp`. Consulta la [guía Docker](docker.md).
 
 ## Validación actual
 
 ```powershell
-docker compose --env-file .env.docker config
+docker compose --env-file .env.docker config --quiet
 docker compose --env-file .env.docker up -d
 docker compose --env-file .env.docker exec api php artisan --version
-docker compose --env-file .env.docker exec api php artisan test
+docker compose --env-file .env.docker exec api composer quality
 ```
 
-La aplicación debe responder HTTP 200 en `http://localhost:8000` usando exclusivamente el stack Docker de 00B.
+La aplicación debe responder HTTP 200 en `http://localhost:8000/up` usando exclusivamente Docker. Para una copia nueva, seguir [instalación y calidad](README.md); el inicializador genera credenciales ignoradas sin sobrescribir entornos existentes.
 
 ## Seguridad
+
+00C configura correo local: `MAIL_MAILER=smtp`, `MAIL_SCHEME=smtp`, `MAIL_HOST=mailpit`, `MAIL_PORT=1025`, sin credenciales SMTP. Compose usa un remitente ficticio `.test`; no hay relay externo. `TRAEPE_MAILPIT_HTTP_PORT=11825` configura la UI publicada exclusivamente en `127.0.0.1`.
+
+DP-023 y DP-024 fueron resueltas por aprobación explícita. Completar en `.env.docker` con valores aleatorios independientes (mínimo 32 caracteres): `TRAEPE_TECHNICAL_PASSWORD`, `TRAEPE_REVERB_APP_KEY`, `TRAEPE_REVERB_APP_SECRET`, `TRAEPE_MINIO_ROOT_PASSWORD`, `TRAEPE_MINIO_APP_PASSWORD`. Mantener claves/passwords vacíos en las plantillas versionadas. Nunca imprimir `docker compose config` completo, porque interpola secretos: usar `config --quiet`.
+
+La credencial técnica usa usuario `technical` mediante HTTP Basic, solo en local. Reverb usa ID `traepe-local`, host interno `reverb:8080`, esquema `http` y orígenes permitidos `localhost`/`127.0.0.1`. No enviar credenciales por parámetros de URL. MinIO usa root exclusivamente en servidor/inicializador y usuario `traepe-local-app` limitado a `traepe-local` en Laravel. El disco S3 configura endpoint interno `http://minio:9000`, región `us-east-1` y path-style. No utilizar estas plantillas locales en producción.
 
 - `APP_DEBUG=false` es el default versionado.
 - Las sesiones se cifran.

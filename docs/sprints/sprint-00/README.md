@@ -43,7 +43,7 @@ Las tecnologías enumeradas están aprobadas en ADR-001 a ADR-005. CD, hosting, 
 - Reglas específicas de Tienda Siete o cualquier vertical.
 - CD, hosting o despliegue productivo.
 
-Platform y Shared se crearán como límites estructurales comprobables en 00D; los demás módulos permanecen solo documentados. Ninguno contendrá casos de uso ni reglas de negocio en este sprint.
+Platform y Shared se crearán como límites estructurales comprobables en 00D; los demás módulos permanecen solo documentados. Ninguno contendrá casos de uso comerciales ni reglas de negocio en este sprint; Platform incorpora únicamente rutinas y casos técnicos de entrega.
 
 ## Orden de ejecución
 
@@ -79,4 +79,6 @@ El orden detallado y las dependencias están en el [backlog](backlog.md).
 
 ## Estado de checkpoints
 
-Checkpoint 00A está aprobado y cerrado. S00-004 y S00-005 de 00B están implementadas y verificadas; no iniciar 00C hasta presentar pruebas, diff, archivos y riesgos de 00B y recibir aprobación explícita. DP-012, DP-013B y proveedores productivos permanecen fuera del alcance ejecutable.
+Checkpoint 00A está aprobado y cerrado. 00B fue autorizado y publicado el 3 de octubre de 2026; HEAD y origin/main coinciden en `a96ac04400bfe9d8d24ff142e537059dca813c48`. 00C fue aprobado explícitamente y 00D autorizado el 3 de octubre de 2026. 00D fue aprobado explícitamente el 3 de octubre de 2026; 00E fue aprobado explícitamente el 3 de octubre de 2026; 00F está implementado y validado localmente; cierre remoto pendiente, sin commit ni push. DP-023 y DP-024 están resueltas. 00F requiere evidencia y aprobación final. Véase [evidencia de 00E](checkpoint-00e-evidence.md). DP-012, DP-013B y proveedores productivos permanecen fuera del alcance ejecutable.
+
+Véase [evidencia de 00F](checkpoint-00f-evidence.md). Su cierre exige ejecución remota de GitHub Actions, revisión independiente y aprobación final; no se iniciará un sprint comercial automáticamente.

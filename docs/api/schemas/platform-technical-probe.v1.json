@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "urn:traepe:platform:technical-probe:v1",
+  "title": "platform.technical_probe.v1",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_name",
+    "version",
+    "aggregate",
+    "occurred_at",
+    "recorded_at",
+    "actor",
+    "correlation_id",
+    "causation_id",
+    "idempotency_key_hash",
+    "context",
+    "payload",
+    "metadata"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+    },
+    "event_name": {
+      "type": "string",
+      "enum": [
+        "platform.technical_probe.v1"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "enum": [
+        1
+      ]
+    },
+    "aggregate": {
+      "type": "object",
+      "required": [
+        "type",
+        "public_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "technical_probe"
+          ]
+        },
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+        }
+      }
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "\\+00:00$"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "\\+00:00$"
+    },
+    "actor": {
+      "type": "object",
+      "required": [
+        "type",
+        "public_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "system"
+          ]
+        },
+        "public_id": {
+          "type": "null"
+        }
+      }
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+    },
+    "causation_id": {
+      "type": "null"
+    },
+    "idempotency_key_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "context": {
+      "type": "object",
+      "required": [
+        "market_id",
+        "branch_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "market_id": {
+          "type": "null"
+        },
+        "branch_id": {
+          "type": "null"
+        }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "operation_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "schema_version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        }
+      }
+    }
+  }
+}

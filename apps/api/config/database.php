@@ -154,6 +154,8 @@ return [
         ],
 
         'default' => [
+            'timeout' => 1,
+            'read_timeout' => 2,
             'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'username' => env('REDIS_USERNAME'),
@@ -167,6 +169,8 @@ return [
         ],
 
         'cache' => [
+            'timeout' => 1,
+            'read_timeout' => 2,
             'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'username' => env('REDIS_USERNAME'),

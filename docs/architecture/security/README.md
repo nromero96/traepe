@@ -20,3 +20,8 @@ Mínimo privilegio, cifrado, rate limiting, CSP, CSRF, CORS cerrado, rotación d
 ## Datos
 
 No exponer IDs internos. Eliminar o anonimizar según política; nunca borrar historia financiera, eventos o auditoría que deban conservarse. Las decisiones concretas de retención y proveedores se mantienen pendientes hasta aprobación.
+
+
+## Observabilidad técnica 00E
+
+Los logs usan una lista cerrada de campos y mensajes técnicos; los datos del request y las excepciones completas se descartan. El evento ficticio del outbox se cifra con APP_KEY y su contenido e identidad son inmutables mediante trigger PostgreSQL. Redis recibe una referencia pública, sin payload. La correlación es trazabilidad, nunca autorización. Véase la [operación local](../../installation/docker.md#checkpoint-00e-correlación-y-entrega-técnica).

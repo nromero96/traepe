@@ -2,17 +2,22 @@ name: traepe
 
 services:
   api:
+    dns_opt: ["timeout:1", "attempts:1"]
     build:
       context: .
       dockerfile: infrastructure/docker/php/Dockerfile
-    image: traepe/php-fpm:8.4.24-00b
+    image: traepe/php-fpm:8.4.24-00f
     working_dir: /var/www/html
-    environment:
+    environment: &api_environment
       APP_ENV: local
       APP_DEBUG: "false"
+      LOG_CHANNEL: safe
+      LOG_LEVEL: info
       APP_KEY: ${TRAEPE_APP_KEY:?Set TRAEPE_APP_KEY in .env.docker}
       APP_TIMEZONE: UTC
+      SANCTUM_STATEFUL_DOMAINS: ${TRAEPE_SANCTUM_STATEFUL_DOMAINS:-localhost:8000,127.0.0.1:8000}
       DB_CONNECTION: pgsql
+      PGCONNECT_TIMEOUT: "2"
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_DATABASE: ${TRAEPE_POSTGRES_DB:-traepe}
@@ -24,12 +29,32 @@ services:
       REDIS_PASSWORD: ${TRAEPE_REDIS_PASSWORD:?Set TRAEPE_REDIS_PASSWORD in .env.docker}
       CACHE_STORE: redis
       QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: log
-      FILESYSTEM_DISK: local
-      MAIL_MAILER: log
+      BROADCAST_CONNECTION: reverb
+      TRAEPE_TECHNICAL_PASSWORD: ${TRAEPE_TECHNICAL_PASSWORD:?Set local technical password in .env.docker}
+      REVERB_APP_ID: traepe-local
+      REVERB_APP_KEY: ${TRAEPE_REVERB_APP_KEY:?Set Reverb key in .env.docker}
+      REVERB_APP_SECRET: ${TRAEPE_REVERB_APP_SECRET:?Set Reverb secret in .env.docker}
+      REVERB_HOST: reverb
+      REVERB_PORT: "8080"
+      REVERB_SCHEME: http
+      FILESYSTEM_DISK: s3
+      AWS_ACCESS_KEY_ID: traepe-local-app
+      AWS_SECRET_ACCESS_KEY: ${TRAEPE_MINIO_APP_PASSWORD:?Set MinIO app password in .env.docker}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_BUCKET: traepe-local
+      AWS_ENDPOINT: http://minio:9000
+      AWS_USE_PATH_STYLE_ENDPOINT: "true"
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      MAIL_SCHEME: smtp
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM_ADDRESS: probe@traepe.test
       COMPOSER_CACHE_DIR: /tmp/composer-cache
-    volumes:
+    volumes: &api_volumes
       - ./apps/api:/var/www/html
+      - ./docs/api:/var/www/docs/api:ro
       - traepe_api_vendor:/var/www/html/vendor
       - traepe_composer_cache:/tmp/composer-cache
     depends_on:
@@ -37,6 +62,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "SCRIPT_NAME=/fpm-ping SCRIPT_FILENAME=/fpm-ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 2>/dev/null | grep -q pong"]
       interval: 10s
@@ -113,6 +142,124 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  minio:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/minio/Dockerfile
+    image: traepe/minio:2025.10.15-00c
+    environment:
+      MINIO_ROOT_USER: traepe-local-root
+      MINIO_ROOT_PASSWORD: ${TRAEPE_MINIO_ROOT_PASSWORD:?Set MinIO root password in .env.docker}
+    ports:
+      - "127.0.0.1:${TRAEPE_MINIO_PORT:-19000}:9000"
+      - "127.0.0.1:${TRAEPE_MINIO_CONSOLE_PORT:-19001}:9001"
+    volumes:
+      - traepe_minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9000/minio/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - traepe_internal
+      - traepe_host
+    security_opt:
+      - no-new-privileges:true
+
+  minio-init:
+    image: traepe/minio:2025.10.15-00c
+    entrypoint: ["sh", "/initialize.sh"]
+    environment:
+      MINIO_ROOT_USER: traepe-local-root
+      MINIO_ROOT_PASSWORD: ${TRAEPE_MINIO_ROOT_PASSWORD:?Set MinIO root password in .env.docker}
+      MINIO_APP_USER: traepe-local-app
+      MINIO_APP_PASSWORD: ${TRAEPE_MINIO_APP_PASSWORD:?Set MinIO app password in .env.docker}
+    volumes:
+      - ./infrastructure/docker/minio/initialize.sh:/initialize.sh:ro
+      - ./infrastructure/docker/minio/policy.json:/policy.json:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - traepe_internal
+    security_opt:
+      - no-new-privileges:true
+
+  horizon:
+    dns_opt: ["timeout:1", "attempts:1"]
+    image: traepe/php-fpm:8.4.24-00f
+    working_dir: /var/www/html
+    command: ["php", "artisan", "horizon"]
+    environment: *api_environment
+    volumes: *api_volumes
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "artisan", "horizon:status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 45s
+    restart: unless-stopped
+    networks:
+      - traepe_internal
+    security_opt:
+      - no-new-privileges:true
+
+  reverb:
+    dns_opt: ["timeout:1", "attempts:1"]
+    image: traepe/php-fpm:8.4.24-00f
+    working_dir: /var/www/html
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    environment: *api_environment
+    volumes: *api_volumes
+    ports:
+      - "127.0.0.1:${TRAEPE_REVERB_PORT:-18080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "tests/Support/reverb-health.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 45s
+    restart: unless-stopped
+    networks:
+      - traepe_internal
+      - traepe_host
+    security_opt:
+      - no-new-privileges:true
+
+  mailpit:
+    image: axllent/mailpit:v1.27.4@sha256:df6c2541907e1be6fac21f509927cf6ed771617a1f4b361ef66d97bd05593d2d
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    ports:
+      - "127.0.0.1:${TRAEPE_MAILPIT_HTTP_PORT:-11825}:8025"
+    volumes:
+      - traepe_mailpit_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8025/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - traepe_internal
+      - traepe_host
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   traepe_internal:
     name: traepe_internal
@@ -131,3 +278,7 @@ volumes:
     name: traepe_api_vendor
   traepe_composer_cache:
     name: traepe_composer_cache
+  traepe_mailpit_data:
+    name: traepe_mailpit_data
+  traepe_minio_data:
+    name: traepe_minio_data

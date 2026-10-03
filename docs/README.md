@@ -24,6 +24,11 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 12. [Sprint 00](sprints/sprint-00/README.md)
 13. [Entorno base de instalación](installation/environment.md)
 14. [Docker Compose local](installation/docker.md)
+15. [Evidencia del Checkpoint 00C](sprints/sprint-00/checkpoint-00c-evidence.md)
+16. [Evidencia del Checkpoint 00D](sprints/sprint-00/checkpoint-00d-evidence.md)
+17. [Evidencia del Checkpoint 00E](sprints/sprint-00/checkpoint-00e-evidence.md)
+18. [Instalación y calidad](installation/README.md)
+19. [Evidencia del Checkpoint 00F](sprints/sprint-00/checkpoint-00f-evidence.md)
 
 ## Reglas de gobernanza
 
@@ -46,3 +51,5 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 | Design system y wireframes | 97–111 | `product/design-system.md` |
 | Preparación documental | Derivada de 1–112 | `sprints/preparation/` |
 | Sprint 00 ejecutable | 112 | `sprints/sprint-00/` |
+
+Evidencia ejecutable más reciente: [checkpoint 00F](sprints/sprint-00/checkpoint-00f-evidence.md), validado localmente; ejecución remota, revisión independiente y aprobación final pendientes.

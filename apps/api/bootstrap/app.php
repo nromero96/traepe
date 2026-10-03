@@ -1,5 +1,8 @@
 <?php
 
+use App\Shared\Http\ApiExceptionRenderer;
+use App\Shared\Http\CorrelationId;
+use App\Shared\Observability\ReportException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -9,11 +12,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            require __DIR__.'/../routes/technical.php';
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->prepend(CorrelationId::class);
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->report(fn (Throwable $exception) => app(ReportException::class)($exception))->stop();
+        $exceptions->render(fn (Throwable $exception, Request $request) => app(ApiExceptionRenderer::class)->render($exception, $request));
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

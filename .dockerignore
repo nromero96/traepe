@@ -11,3 +11,7 @@ apps/api/storage/framework/views/*
 apps/api/bootstrap/cache/*.php
 apps/api/database/*.sqlite*
 apps/api/.phpunit.result.cache
+.ci-cache
+.tmp
+apps/api/storage/framework/cache/phpstan
+apps/api/.phpunit.cache

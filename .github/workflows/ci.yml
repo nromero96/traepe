@@ -1,0 +1,46 @@
+name: Foundation CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: foundation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  foundation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: traepe-ci-${{ github.run_id }}-${{ github.run_attempt }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Composer download cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .ci-cache/composer
+          key: composer-linux-php84-${{ hashFiles('apps/api/composer.lock') }}
+          restore-keys: composer-linux-php84-
+      - name: Prepare disposable configuration
+        run: ./infrastructure/ci/Invoke-CI.ps1 -Stage Prepare -Project $env:COMPOSE_PROJECT_NAME
+      - name: Build and migrate fresh stack
+        run: ./infrastructure/ci/Invoke-CI.ps1 -Stage Build -Project $env:COMPOSE_PROJECT_NAME
+      - name: Blocking quality and integration checks
+        run: ./infrastructure/ci/Invoke-CI.ps1 -Stage Check -Project $env:COMPOSE_PROJECT_NAME
+      - name: Restart and verify persistence
+        run: ./infrastructure/ci/Invoke-CI.ps1 -Stage Restart -Project $env:COMPOSE_PROJECT_NAME
+      - name: Remove disposable resources
+        if: always()
+        run: ./infrastructure/ci/Invoke-CI.ps1 -Stage Cleanup -Project $env:COMPOSE_PROJECT_NAME

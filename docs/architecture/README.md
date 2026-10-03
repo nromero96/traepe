@@ -28,6 +28,18 @@ apps/api/app/
 
 Esos directorios no se crean en la fase documental.
 
+## Base ejecutable de 00D
+
+Solo `Platform` existe como módulo: Application contiene los puertos de health/generación y el caso técnico de readiness; Infrastructure adapta los servicios de Docker y escribe el scaffold; Interfaces expone readiness y `make:module`. No se crea Domain mientras no existan reglas de dominio que lo justifiquen.
+
+00E incorpora `Platform/Domain/Delivery` con fingerprint canónico, errores tipados de idempotencia y el evento técnico v1 validado/inmutable, sin framework. Application define los puertos de idempotencia, almacenamiento técnico, publicación y consumo; Infrastructure usa PostgreSQL/Redis/cifrado para implementarlos. Interfaces recibe comandos/jobs. Solo se implementa la operación ficticia `technical_probe`, sin reglas comerciales. Shared añade observabilidad de Laravel/Monolog y sigue fuera de las capas puras.
+
+`Shared/Http` contiene el contrato reutilizable de respuesta, errores y correlación por solicitud. Su dependencia de Laravel pertenece a la frontera HTTP; no es código apto para importar en Domain o Application. No se crean Money, entidades, eventos ni identificadores comerciales anticipados.
+
+`php artisan make:module Nombre` admite únicamente la lista de doce módulos aprobados, exige una raíz existente y rechaza un módulo existente, enlaces o nombres/rutas arbitrarios. Genera documentación de responsabilidades por capa y un provider PSR-4; no modifica `bootstrap/providers.php`, no genera reglas comerciales y no sobrescribe. Invocarlo solo al comenzar la implementación autorizada de ese módulo. Las pruebas lo ejecutan en una raíz temporal aislada y limpian exclusivamente su fixture; los once módulos futuros no existen en el árbol real.
+
+`App\\` mantiene su autoload PSR-4 existente. Platform registra sus puertos y comando mediante un provider explícito. Las pruebas automatizadas verifican Application sin framework/adaptadores, Interfaces sin acceso directo a Infrastructure, Shared sin dependencias de módulos y ausencia de módulos prematuros. Los jobs y accesos técnicos de 00B/00C conservan su ubicación para evitar una reorganización ajena a este incremento.
+
 ## Capas
 
 - **Domain:** entidades, value objects, políticas, estados, eventos y contratos; sin framework.

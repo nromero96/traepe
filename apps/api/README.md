@@ -4,9 +4,15 @@ Backend maestro y API pura de trae.pe, construido con Laravel 13 y PHP 8.4.
 
 ## Estado
 
-Checkpoint 00B conecta el framework base con PostgreSQL/PostGIS y Redis mediante Docker Compose. No incluye autenticación funcional, frontend, dominios comerciales ni servicios de checkpoints posteriores.
+Sprint 00 prepara exclusivamente la fundación técnica: Platform, infraestructura, contratos, observabilidad y entrega. No incluye identidad funcional, frontend ni dominios comerciales.
+
+00C está aprobado. 00D agrega Platform/Shared, `make:module`, respuestas/errores comunes, correlación HTTP, Sanctum 4.3.3 y [OpenAPI](../../docs/api/openapi.yaml). Laravel 13.34.0, CommonMark 2.10.3 y Flysystem 3.36.0 corrigen los avisos detectados con actualización explícitamente aprobada. No hay flujos de identidad ni endpoints comerciales. Véase [evidencia de 00D](../../docs/sprints/sprint-00/checkpoint-00d-evidence.md).
 
 ## Ejecución local
+
+00E incorpora correlación HTTP/jobs/eventos, logs JSON redactados y primitivas PostgreSQL de idempotencia/outbox/inbox. El productor y consumidor son exclusivamente ficticios. Véase [evidencia de 00E](../../docs/sprints/sprint-00/checkpoint-00e-evidence.md).
+
+00C: Horizon 5.50.0, Reverb 1.12.0 y Flysystem S3 3.35.3 operativos. Mailpit recibe SMTP local; UI `http://127.0.0.1:11825`. Horizon requiere usuario `technical` y contraseña local ignorada. Reverb autoriza solo el canal privado técnico v1; MinIO usa un bucket privado con credencial limitada. `/up` es liveness; `/api/v1/health/ready` es readiness sanitizada. Véase [evidencia](../../docs/sprints/sprint-00/checkpoint-00c-evidence.md).
 
 Desde la raíz del repositorio, sigue la [guía Docker](../../docs/installation/docker.md). Composer y Artisan se ejecutan dentro del contenedor PHP:
 
@@ -18,3 +24,6 @@ docker compose --env-file .env.docker exec api php artisan test
 ```
 
 La API queda disponible en `http://localhost:8000`. XAMPP, Apache, MySQL y el PHP instalado en Windows no son necesarios para trae.pe.
+
+
+00E está aprobado. 00F incorpora Pest 4.7.8, Larastan 3.12.2/PHPStan 2.2.16 y Pint con comandos Composer y CI aislada. La [guía de instalación](../../docs/installation/README.md) documenta instalación nueva, calidad, recuperación segura y reproducción del pipeline. La validación remota de GitHub y la aprobación final siguen pendientes.

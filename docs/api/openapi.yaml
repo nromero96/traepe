@@ -1,0 +1,514 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "trae.pe — API técnica",
+    "version": "1.0.0",
+    "description": "Checkpoint 00D. Maestro v1.6 §§58–60. Solo salud, CSRF y firma técnica local; sin identidad funcional ni rutas comerciales."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000",
+      "description": "Docker local"
+    }
+  ],
+  "paths": {
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "readinessV1",
+        "summary": "Estado de dependencias",
+        "security": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Readiness"
+          },
+          "405": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Readiness"
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Correlation-ID",
+            "in": "header",
+            "required": false,
+            "description": "ULID mayúsculo válido; cualquier otro formato se reemplaza sin reflejarlo.",
+            "schema": {
+              "$ref": "#/components/schemas/CorrelationId"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/technical/broadcasting/auth": {
+      "post": {
+        "operationId": "technicalBroadcastAuthV1",
+        "summary": "Firma del único canal técnico privado local",
+        "description": "DP-023: HTTP Basic exclusivo de desarrollo. La respuesta exitosa conserva el protocolo Pusher/Reverb, sin envelope. Fuera de local se deniega.",
+        "security": [
+          {
+            "LocalTechnicalBasic": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "socket_id",
+                  "channel_name"
+                ],
+                "properties": {
+                  "socket_id": {
+                    "type": "string",
+                    "pattern": "^[0-9]+\\.[0-9]+$"
+                  },
+                  "channel_name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "Solo private-technical.v1 se autoriza."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Firma Pusher/Reverb",
+            "headers": {
+              "X-Correlation-ID": {
+                "$ref": "#/components/headers/CorrelationId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "auth"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "auth": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/TechnicalDenied"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Correlation-ID",
+            "in": "header",
+            "required": false,
+            "description": "ULID mayúsculo válido; cualquier otro formato se reemplaza sin reflejarlo.",
+            "schema": {
+              "$ref": "#/components/schemas/CorrelationId"
+            }
+          }
+        ]
+      }
+    },
+    "/sanctum/csrf-cookie": {
+      "get": {
+        "operationId": "csrfCookie",
+        "summary": "Inicializar cookies CSRF de Sanctum",
+        "description": "Base técnica de sesión. No autentica ni crea usuarios.",
+        "security": [],
+        "responses": {
+          "204": {
+            "description": "Sin cuerpo; cookies XSRF-TOKEN y sesión.",
+            "headers": {
+              "X-Correlation-ID": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Cookies de sesión y CSRF administradas por Sanctum."
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Correlation-ID",
+            "in": "header",
+            "required": false,
+            "description": "ULID mayúsculo válido; cualquier otro formato se reemplaza sin reflejarlo.",
+            "schema": {
+              "$ref": "#/components/schemas/CorrelationId"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "LocalTechnicalBasic": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "Credencial local ignorada; no corresponde a identidad ni permisos de negocio."
+      }
+    },
+    "headers": {
+      "CorrelationId": {
+        "description": "ULID entrante válido conservado; se genera uno nuevo si está ausente o inválido. Nunca se refleja texto arbitrario.",
+        "schema": {
+          "$ref": "#/components/schemas/CorrelationId"
+        }
+      }
+    },
+    "responses": {
+      "Readiness": {
+        "description": "Ready, degraded o unavailable. 503 cuando alguna dependencia está caída.",
+        "headers": {
+          "X-Correlation-ID": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "no-store"
+              ]
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ReadinessResponse"
+            }
+          }
+        }
+      },
+      "ApiError": {
+        "description": "Error sanitizado. 404 también se aplica a cualquier ruta desconocida /api/v1; 405 conserva Allow.",
+        "headers": {
+          "X-Correlation-ID": {
+            "$ref": "#/components/headers/CorrelationId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "TechnicalDenied": {
+        "description": "Acceso técnico denegado, con WWW-Authenticate: Basic realm=\"traepe-local\".",
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            }
+          },
+          "X-Correlation-ID": {
+            "$ref": "#/components/headers/CorrelationId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Límite técnico alcanzado.",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "string"
+            }
+          },
+          "X-Correlation-ID": {
+            "$ref": "#/components/headers/CorrelationId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "CorrelationId": {
+        "type": "string",
+        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+      },
+      "Meta": {
+        "type": "object",
+        "required": [
+          "correlation_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "correlation_id": {
+            "$ref": "#/components/schemas/CorrelationId"
+          }
+        }
+      },
+      "ReadinessResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "health"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "enum": [
+                  "ready"
+                ]
+              },
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "status",
+                  "checks"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "ready",
+                      "degraded",
+                      "unavailable"
+                    ]
+                  },
+                  "checks": {
+                    "type": "object",
+                    "required": [
+                      "database",
+                      "cache",
+                      "storage",
+                      "queue",
+                      "realtime",
+                      "mail"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "database": {
+                        "type": "string",
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "cache": {
+                        "type": "string",
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "storage": {
+                        "type": "string",
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "queue": {
+                        "type": "string",
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "realtime": {
+                        "type": "string",
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "mail": {
+                        "type": "string",
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "field",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "correlation_id": {
+                "$ref": "#/components/schemas/CorrelationId"
+              }
+            }
+          }
+        }
+      },
+      "CollectionResponse": {
+        "description": "Contrato reutilizable, sin endpoint de colección en Sprint 00.",
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "id",
+                "attributes"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "attributes": {
+                  "type": "object"
+                },
+                "relationships": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "correlation_id",
+              "next_cursor",
+              "has_more",
+              "filters"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "correlation_id": {
+                "$ref": "#/components/schemas/CorrelationId"
+              },
+              "next_cursor": {
+                "type": "string",
+                "nullable": true
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "filters": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

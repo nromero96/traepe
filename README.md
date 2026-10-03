@@ -1,16 +1,17 @@
 # trae.pe
 
-Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 00A y 00B del Sprint 00 preparan la base del backend y su infraestructura local; todavía no existen funcionalidades comerciales.
+Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 00A a 00F del Sprint 00 preparan la base del backend, su infraestructura local y los contratos técnicos; todavía no existen funcionalidades comerciales.
 
 ## Estado actual
 
 - Documento maestro vigente: versión 1.6, 22 de agosto de 2026.
 - Arquitectura aprobada: monolito modular sobre Laravel 13 y PHP 8.4.
-- Backend base instalado en `apps/api`: Laravel 13.26.1 sobre PHP 8.4.
+- Backend base instalado en `apps/api`: Laravel 13.34.0 sobre PHP 8.4.
 - Interfaces futuras: cliente, comercio y administrador maestro como aplicaciones separadas.
-- S00-001 a S00-005 completadas; el Checkpoint 00B queda pendiente de aprobación antes de continuar.
+- 00B publicado; 00C aprobado; 00D aprobado; 00E aprobado; 00F implementado y validado localmente; cierre remoto pendiente. Sin commit ni push de 00C/00D/00E/00F.
 - Docker Compose ejecuta Nginx, PHP-FPM 8.4, PostgreSQL/PostGIS y Redis con imágenes fijadas.
-- Horizon, Reverb, MinIO, Mailpit, Sanctum y GitHub Actions aún no se instalaron ni configuraron.
+- Horizon, Reverb, MinIO y Mailpit operativos en Docker; dashboard y canal técnico protegidos mediante credencial local aprobada. MinIO se construye desde commits oficiales fijos, solo para desarrollo. Sanctum 4.3.3 configura la base cookie/CSRF; GitHub Actions está configurado en 00F; su ejecución remota espera autorización de publicación. Véase [evidencia de 00F](docs/sprints/sprint-00/checkpoint-00f-evidence.md).
+- Platform, Shared HTTP y generador modular probados; API técnica versionada con [OpenAPI](docs/api/openapi.yaml).
 - No se implementaron autenticación funcional ni dominios comerciales.
 
 ## Navegación
@@ -23,6 +24,7 @@ Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 0
 - [Eventos](docs/events/README.md)
 - [Producto](docs/product/README.md)
 - [Sprint 00](docs/sprints/sprint-00/README.md)
+- [Instalación y calidad](docs/installation/README.md)
 - [Instalación con Docker](docs/installation/docker.md)
 - [Guía para agentes y contribuciones](AGENTS.md)
 
@@ -33,8 +35,8 @@ La estructura muestra el estado actual y los destinos futuros:
 ```text
 apps/
   api/                  Backend maestro Laravel 13
-    app/Modules/        Platform se materializará en 00D
-    app/Shared/         Se materializará en 00D
+    app/Modules/        Solo Platform materializado
+    app/Shared/         Contratos HTTP transversales
   customer-web/         Web/PWA cliente
   merchant-dashboard/   Interfaz de comercio y sucursal
   admin-dashboard/      Interfaz exclusiva del administrador maestro

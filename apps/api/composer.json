@@ -3,20 +3,31 @@
     "name": "traepe/api",
     "type": "project",
     "description": "Backend maestro y API de la plataforma trae.pe.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.4",
         "laravel/framework": "^13.17",
-        "laravel/tinker": "^3.0"
+        "laravel/horizon": "^5.50",
+        "laravel/reverb": "^1.12",
+        "laravel/sanctum": "^4.3",
+        "laravel/tinker": "^3.0",
+        "league/flysystem-aws-s3-v3": "^3.35"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.0",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^12.5.12"
     },
     "autoload": {
@@ -43,8 +54,8 @@
             "@php artisan serve"
         ],
         "test": [
-            "@php artisan config:clear --ansi @no_additional_args",
-            "@php artisan test"
+            "@php artisan config:clear --no-ansi @no_additional_args",
+            "@php vendor/bin/pest --ci --testsuite=Unit,Feature"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -63,6 +74,20 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "test:integration": [
+            "@putenv TRAEPE_INTEGRATION_TESTS=1",
+            "@php vendor/bin/pest --ci --testsuite=Integration"
+        ],
+        "format": "@php vendor/bin/pint",
+        "format:check": "@php vendor/bin/pint --test",
+        "analyse": "@php vendor/bin/phpstan analyse --no-progress --memory-limit=1G",
+        "contract:check": "@php tests/Support/lint-openapi.php",
+        "quality": [
+            "@format:check",
+            "@analyse",
+            "@contract:check",
+            "@test"
         ]
     },
     "extra": {

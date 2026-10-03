@@ -4,7 +4,7 @@
 
 - Orden obligatorio salvo paralelización indicada por dependencias.
 - Estados: `BLOCKED_APPROVAL`, `READY`, `IN_PROGRESS`, `DONE`.
-- Checkpoint 00A está aprobado y cerrado. Checkpoint 00B está ejecutado y pendiente de aprobación; las tareas posteriores permanecen bloqueadas.
+- Checkpoint 00A está aprobado y cerrado. Checkpoint 00B fue autorizado y publicado el 3 de octubre de 2026. 00C fue aprobado explícitamente y 00D autorizado el 3 de octubre de 2026. 00D fue aprobado explícitamente y 00E autorizado el 3 de octubre de 2026, sin commit ni push. DP-023 y DP-024 están resueltas.
 - Las actividades PRE-001 a PRE-004 están cerradas fuera del sprint en [Preparación técnica](../preparation/README.md).
 
 ## Mapa de dependencias
@@ -106,7 +106,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** diferencias Windows/Linux, puertos ocupados, imágenes no fijadas o datos locales difíciles de recuperar.
 
-**Estado:** `DONE` — pendiente de aprobación del Checkpoint 00B.
+**Estado:** `DONE` — Checkpoint 00B autorizado y publicado el 3 de octubre de 2026.
 
 ## S00-005 — PostgreSQL, PostGIS y Redis
 
@@ -124,7 +124,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** privilegios insuficientes, extensiones ausentes o uso accidental de Redis como fuente de verdad.
 
-**Estado:** `DONE` — pendiente de aprobación del Checkpoint 00B.
+**Estado:** `DONE` — Checkpoint 00B autorizado y publicado el 3 de octubre de 2026.
 
 ## S00-006 — Horizon y base de colas
 
@@ -142,7 +142,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** acceso administrativo abierto, reintentos duplicados o configuración distinta entre local y CI.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — implementación y pruebas de 00C verificadas; checkpoint aprobado explícitamente.
 
 ## S00-007 — Reverb y tiempo real base
 
@@ -160,7 +160,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** secretos expuestos, canales públicos o falsa garantía de entrega.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — implementación y pruebas de 00C verificadas; checkpoint aprobado explícitamente.
 
 ## S00-008 — Storage S3 local y correo local
 
@@ -178,7 +178,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** diferencias entre MinIO y S3 productivo, buckets públicos o correos saliendo fuera del entorno local.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — implementación y pruebas de 00C verificadas; checkpoint aprobado explícitamente.
 
 ## S00-009 — Health checks de infraestructura
 
@@ -196,7 +196,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** healthchecks costosos, falsos positivos o exposición de infraestructura.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — implementación y pruebas de 00C verificadas; checkpoint aprobado explícitamente.
 
 ## S00-010 — Platform, Shared y generador modular
 
@@ -214,7 +214,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** carpetas ceremoniales vacías, Shared convertido en cajón de sastre o acoplamiento entre módulos.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — 00D validado y aprobado explícitamente.
 
 ## S00-011 — API base, respuestas y OpenAPI
 
@@ -232,7 +232,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** contrato prematuro, filtrado de excepciones o divergencia implementación/esquema.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — 00D validado y aprobado explícitamente.
 
 ## S00-012 — Correlation ID y logs estructurados
 
@@ -250,7 +250,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** colisiones, confianza en IDs maliciosos, cardinalidad excesiva o fuga de datos.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — 00E validado y aprobado explícitamente.
 
 ## S00-013 — Base técnica de idempotencia, outbox e inbox
 
@@ -268,7 +268,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** almacenar respuestas sensibles, crecimiento sin retención definida, carrera concurrente, mutación indebida del evento o confundir deduplicación técnica con una garantía de entrega que la cola no ofrece.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — 00E validado y aprobado explícitamente.
 
 ## S00-014 — Pest, Pint y Larastan/PHPStan
 
@@ -286,7 +286,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** versiones incompatibles, reglas demasiado laxas o CI lento.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `DONE` — herramientas y fallas controladas verificadas; aprobación final de 00F pendiente.
 
 ## S00-015 — Pipeline GitHub Actions
 
@@ -304,7 +304,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** diferencias con Docker local, caché obsoleta, permisos excesivos o consumo alto de minutos.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `IN_PROGRESS` — workflow y runner local verdes; falta ejecución remota tras autorizar publicación.
 
 ## S00-016 — Instalación documentada y checkpoint final
 
@@ -322,4 +322,4 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** documentación dependiente de conocimiento tácito, comandos destructivos ambiguos o éxito solo en una máquina.
 
-**Estado:** `BLOCKED_APPROVAL`.
+**Estado:** `IN_PROGRESS` — instalación/reinicio documentados y verificados; faltan revisión independiente y aprobación final.
