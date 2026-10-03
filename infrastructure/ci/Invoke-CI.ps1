@@ -63,6 +63,7 @@ function Build-CI {
 }
 
 function Check-CI {
+    Invoke-Compose -Arguments @('exec', '-T', '-u', 'www-data', 'api', 'php', 'tests/Support/verify-runtime-permissions.php')
     Invoke-Compose -Arguments @('exec', '-T', 'api', 'composer', 'quality')
     Invoke-Compose -Arguments @('exec', '-T', 'api', 'composer', 'test:integration')
     Invoke-Compose -Arguments @('exec', '-T', 'api', 'php', 'tests/Support/verify-quality-gates.php')

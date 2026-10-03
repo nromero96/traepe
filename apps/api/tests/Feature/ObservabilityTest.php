@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Shared\Observability\ReportException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Log;
@@ -73,6 +74,31 @@ class ObservabilityTest extends TestCase
         $this->assertTrue(Str::isUlid(Context::get('correlation_id')));
         $this->assertSame(['correlation_id'], array_keys(Context::all()));
         Context::flush();
+    }
+
+    public function test_exception_reporting_does_not_require_a_request_binding(): void
+    {
+        $path = sys_get_temp_dir().'/traepe-boot-'.bin2hex(random_bytes(8)).'.jsonl';
+        config(['logging.default' => 'safe', 'logging.channels.safe.path' => $path]);
+        Log::forgetChannel('safe');
+        Context::flush();
+        $request = app('request');
+        unset($this->app['request']);
+        try {
+            app(ReportException::class)(new RuntimeException('fake-bootstrap-secret'));
+            $contents = file_get_contents($path);
+            $record = json_decode(trim($contents), true, flags: JSON_THROW_ON_ERROR);
+            $this->assertSame('job.failed', $record['message']);
+            $this->assertTrue(Str::isUlid($record['context']['correlation_id']));
+            $this->assertStringNotContainsString('fake-bootstrap-secret', $contents);
+            $this->assertSame([], Context::all());
+        } finally {
+            $this->app->instance('request', $request);
+            Log::forgetChannel('safe');
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
     }
 }
 

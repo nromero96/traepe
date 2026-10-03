@@ -119,7 +119,7 @@ docker compose --env-file .env.docker exec api php artisan test
 
 El canal `safe` escribe JSON en `apps/api/storage/logs/technical.jsonl`. Solo conserva mensajes técnicos permitidos, ULID de correlación/evento/operación, contadores y tipo de excepción. Elimina mensajes libres, extra, headers, cookies, URL, payload, PII y detalles de excepción. El contexto de Redis transporta únicamente la correlación validada y se limpia entre jobs. Nginx registra JSON con estado, duración y correlación; su error log usa `emerg` para evitar que diagnósticos de requests incluyan URI o datos del cliente. Esto reduce detalle diagnóstico y se compensa con estados y errores sanitizados de aplicación.
 
-El entrypoint aplica grupo `www-data`, directorio de logs `2770` y archivo técnico `0660`, permitiendo escritura compartida de CLI/Horizon y PHP-FPM sin permisos universales.
+El entrypoint aplica grupo `www-data` y directorios `2770` a logs, caché, sesiones, vistas y `bootstrap/cache`; los archivos existentes de runtime usan `0660`. El bit setgid y `umask 0002` permiten escritura compartida de CLI/Horizon y PHP-FPM sin conceder escritura universal ni cambiar permisos del código fuente. CI verifica estos directorios y `/up` ejecutando la comprobación como `www-data` sobre el filesystem Linux.
 
 ```powershell
 docker compose --env-file .env.docker exec -T api php artisan migrate

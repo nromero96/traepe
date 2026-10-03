@@ -99,3 +99,10 @@ Referencias: [guía ejecutable](../../installation/README.md), [ADR-004](../../a
 ## Autorización de publicación — 3 de octubre de 2026
 
 Después de revisar este informe, el usuario autorizó explícitamente crear el commit acumulado de 00C–00F, publicar en main y verificar GitHub Actions. La validación remota se registrará con su URL y SHA verificados; no se declarará exitosa antes de que el run concluya.
+
+## Primera ejecución remota y corrección de Linux
+
+Publicación autorizada: commit `d0915268c87a7061176e80e3ed078f2e482799b0`. [Primer run](https://github.com/nromero96/traepe/actions/runs/37158080513) falló durante el arranque: Nginx unhealthy porque PHP-FPM no podía escribir vistas/caché en el filesystem nativo Linux. Build, instalación, auditoría y migraciones pasaron; la limpieza aislada concluyó correctamente.
+
+El entrypoint prepara únicamente directorios de runtime con grupo www-data, setgid y permisos compartidos. Se añade una comprobación CI ejecutada como www-data que escribe/lee/elimina sus propios archivos y verifica /up. La imagen sin bind mounts pasó esa comprobación. El reporte sanitizado también admite errores de bootstrap sin binding HTTP, cubierto por regresión. No se cambian reglas de negocio ni dependencias.
+Validación posterior: Pint 99 archivos, PHPStan nivel 8 sin errores, OpenAPI correcto, 27 pruebas Unit/Feature (758 aserciones) y 7 de integración PostgreSQL (67): 34 pruebas y 825 aserciones. Imagen corregida: sha256:7ee05ff08a2630bcc267f5a5fecd43f87b01a98ba71fa9d56dda1b458bdde4a2. Repetición remota pendiente de publicación de esta corrección.
