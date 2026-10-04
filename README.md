@@ -8,9 +8,9 @@ Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 0
 - Arquitectura aprobada: monolito modular sobre Laravel 13 y PHP 8.4.
 - Backend base instalado en `apps/api`: Laravel 13.34.0 sobre PHP 8.4.
 - Interfaces futuras: cliente, comercio y administrador maestro como aplicaciones separadas.
-- 00B publicado; 00C aprobado; 00D aprobado; 00E aprobado; 00F implementado y validado localmente; cierre remoto pendiente. Sin commit ni push de 00C/00D/00E/00F.
+- 00B publicado; 00C aprobado; 00D aprobado; 00E aprobado; 00F implementado y validado localmente y en GitHub Actions; revisión final pendiente. 00C–00F publicados con autorización explícita; GitHub Actions verde para `17784db`.
 - Docker Compose ejecuta Nginx, PHP-FPM 8.4, PostgreSQL/PostGIS y Redis con imágenes fijadas.
-- Horizon, Reverb, MinIO y Mailpit operativos en Docker; dashboard y canal técnico protegidos mediante credencial local aprobada. MinIO se construye desde commits oficiales fijos, solo para desarrollo. Sanctum 4.3.3 configura la base cookie/CSRF; GitHub Actions está configurado en 00F; su ejecución remota espera autorización de publicación. Véase [evidencia de 00F](docs/sprints/sprint-00/checkpoint-00f-evidence.md).
+- Horizon, Reverb, MinIO y Mailpit operativos en Docker; dashboard y canal técnico protegidos mediante credencial local aprobada. MinIO se construye desde commits oficiales fijos, solo para desarrollo. Sanctum 4.3.3 configura la base cookie/CSRF; GitHub Actions está configurado en 00F; su ejecución remota pasó tras la publicación autorizada. Véase [evidencia de 00F](docs/sprints/sprint-00/checkpoint-00f-evidence.md).
 - Platform, Shared HTTP y generador modular probados; API técnica versionada con [OpenAPI](docs/api/openapi.yaml).
 - No se implementaron autenticación funcional ni dominios comerciales.
 

@@ -106,3 +106,9 @@ Publicación autorizada: commit `d0915268c87a7061176e80e3ed078f2e482799b0`. [Pri
 
 El entrypoint prepara únicamente directorios de runtime con grupo www-data, setgid y permisos compartidos. Se añade una comprobación CI ejecutada como www-data que escribe/lee/elimina sus propios archivos y verifica /up. La imagen sin bind mounts pasó esa comprobación. El reporte sanitizado también admite errores de bootstrap sin binding HTTP, cubierto por regresión. No se cambian reglas de negocio ni dependencias.
 Validación posterior: Pint 99 archivos, PHPStan nivel 8 sin errores, OpenAPI correcto, 27 pruebas Unit/Feature (758 aserciones) y 7 de integración PostgreSQL (67): 34 pruebas y 825 aserciones. Imagen corregida: sha256:7ee05ff08a2630bcc267f5a5fecd43f87b01a98ba71fa9d56dda1b458bdde4a2. Repetición remota pendiente de publicación de esta corrección.
+
+## Resultado remoto verificado
+
+[GitHub Actions 37159042917](https://github.com/nromero96/traepe/actions/runs/37159042917) concluyó `success` para SHA `17784dbc12a00b24fb6de6d97d79268de2cf6409`. Checkout limpio, configuración desechable, build/migraciones, calidad e integración, fallas controladas, infraestructura real, alcance negativo, reinicio/persistencia y limpieza pasaron. S00-015 queda DONE. S00-016 conserva pendientes la revisión independiente y la aprobación final; este resultado no autoriza iniciar funcionalidades comerciales.
+
+Los ocho servicios de desarrollo permanecen saludables y sus seis volúmenes se conservaron. Tras recrear API, se reinició Nginx para refrescar la dirección del upstream. La comprobación de permisos como www-data pasó también en el stack local. El primer fallo remoto se conserva arriba como evidencia histórica, resuelto mediante el commit de corrección.

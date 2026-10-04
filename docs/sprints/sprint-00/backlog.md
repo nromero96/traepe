@@ -4,7 +4,7 @@
 
 - Orden obligatorio salvo paralelización indicada por dependencias.
 - Estados: `BLOCKED_APPROVAL`, `READY`, `IN_PROGRESS`, `DONE`.
-- Checkpoint 00A está aprobado y cerrado. Checkpoint 00B fue autorizado y publicado el 3 de octubre de 2026. 00C fue aprobado explícitamente y 00D autorizado el 3 de octubre de 2026. 00D fue aprobado explícitamente y 00E autorizado el 3 de octubre de 2026, sin commit ni push. DP-023 y DP-024 están resueltas.
+- Checkpoint 00A está aprobado y cerrado. Checkpoint 00B fue autorizado y publicado el 3 de octubre de 2026. 00C fue aprobado explícitamente y 00D autorizado el 3 de octubre de 2026. 00D fue aprobado explícitamente y 00E aprobado y 00C–00F publicados con autorización explícita el 3 de octubre de 2026. DP-023 y DP-024 están resueltas.
 - Las actividades PRE-001 a PRE-004 están cerradas fuera del sprint en [Preparación técnica](../preparation/README.md).
 
 ## Mapa de dependencias
@@ -304,7 +304,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** diferencias con Docker local, caché obsoleta, permisos excesivos o consumo alto de minutos.
 
-**Estado:** `IN_PROGRESS` — workflow y runner local verdes; falta ejecución remota tras autorizar publicación.
+**Estado:** `DONE` — workflow, reproducción local y [GitHub Actions](https://github.com/nromero96/traepe/actions/runs/37159042917) verdes para `17784dbc12a00b24fb6de6d97d79268de2cf6409`.
 
 ## S00-016 — Instalación documentada y checkpoint final
 
