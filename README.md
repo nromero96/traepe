@@ -12,7 +12,7 @@ Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 0
 - Docker Compose ejecuta Nginx, PHP-FPM 8.4, PostgreSQL/PostGIS y Redis con imágenes fijadas.
 - Horizon, Reverb, MinIO y Mailpit operativos en Docker; dashboard y canal técnico protegidos mediante credencial local aprobada. MinIO se construye desde commits oficiales fijos, solo para desarrollo. Sanctum 4.3.3 configura la base cookie/CSRF; GitHub Actions está configurado en 00F; su ejecución remota pasó tras la publicación autorizada. Véase [evidencia de 00F](docs/sprints/sprint-00/checkpoint-00f-evidence.md).
 - Platform, Shared HTTP y generador modular probados; API técnica versionada con [OpenAPI](docs/api/openapi.yaml).
-- Identity backend local (01A) implementado y validado, pendiente revisión/publicación: OTP, consentimiento de prueba y sesión cookie. Sin frontend, SMS real ni dominios comerciales.
+- Identity backend local (01A) implementado y validado, aprobado y publicado; CI verde para 748e937: OTP, consentimiento de prueba y sesión cookie. Sin frontend, SMS real ni dominios comerciales.
 
 ## Navegación
 

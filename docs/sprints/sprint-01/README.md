@@ -35,4 +35,4 @@ DP-025 está resuelta por aprobación explícita de todos los parámetros. 00F y
 Este documento es una propuesta ejecutable de alcance, no una nueva regla de negocio.
 ## Implementación preparada
 
-Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación local](local-runbook.md). Implementación validada localmente; revisión y publicación pendientes.
+Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación local](local-runbook.md). Implementación aprobada por el usuario, publicada y validada localmente y en GitHub Actions para 748e937.

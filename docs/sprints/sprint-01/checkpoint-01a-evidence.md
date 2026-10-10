@@ -37,3 +37,7 @@ HTTP real vía Nginx: GET /api/v1/auth/me anónimo devuelve 401; POST /api/v1/au
 ## Aprobación y publicación autorizada — 10 de octubre de 2026
 
 El usuario respondió «apruebo y autorizo» a la aprobación de 01A, commit/push y validación en GitHub Actions. Se publicarán el checkpoint y la documentación acumulada del cierre de Sprint 00. El resultado remoto se comprobará para el SHA publicado antes de declarar éxito.
+
+## Resultado remoto verificado
+
+[GitHub Actions 38041044996](https://github.com/nromero96/traepe/actions/runs/38041044996) concluyó completed/success para SHA 748e9371abf9f004434f5b31e041a1ea9a2a2060. Build y migraciones desde checkout, calidad/integración, reinicio/persistencia y limpieza completos. La publicación de 01A queda validada. Las menciones anteriores a publicación pendiente describen el estado antes de esta ejecución. No se habilitan proveedores ni operación productiva.
