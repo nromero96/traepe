@@ -39,3 +39,7 @@ Identity local 01A–01F está aprobado/publicado; [CI de 01F](https://github.co
 ## Estado posterior — 02B, 10 de octubre de 2026
 
 02A se publicó en `edc1b0f` con [CI correcta](https://github.com/nromero96/traepe/actions/runs/38070750987). 02B incorpora GET `/api/v1/marketplace/local-coverage-probe` en local/testing, con validación, bloqueo de otros entornos y contrato OpenAPI 1.3.0; reutiliza los polígonos y política aprobados. Es una lectura pública de fixtures sin sesión ni datos comerciales. [Operación y evidencia de 02B](../../docs/sprints/sprint-02/checkpoint-02b-evidence.md).
+
+## Estado posterior — 02C, 10 de octubre de 2026
+
+02B se publicó en `b4b81f7` con [CI correcta](https://github.com/nromero96/traepe/actions/runs/38075664329). DP-028 y [ADR-006](../../docs/architecture/decisions/ADR-006-marketplace-geographic-foundation.md) aprueban la base geográfica vacía de Marketplace: countries, markets y service_zones, mercados/zonas solo draft y zonas solo fixture, PostGIS geography(MultiPolygon,4326). La migración está aplicada localmente; no hay seeds ni activación y las sondas siguen usando los fixtures inline. [Plan aprobado](../../docs/sprints/sprint-02/checkpoint-02c-plan.md) y [evidencia de 02C](../../docs/sprints/sprint-02/checkpoint-02c-evidence.md): 123 pruebas y 2766 aserciones correctas. El usuario aprobó el checkpoint y autorizó commit/push/CI; la publicación se ejecuta bajo esa autorización. DP-001 continúa abierta.

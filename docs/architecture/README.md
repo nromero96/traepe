@@ -60,6 +60,8 @@ Los checks de ausencia de módulos prematuros admiten exactamente Identity, Mark
 
 02B agrega una sonda HTTP local en Interfaces y su registro en el provider existente. El controlador valida formato e invoca LocalCoverageProbe; la selección permanece en Domain y el acceso espacial en Infrastructure. El gate de entorno se ejecuta antes de resolver el puerto, incluso al reutilizar rutas cacheadas. No introduce dependencias entre módulos ni tablas o reglas operativas.
 
+02C incorpora countries, markets y service_zones privadas de Marketplace, conforme a DP-028 y [ADR-006](decisions/ADR-006-marketplace-geographic-foundation.md). La migración crea una base vacía; mercados/zonas admiten solo draft y las zonas solo tipo fixture. No incorpora modelos ni puertos sin uso. Las sondas siguen usando sus fixtures inline y no consultan estos borradores; la activación real depende de DP-001 y de decisiones posteriores.
+
 ## Índice de detalle
 
 - [Modelo de datos](data-model/README.md)

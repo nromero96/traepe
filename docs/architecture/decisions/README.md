@@ -16,6 +16,7 @@
 - [ADR-003 — Infraestructura local](ADR-003-local-infrastructure.md)
 - [ADR-004 — Calidad y CI](ADR-004-quality-ci.md)
 - [ADR-005 — Componentes oficiales de Laravel](ADR-005-laravel-components.md)
+- [ADR-006 — Base geográfica vacía de Marketplace](ADR-006-marketplace-geographic-foundation.md)
 
 ## Pendientes
 

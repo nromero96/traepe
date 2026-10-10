@@ -29,3 +29,9 @@ El detalle de tablas, campos, cardinalidades, agregados e índices permanece en 
 ## Directorio de Identity — 01C
 
 La representación técnica de roles/capacidades y asignaciones/excepciones de §35 se materializa en identity_roles, identity_permissions, identity_role_permissions, identity_role_assignments e identity_permission_grants. Referencias públicas ULID, claves internas bigint, scope exacto y efectos/expiry conforme a DP-026. Las tablas se crean vacías; no hay seeds ni mutaciones administrativas. Véase [evidencia de 01C](../../sprints/sprint-01/checkpoint-01c-evidence.md). Scopes de otros módulos se validarán por contratos del dueño del recurso; no se consultan tablas privadas cruzadas.
+
+## Base geográfica vacía — 02C
+
+DP-028 y [ADR-006](../decisions/ADR-006-marketplace-geographic-foundation.md) aprobaron countries, markets y service_zones privadas de Marketplace, inicialmente vacías, mercados/zonas solo draft y zone_type solo fixture. La migración aditiva aplicada localmente conserva geography(MultiPolygon,4326) de §56, requerido/válido/no vacío/2D e índice GIST; bigint interno, ULID público válido/único, timestamps UTC, FK restrict e índices de referencia. País exige código único de dos letras mayúsculas; monedas tres letras mayúsculas. Timezone y moneda de mercado son explícitos; version>=1 y priority entero con signo.
+
+El [plan aprobado](../../sprints/sprint-02/checkpoint-02c-plan.md) detalla campos/checks y límites; la [evidencia de 02C](../../sprints/sprint-02/checkpoint-02c-evidence.md) registra pruebas y aplicación sin resetear desarrollo. No hay seeds, administración ni selección de borradores por las sondas. Estas restricciones provisionales no definen estados/tipos operativos; DP-001 sigue bloqueando activación real. La migración es forward-only: eliminar datos requiere un plan revisado.

@@ -34,6 +34,10 @@ try {
     foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Identity', 'Marketplace', 'Platform'], 'only approved Identity, Marketplace and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));
     foundationAssert(array_intersect(['orders', 'payments', 'products', 'stores', 'inventories'], $tables) === [], 'no commercial tables');
+    foreach (['countries', 'markets', 'service_zones'] as $table) {
+        foundationAssert(in_array($table, $tables, true) && DB::table($table)->count() === 0, 'approved geographic foundation table remains empty');
+    }
+    foundationAssert(array_intersect(['merchants', 'branches', 'zone_rules', 'addresses', 'geocoding_results'], $tables) === [], 'no operational Marketplace tables');
     foundationAssert(DB::table('users')->whereNotNull('phone_key')->whereNull('public_id')->count() === 0, 'local identities have public identifiers');
     foundationAssert(config('logging.default') === 'safe' && config('app.debug') === false, 'safe logging and debug disabled');
     $log = file_get_contents(storage_path('logs/technical.jsonl'));

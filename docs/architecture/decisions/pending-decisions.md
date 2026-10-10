@@ -83,3 +83,15 @@ DP-011, DP-013A, DP-014, DP-014A y DP-015 a DP-021 quedaron resueltas mediante A
 - **Alcance:** 02A, núcleo puro, adaptador PostGIS de lectura con polígonos sintéticos y comando técnico exclusivamente local/testing. No habilita cobertura comercial, horarios, tarifas ni mercados reales. Las reglas productivas siguen condicionadas por DP-001 y la especificación operativa correspondiente.
 - **Referencias técnicas:** [ST_Covers 3.5](https://postgis.net/docs/manual-3.5/ST_Covers.html), [ST_MakePoint 3.5](https://postgis.net/docs/manual-3.5/ST_MakePoint.html). Documentan el predicado inclusivo y X=longitud/Y=latitud; no sustituyen aprobación de reglas de negocio.
 - **Continuidad técnica:** tras aprobar/publicar 02A, el usuario solicitó continuar. 02B reutiliza estos criterios y los mismos polígonos mediante una sonda HTTP local de solo lectura. No modifica la decisión ni habilita mercados/zones operativos; DP-001 permanece abierta.
+
+## DP-028 — Base geográfica vacía y propiedad de datos
+
+- **Estado:** resuelta por aprobación explícita del usuario el 10 de octubre de 2026; detectada al continuar después de 02B.
+- **Fuente:** maestro v1.6 §§32–34, 54–57. Define countries/markets/service_zones y estados controlados, pero no enumera estados de mercado/zona ni zone_type. La agrupación countries/markets en oleada base Platform no fija inequívocamente su dueño modular.
+- **Límite vigente:** DP-001 bloquea mercados/zones operativos; la excepción ficticia de 02A/02B no autoriza persistirlos. No se puede ampliar ese alcance ni elegir estados o propiedad silenciosamente.
+- **Propuesta concreta:** Marketplace dueño de countries, markets y service_zones; tres tablas inicialmente vacías, sin seeds, administración ni activación; mercados/zonas solo draft y zone_type solo fixture; bigint/ULID, FK restrict e índices, polygon geography(MultiPolygon,4326) válido/no vacío/2D. Resto de campos/checks detallado en el plan.
+- **Resolución aprobada:** el usuario respondió «Aprobar plan 02C (recomendado)» a la creación de estas tablas vacías, propiedad de Marketplace, mercados/zonas solo draft, zone_type=fixture y PostGIS SRID 4326, sin seeds ni activación real. [ADR-006](ADR-006-marketplace-geographic-foundation.md) registra propiedad y restricciones aprobadas.
+- **Bloqueo resuelto:** implementación y aplicación local aditiva de la base 02C, con pruebas aisladas previas. La aprobación de datos no autorizaba publicación; después de presentar la evidencia terminada, el usuario respondió «Apruebo y autorizo» a la aprobación final de 02C y su commit, push y CI el 10 de octubre de 2026. Véase [registro de aprobación](../../sprints/sprint-02/checkpoint-02c-evidence.md#aprobación-y-publicación-autorizadas).
+- **No resuelve:** DP-001, reglas/tipos/estados operativos, país/moneda/timezone del piloto, horarios, zone_rules ni proveedores productivos.
+- **Plan revisable:** [Checkpoint 02C](../../sprints/sprint-02/checkpoint-02c-plan.md).
+- **Seguimiento:** resuelta directamente por el usuario; no queda una nueva asignación abierta.

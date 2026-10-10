@@ -22,6 +22,9 @@ final class LocalCoverageHttpPostgisTest extends PostgresTestCase
         foreach (['users', 'identity_audit', 'identity_permission_grants'] as $table) {
             $this->assertSame(0, DB::table($table)->count());
         }
-        $this->assertSame([], DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('markets', 'service_zones', 'merchants', 'branches')"));
+        foreach (['countries', 'markets', 'service_zones'] as $table) {
+            $this->assertSame(0, DB::table($table)->count());
+        }
+        $this->assertSame([], DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('merchants', 'branches')"));
     }
 }
