@@ -2,11 +2,13 @@
 
 namespace Tests\Integration;
 
+use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -230,6 +232,46 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->assertSame(0, DB::table('identity_audit')->where('operation', 'session_ended')->count());
         $this->assertSame(1, DB::table('identity_audit')->count());
         $this->assertPrivateLogs(['+12025550132', $id, $token, $copy->getCookieByName(self::COOKIE)->getValue()]);
+    }
+
+    public function test_real_cookie_permission_blocking_logout_and_replay_for_persisted_coverage(): void
+    {
+        $url = '/api/v1/marketplace/local-persisted-coverage-probe';
+        $this->startServer();
+        $this->send('GET', $url, 401);
+        [$actor] = $this->login('+12025550133');
+        $this->send('GET', $url.'?market_public_id=invalid&longitude=invalid', 403);
+        $permission = DB::table('identity_permissions')->insertGetId(['public_id' => (string) Str::ulid(), 'code' => LocalPersistedCoverageAccess::CAPABILITY]);
+        $user = DB::table('users')->where('public_id', $actor)->value('id');
+        DB::table('identity_permission_grants')->insert(['public_id' => (string) Str::ulid(), 'user_id' => $user, 'permission_id' => $permission, 'scope_type' => 'platform', 'scope_public_id' => LocalPersistedCoverageAccess::SCOPE_PUBLIC_ID, 'effect' => 'allow']);
+        $country = DB::table('countries')->insertGetId(['public_id' => (string) Str::ulid(), 'code' => 'ZZ', 'name' => 'Synthetic Country', 'currency_code' => 'ZZZ']);
+        $market = (string) Str::ulid();
+        $marketId = DB::table('markets')->insertGetId(['public_id' => $market, 'country_id' => $country, 'name' => 'Synthetic Market', 'timezone' => 'Etc/UTC', 'currency_code' => 'XXX']);
+        $zone = (string) Str::ulid();
+        DB::insert('INSERT INTO service_zones (public_id, market_id, name, zone_type, polygon, priority) VALUES (?, ?, ?, ?, ST_GeogFromText(?), ?)', [$zone, $marketId, 'Synthetic Zone', 'fixture', 'SRID=4326;MULTIPOLYGON(((0 0,4 0,4 4,0 4,0 0)))', 10]);
+        $path = $url.'?'.http_build_query(['market_public_id' => $market, 'longitude' => '0.5', 'latitude' => '0.5']);
+        $snapshot = function (): array {
+            $hashes = [];
+            foreach (['countries', 'markets', 'service_zones', 'users', 'identity_permissions', 'identity_permission_grants'] as $table) {
+                $hashes[$table] = hash('sha256', DB::table($table)->orderBy('id')->get()->toJson());
+            }
+
+            return $hashes;
+        };
+        $before = $snapshot();
+        $response = $this->send('GET', $path, 200);
+        $this->assertSame(['status' => 'selected', 'zone_id' => $zone], $this->body($response)['data']['attributes']);
+        $this->assertTrue(str_contains($response->getHeaderLine('Cache-Control'), 'no-store'));
+        $this->assertSame($before, $snapshot());
+        DB::table('users')->where('id', $user)->update(['status' => 'blocked']);
+        $this->send('GET', $path, 403);
+        DB::table('users')->where('id', $user)->update(['status' => 'active']);
+        $this->send('GET', $path, 200);
+        $copy = new CookieJar(false, $this->cookies->toArray());
+        $this->send('POST', '/api/v1/auth/logout', 200, token: $this->token());
+        $this->send('GET', $path, 401);
+        $this->send('GET', $path, 401, client: $this->clientFor($copy));
+        $this->assertPrivateLogs(['+12025550133', $path]);
     }
 
     private function assertPrivateLogs(#[\SensitiveParameter] array $secrets): void

@@ -9,6 +9,21 @@ use Tests\TestCase;
 
 class ArchitectureTest extends TestCase
 {
+    /** DP-030: only these two Infrastructure adapters may use Identity's public contract. */
+    private const CROSS_MODULE_CONTRACTS = [
+        'Marketplace/Infrastructure/Coverage/IdentityLocalPersistedCoverageAccess.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthenticatedActorDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthorizationDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\PermissionService',
+        ],
+        'Marketplace/Infrastructure/Coverage/LocalPersistedCoverageResourceResolver.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\ResourceContextResolver',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceContext',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceReference',
+            'App\\Modules\\Identity\\Domain\\Authorization\\Scope',
+        ],
+    ];
+
     public function test_platform_provider_boots_and_registered_port_resolves_to_its_adapter(): void
     {
         $this->assertInstanceOf(DependencyHealth::class, app(DependencyProbe::class));
@@ -37,9 +52,11 @@ class ArchitectureTest extends TestCase
                     $this->assertStringNotContainsString('\\Infrastructure\\', $reference, $path);
                 }
                 if (str_starts_with($reference, 'App\\Modules\\')) {
-                    $module = explode('/Modules/', $path)[1];
-                    $module = explode('/', $module)[0];
-                    $this->assertStringStartsWith('App\\Modules\\'.$module.'\\', $reference, 'Unapproved cross-module dependency: '.$path);
+                    $relative = explode('/Modules/', $path)[1];
+                    $module = explode('/', $relative)[0];
+                    if (! str_starts_with($reference, 'App\\Modules\\'.$module.'\\')) {
+                        $this->assertContains($reference, self::CROSS_MODULE_CONTRACTS[$relative] ?? [], 'Unapproved cross-module dependency: '.$path);
+                    }
                 }
             }
         }

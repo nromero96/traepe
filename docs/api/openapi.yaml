@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.3.0",
-    "description": "Platform, Identity cliente y sonda Marketplace de cobertura ficticia local/testing. Identity usa sesión cookie Sanctum y CSRF; el diagnóstico público de solo lectura no crea sesión ni habilita mercados reales."
+    "version": "1.4.0",
+    "description": "Platform, Identity cliente y diagnósticos Marketplace local/testing. La sonda inline es pública; leer borradores persistidos exige sesión cookie y permiso técnico exacto. No habilita mercados reales."
   },
   "servers": [
     {
@@ -556,6 +556,108 @@
           }
         }
       }
+    },
+    "/api/v1/marketplace/local-persisted-coverage-probe": {
+      "get": {
+        "operationId": "localPersistedCoverageProbeV1",
+        "summary": "Diagnosticar borradores geográficos con autorización local",
+        "description": "Solo local/testing; DP-030: sesión cookie existente, capacidad marketplace.local.persisted_coverage.read y scope/recurso técnicos fijos del servidor. Denegación por defecto y permisos DP-026. Consulta únicamente el mercado draft indicado y sus zonas draft/fixture mediante geography nativa; bordes incluidos, máxima prioridad y empate rechazado. Selected es diagnóstico, sin elegibilidad operativa. 30 solicitudes/minuto por actor, presupuesto independiente. Metadatos técnicos de sesión/limitador pueden actualizarse; sin escrituras de negocio. Cabeceras Authorization no habilitan acceso.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market_public_id",
+            "in": "query",
+            "required": true,
+            "description": "ULID del mercado draft solicitado. Conocerlo no concede permiso.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "description": "Longitud WGS84 del ejercicio sintético.",
+            "schema": {
+              "maximum": 180,
+              "type": "number",
+              "minimum": -180
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "description": "Latitud WGS84 del ejercicio sintético.",
+            "schema": {
+              "maximum": 90,
+              "type": "number",
+              "minimum": -90
+            }
+          },
+          {
+            "name": "X-Correlation-ID",
+            "in": "header",
+            "required": false,
+            "description": "ULID mayúsculo válido; cualquier otro formato se reemplaza sin reflejarlo.",
+            "schema": {
+              "$ref": "#/components/schemas/CorrelationId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagnóstico local: market_not_found, outside, selected o ambiguous. Solo selected contiene ULID de zona.",
+            "headers": {
+              "X-Correlation-ID": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "Cache-Control": {
+                "schema": {
+                  "enum": [
+                    "no-store, private"
+                  ],
+                  "type": "string"
+                },
+                "description": "No almacenar el diagnóstico."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalPersistedCoverageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "405": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -995,6 +1097,68 @@
                     "nullable": true,
                     "type": "string",
                     "description": "ULID de fixture cuando status es selected; null para outside/ambiguous.",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "LocalPersistedCoverageResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "enum": [
+                  "local_persisted_coverage_probe"
+                ],
+                "type": "string"
+              },
+              "id": {
+                "enum": [
+                  "local-persisted-coverage-v1"
+                ],
+                "type": "string",
+                "description": "Versión del fixture técnico; no ID de una entidad persistida."
+              },
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "status",
+                  "zone_id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "market_not_found",
+                      "outside",
+                      "selected",
+                      "ambiguous"
+                    ],
+                    "type": "string"
+                  },
+                  "zone_id": {
+                    "nullable": true,
+                    "type": "string",
+                    "description": "ULID de zona draft/fixture cuando status es selected; null para los demás estados técnicos.",
                     "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
                   }
                 }

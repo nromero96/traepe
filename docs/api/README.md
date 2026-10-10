@@ -55,6 +55,16 @@ OpenAPI 1.3.0 incorpora GET `/api/v1/marketplace/local-coverage-probe`. Valida q
 
 Formato/rango inválido: 422; fallo interno: 500 sanitizado; límite técnico propio de 30/minuto por IP: 429 con Retry-After; métodos de mutación: 405 con Allow GET/HEAD. Fuera de local/testing: 404 antes de validación, throttling o PostgreSQL, incluso con una caché local reutilizada. No crea usuarios, grants, mercados o zonas operativas. Véase [evidencia de 02B](../sprints/sprint-02/checkpoint-02b-evidence.md).
 
+## Diagnóstico de borradores persistidos autorizado — 02E
+
+OpenAPI 1.4.0 agrega GET `/api/v1/marketplace/local-persisted-coverage-probe` exclusivamente local/testing. Query: market_public_id ULID mayúsculo válido, longitude [-180,180], latitude [-90,90], números finitos. Reutiliza 02D, con geography nativa sobre un mercado draft y sus zonas draft/fixture. Las sondas anteriores conservan su fuente inline y contrato.
+
+La sesión cookie existente se autentica mediante web/auth:web; cabeceras Authorization no habilitan acceso. Capacidad exacta marketplace.local.persisted_coverage.read y scope/recurso técnicos fijos del [plan aprobado](../sprints/sprint-02/checkpoint-02e-plan.md), resueltos por servidor. Sin sesión devuelve 401; denegación DP-026 devuelve 403 antes de validar la entrada o consultar Marketplace. La capacidad autoriza el diagnóstico de cualquier mercado draft indicado, aislando su consulta, sin permisos operativos por mercado ni herencia.
+
+200 devuelve `data: {type: local_persisted_coverage_probe, id: local-persisted-coverage-v1, attributes: {status, zone_id}}` y meta.correlation_id. market_not_found/outside/ambiguous llevan zone_id=null; selected devuelve el ULID de zona draft/fixture, sin elegibilidad de servicio. Formato/rango inválido: 422; límite propio 30/minuto por actor: 429 con Retry-After; fallo interno: 500 genérico. Respuestas locales no-store/private, sin coordenadas, SQL, permisos o bigint. Fuera del entorno permitido: 404, incluso con caché de rutas local reutilizada, antes de sesión/autorización/consulta. Los metadatos técnicos de sesión y limitador pueden actualizarse.
+
+No hay API de asignación, usuarios/permisos nuevos en desarrollo, seeds ni activación. Pruebas positivas con sesión y datos reales únicamente en bases temporales propias. `/markets/resolve` sigue sin implementar y DP-001 abierta. [Evidencia de 02E](../sprints/sprint-02/checkpoint-02e-evidence.md).
+
 ## Webhooks
 
 Validar tamaño, cuerpo crudo, timestamp, firma y cuenta; persistir inbox; responder 2xx a duplicados; procesar por job idempotente y enviar a dead-letter según política de reintentos.

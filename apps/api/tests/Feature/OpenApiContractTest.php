@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Modules\Identity\Infrastructure\IdentityUser;
+use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
+use App\Modules\Marketplace\Application\Coverage\LocalPersistedZoneSource;
 use App\Modules\Marketplace\Application\Coverage\LocalZoneSource;
 use App\Modules\Marketplace\Domain\Coverage\ZoneCandidate;
 use App\Modules\Platform\Application\Health\DependencyProbe;
@@ -46,7 +49,7 @@ class OpenApiContractTest extends TestCase
             }
         }
         sort($documented);
-        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/technical/broadcasting/auth'];
+        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /api/v1/marketplace/local-persisted-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/technical/broadcasting/auth'];
         $this->assertSame($expected, $documented);
         $actual = [];
         foreach (Route::getRoutes() as $route) {
@@ -102,6 +105,25 @@ class OpenApiContractTest extends TestCase
         }
         $invalid = $this->getJson('/api/v1/marketplace/local-coverage-probe?longitude=private-input&latitude=0')->assertUnprocessable();
         $this->assertSchema(json_decode($invalid->getContent()), $this->document['components']['schemas']['ErrorResponse']);
+    }
+
+    public function test_persisted_coverage_session_and_payload_contracts(): void
+    {
+        $url = '/api/v1/marketplace/local-persisted-coverage-probe';
+        $this->assertSame([['LocalSessionCookie' => []]], $this->document['paths'][$url]['get']['security']);
+        $unauthenticated = $this->getJson($url)->assertUnauthorized();
+        $this->assertSchema(json_decode($unauthenticated->getContent()), $this->document['components']['schemas']['ErrorResponse']);
+        config(['session.driver' => 'array']);
+        $this->actingAs((new IdentityUser)->forceFill(['id' => 11]), 'web');
+        $this->mock(LocalPersistedCoverageAccess::class)->shouldReceive('allows')->andReturn(true);
+        $source = $this->mock(LocalPersistedZoneSource::class);
+        $a = new ZoneCandidate('01ARZ3NDEKTSV4RRFFQ69G5FB2', 10);
+        $b = new ZoneCandidate('01ARZ3NDEKTSV4RRFFQ69G5FB3', 10);
+        foreach ([null, [], [$a], [$a, $b]] as $candidates) {
+            $source->shouldReceive('matches')->once()->andReturn($candidates);
+            $response = $this->getJson($url.'?market_public_id=01ARZ3NDEKTSV4RRFFQ69G5FAZ&longitude=0.5&latitude=0.5')->assertOk();
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalPersistedCoverageResponse']);
+        }
     }
 
     private function resolve(string $reference): array

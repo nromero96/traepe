@@ -31,6 +31,13 @@ try {
             && $coverage->json('data.id') === 'local-coverage-v1' && $coverage->json('data.attributes') === ['status' => 'selected', 'zone_id' => '01ARZ3NDEKTSV4RRFFQ69G5FB0'], 'local HTTP coverage uses real PostGIS fixture');
         foundationAssert($coverage->header('X-Correlation-ID') === $coverage->json('meta.correlation_id')
             && str_contains($coverage->header('Cache-Control'), 'no-store') && ! $coverage->header('Set-Cookie'), 'coverage response preserves correlation, privacy and no session');
+        $identityTables = ['users', 'identity_permissions', 'identity_permission_grants'];
+        $identityCounts = array_map(fn ($table) => DB::table($table)->count(), $identityTables);
+        $persisted = Http::timeout(15)->acceptJson()->get('http://nginx/api/v1/marketplace/local-persisted-coverage-probe');
+        foundationAssert($persisted->status() === 401 && $persisted->json('error.code') === 'unauthenticated'
+            && str_contains($persisted->header('Cache-Control'), 'no-store')
+            && $persisted->header('X-Correlation-ID') === $persisted->json('error.correlation_id'), 'persisted coverage HTTP requires session and preserves privacy');
+        foundationAssert($identityCounts === array_map(fn ($table) => DB::table($table)->count(), $identityTables), 'anonymous persisted diagnostic creates no users or permissions');
     }
     foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Identity', 'Marketplace', 'Platform'], 'only approved Identity, Marketplace and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));

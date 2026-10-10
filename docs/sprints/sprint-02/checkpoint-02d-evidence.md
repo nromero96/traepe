@@ -63,3 +63,7 @@ No se agregan dependencias, migraciones, seeds, usuarios/grants, API, administra
 El 10 de octubre de 2026 el usuario respondió «Apruebo y autorizo» a la pregunta «¿Apruebas 02D y autorizas commit, push y CI?», después de presentar la implementación y su evidencia local. Esta respuesta aprueba el checkpoint y autoriza publicar exclusivamente sus 20 archivos revisados, conservando el diagnóstico local de lectura, las tablas de desarrollo vacías y DP-001 abierta.
 
 La publicación se realiza desde main mediante commit y push normales. La ejecución de GitHub Actions debe corresponder al SHA publicado y completar calidad, integración, reinicio/persistencia y limpieza. El resultado remoto se informa al cerrar la publicación.
+
+## Resultado de publicación
+
+Publicado en `34148c043335b6c33d540a0f696ccd4a7435d2d2` mediante commit/push normales de los 20 archivos aprobados. HEAD y origin/main coincidieron y el repositorio quedó limpio al cerrar 02D. [GitHub Actions 38080736037](https://github.com/nromero96/traepe/actions/runs/38080736037) terminó con success para ese SHA; construcción/migraciones, calidad/integración, reinicio/persistencia y limpieza completaron correctamente. El estado completed/success se volvió a consultar al preparar 02E. La solicitud posterior de continuar no amplía por sí sola el acceso autorizado a los borradores.

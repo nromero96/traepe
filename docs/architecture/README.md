@@ -64,6 +64,12 @@ Los checks de ausencia de módulos prematuros admiten exactamente Identity, Mark
 
 02D, aprobado mediante DP-029, agrega un diagnóstico persistido de consola. MarketPublicId valida la referencia pública en Domain; Application recibe mercado/punto explícitos, define puerto y resultado técnico y reutiliza la política de selección. Infrastructure consulta markets/service_zones propias en una sola sentencia, con alcance por mercado draft, zonas draft/fixture y geography nativa. El comando y el adaptador deniegan otros entornos antes de DI/SQL. No accede a datos privados de otros módulos ni concede privilegios; las sondas 02A/02B siguen usando sus fuentes inline. Véase [plan de 02D](../sprints/sprint-02/checkpoint-02d-plan.md).
 
+02E, aprobado mediante DP-030, integra la lectura persistida HTTP con autorización de Identity. Application de Marketplace define LocalPersistedCoverageAccess sin depender de Laravel ni Identity. Su adaptador Infrastructure consume los contratos Application de Identity AuthenticatedActorDirectory, AuthorizationDirectory y PermissionService, con ResourceReference/ResourceContext/Scope como DTOs públicos del contrato. El dueño Identity realiza sus consultas privadas; Marketplace no lee ni hace joins sobre sus tablas.
+
+Marketplace resuelve su recurso/scope técnicos fijos y compone un PermissionService dedicado con LocalPersistedCoverageResourceResolver. No reemplaza el binding de ResourceContextResolver de Identity ni modifica su sonda. El controlador usa actor de sesión verificado, autorización antes de validación/consulta, y el caso de uso geográfico de 02D sin cambios. El binding y la ruta solo existen en local/testing, con gate de ejecución para cachés reutilizadas. [Plan de 02E](../sprints/sprint-02/checkpoint-02e-plan.md).
+
+ArchitectureTest permite exclusivamente los siete tipos públicos de ese contrato desde los dos archivos Infrastructure que los consumen. Sigue rechazando cualquier referencia a infraestructura privada de Identity o una dependencia entre módulos desde Domain/Application/Interfaces; Shared sigue sin importar módulos.
+
 ## Índice de detalle
 
 - [Modelo de datos](data-model/README.md)

@@ -2,6 +2,8 @@
 
 **Origen:** secciones 3–8 del maestro v1.6.
 
+Las concreciones técnicas locales al final también trazan §§32–34.1 y 58–60, con sus decisiones aprobadas. No sustituyen las reglas operativas del maestro.
+
 ## Estructura comercial
 
 La plataforma contiene comercios; cada comercio puede tener múltiples sucursales con ubicación, horario, inventario, cobertura, preparación y disponibilidad propios. Contratos y comisiones pueden heredarse o configurarse por sucursal.
@@ -35,3 +37,5 @@ El usuario aprobó un ejercicio ficticio previo a resolver DP-001. DP-027 fija W
 02C prepara una base persistente vacía: countries, markets y service_zones pertenecen a Marketplace, con mercados/zonas solo draft y zone_type solo fixture. DP-028 aprobó explícitamente estas restricciones locales; [ADR-006](../architecture/decisions/ADR-006-marketplace-geographic-foundation.md) y el [plan de datos](../sprints/sprint-02/checkpoint-02c-plan.md) documentan el alcance y su trazabilidad con §§32–34 y 54–57. No hay seeds ni selección de borradores por las sondas. DP-001 sigue abierta y las reglas operativas anteriores requieren implementación y decisiones posteriores.
 
 02D incorpora un diagnóstico nuevo de consola local/testing, aprobado mediante DP-029. Lee únicamente el mercado draft indicado por ULID y sus zonas draft/fixture; usa geography nativa, bordes incluidos, máxima prioridad y rechazo de empate máximo. ST_Covers se complementa con ST_DWithin de distancia 0 para conservar bordes de huecos; no se introduce buffer ni distancia positiva. Market_not_found distingue mercado ausente de outside sin coincidencias. Selected describe únicamente el ejercicio técnico y no autoriza servicio ni checkout. Se conserva la selección inline de 02A/02B, el esquema draft/fixture y el bloqueo operativo DP-001. Véase [plan aprobado de 02D](../sprints/sprint-02/checkpoint-02d-plan.md).
+
+02E adapta exclusivamente ese diagnóstico persistido a HTTP local/testing, conforme a DP-030 aprobada mediante «aprobar y continuar». Exige sesión cookie y permiso técnico exacto en scope platform sintético, con recurso resuelto por servidor y DP-026 íntegra. El permiso permite consultar cualquier mercado draft solicitado, pero cada lectura se limita a ese mercado y sus zonas draft/fixture. No es cobertura pública ni autorización operativa por mercado. No concede usuarios/permisos en desarrollo ni modifica borradores; fixtures positivos solo en bases temporales propias. Conserva las sondas anteriores y DP-001 abierta. [Plan](../sprints/sprint-02/checkpoint-02e-plan.md) y [contrato API](../api/README.md#diagnóstico-de-borradores-persistidos-autorizado--02e).
