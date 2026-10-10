@@ -95,3 +95,16 @@ DP-011, DP-013A, DP-014, DP-014A y DP-015 a DP-021 quedaron resueltas mediante A
 - **No resuelve:** DP-001, reglas/tipos/estados operativos, país/moneda/timezone del piloto, horarios, zone_rules ni proveedores productivos.
 - **Plan revisable:** [Checkpoint 02C](../../sprints/sprint-02/checkpoint-02c-plan.md).
 - **Seguimiento:** resuelta directamente por el usuario; no queda una nueva asignación abierta.
+
+## DP-029 — Diagnóstico local de borradores geográficos persistidos
+
+- **Estado:** resuelta por aprobación explícita del usuario el 10 de octubre de 2026; detectada al continuar después de 02C.
+- **Fuente:** maestro v1.6 §§32–34.1, 55–56 y 64; DP-027, DP-028 y ADR-006. La base aprobada está vacía y las sondas existentes no seleccionan ni consultan sus borradores.
+- **Ambigüedad:** la aprobación de persistencia vacía no define una consulta diagnóstica de drafts ni autoriza tratarlos como cobertura operativa. DP-027 se concretó con fixtures geometry planos; aplicar ese criterio a geography persistente requiere explicitar la evaluación geodésica, sin sustituir silenciosamente el comportamiento anterior.
+- **Propuesta concreta:** nuevo comando exclusivamente local/testing, de solo lectura, por ULID de mercado draft; consulta únicamente sus zonas draft/fixture mediante ST_Covers sobre geography nativa SRID 4326; bordes incluidos, máxima prioridad y empate máximo rechazado. Resultado técnico local-persisted-coverage-v1 con market_not_found/outside/selected/ambiguous y ULID de zona nullable. Datos persistidos de prueba solo en bases temporales propias; desarrollo sigue vacío. No agrega seeds, API, administración, activación ni transiciones.
+- **Resolución aprobada:** el usuario respondió «Aprobar plan 02D (recomendado)» a la propuesta de consola local/testing, mercado por ULID, zonas draft/fixture, geography nativa, bordes incluidos, máxima prioridad y rechazo de empates; sin escrituras, seeds, API ni activación. Desarrollo permanece vacío y los fixtures persistidos viven solo en bases temporales de prueba.
+- **Bloqueo resuelto:** implementación del puerto/caso de uso/adaptador y comando de lectura persistida de 02D bajo ese alcance diagnóstico. Selected no hace elegible el borrador para operación real.
+- **Concreción técnica:** se complementa ST_Covers con ST_DWithin(..., 0) sobre geography nativa para cumplir bordes incluidos: en PostGIS 3.5.7 el caso sintético de borde de hueco devuelve Covers=false y distancia cero. No se agrega distancia positiva ni se altera la regla aprobada. El plan documenta reproducción, fuentes y pruebas a ambos lados del borde.
+- **No modifica:** sondas 02A/02B ni su contrato local-coverage-v1, constraints draft/fixture de 02C, DP-001, estados/tipos operativos, proveedores o reglas de checkout.
+- **Plan revisable:** [Checkpoint 02D](../../sprints/sprint-02/checkpoint-02d-plan.md).
+- **Seguimiento:** resuelta directamente por el usuario; no queda una nueva asignación abierta. La aprobación de DP-029 no autorizaba publicación; después de presentar la evidencia terminada, el usuario respondió «Apruebo y autorizo» a la aprobación final de 02D y su commit, push y CI el 10 de octubre de 2026. Véase [registro de aprobación](../../sprints/sprint-02/checkpoint-02d-evidence.md#aprobación-y-publicación-autorizadas).

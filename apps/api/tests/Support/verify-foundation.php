@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -36,6 +37,11 @@ try {
     foundationAssert(array_intersect(['orders', 'payments', 'products', 'stores', 'inventories'], $tables) === [], 'no commercial tables');
     foreach (['countries', 'markets', 'service_zones'] as $table) {
         foundationAssert(in_array($table, $tables, true) && DB::table($table)->count() === 0, 'approved geographic foundation table remains empty');
+    }
+    if (app()->environment(['local', 'testing'])) {
+        $exit = Artisan::call('marketplace:local-persisted-coverage', ['market_public_id' => '01ARZ3NDEKTSV4RRFFQ69G5FAZ', 'longitude' => '0', 'latitude' => '0']);
+        $diagnostic = json_decode(trim(Artisan::output()), true, flags: JSON_THROW_ON_ERROR);
+        foundationAssert($exit === 0 && $diagnostic === ['fixture_version' => 'local-persisted-coverage-v1', 'status' => 'market_not_found', 'zone_id' => null], 'persisted geographic diagnostic reads empty foundation without fixtures');
     }
     foundationAssert(array_intersect(['merchants', 'branches', 'zone_rules', 'addresses', 'geocoding_results'], $tables) === [], 'no operational Marketplace tables');
     foundationAssert(DB::table('users')->whereNotNull('phone_key')->whereNull('public_id')->count() === 0, 'local identities have public identifiers');

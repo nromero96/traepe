@@ -2,9 +2,12 @@
 
 namespace App\Modules\Marketplace\Infrastructure;
 
+use App\Modules\Marketplace\Application\Coverage\LocalPersistedZoneSource;
 use App\Modules\Marketplace\Application\Coverage\LocalZoneSource;
+use App\Modules\Marketplace\Infrastructure\Coverage\PostgisLocalPersistedZoneSource;
 use App\Modules\Marketplace\Infrastructure\Coverage\PostgisLocalZoneSource;
 use App\Modules\Marketplace\Interfaces\Console\ProbeLocalCoverage;
+use App\Modules\Marketplace\Interfaces\Console\ProbeLocalPersistedCoverage;
 use App\Modules\Marketplace\Interfaces\Http\LocalCoverageEnvironment;
 use App\Modules\Marketplace\Interfaces\Http\LocalCoverageProbeController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +19,7 @@ final class MarketplaceServiceProvider extends ServiceProvider
     {
         if ($this->app->environment(['local', 'testing'])) {
             $this->app->bind(LocalZoneSource::class, PostgisLocalZoneSource::class);
+            $this->app->bind(LocalPersistedZoneSource::class, PostgisLocalPersistedZoneSource::class);
         }
     }
 
@@ -25,7 +29,7 @@ final class MarketplaceServiceProvider extends ServiceProvider
             return;
         }
         if ($this->app->runningInConsole()) {
-            $this->commands([ProbeLocalCoverage::class]);
+            $this->commands([ProbeLocalCoverage::class, ProbeLocalPersistedCoverage::class]);
         }
         Route::get('api/v1/marketplace/local-coverage-probe', LocalCoverageProbeController::class)
             ->middleware([LocalCoverageEnvironment::class, 'throttle:30,1,local-coverage:']);

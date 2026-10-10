@@ -62,6 +62,8 @@ Los checks de ausencia de módulos prematuros admiten exactamente Identity, Mark
 
 02C incorpora countries, markets y service_zones privadas de Marketplace, conforme a DP-028 y [ADR-006](decisions/ADR-006-marketplace-geographic-foundation.md). La migración crea una base vacía; mercados/zonas admiten solo draft y las zonas solo tipo fixture. No incorpora modelos ni puertos sin uso. Las sondas siguen usando sus fixtures inline y no consultan estos borradores; la activación real depende de DP-001 y de decisiones posteriores.
 
+02D, aprobado mediante DP-029, agrega un diagnóstico persistido de consola. MarketPublicId valida la referencia pública en Domain; Application recibe mercado/punto explícitos, define puerto y resultado técnico y reutiliza la política de selección. Infrastructure consulta markets/service_zones propias en una sola sentencia, con alcance por mercado draft, zonas draft/fixture y geography nativa. El comando y el adaptador deniegan otros entornos antes de DI/SQL. No accede a datos privados de otros módulos ni concede privilegios; las sondas 02A/02B siguen usando sus fuentes inline. Véase [plan de 02D](../sprints/sprint-02/checkpoint-02d-plan.md).
+
 ## Índice de detalle
 
 - [Modelo de datos](data-model/README.md)
