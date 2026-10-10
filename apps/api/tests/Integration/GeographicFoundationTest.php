@@ -80,7 +80,11 @@ final class GeographicFoundationTest extends PostgresTestCase
                 $this->assertMatchesRegularExpression('/USING gist \(polygon\)/i', array_column($indexes, 'indexdef', 'indexname')['service_zones_polygon_gist']);
             }
         }
-        $this->assertSame([], DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('merchants', 'branches', 'zone_rules', 'addresses', 'geocoding_results')"));
+        foreach (['merchants', 'branches'] as $table) {
+            $this->assertTrue(Schema::hasTable($table));
+            $this->assertSame(0, DB::table($table)->count());
+        }
+        $this->assertSame([], DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('zone_rules', 'addresses', 'geocoding_results')"));
         $migrations = DB::table('migrations')->count();
         $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
         $this->assertSame($migrations, DB::table('migrations')->count());
@@ -197,7 +201,7 @@ final class GeographicFoundationTest extends PostgresTestCase
         $record = false;
         $this->assertCount(9, $queries);
         foreach ($queries as $sql) {
-            $this->assertDoesNotMatchRegularExpression('/\b(countries|markets|service_zones)\b/i', $sql);
+            $this->assertDoesNotMatchRegularExpression('/\b(countries|markets|service_zones|merchants|branches)\b/i', $sql);
         }
         foreach (['countries', 'markets', 'service_zones'] as $table) {
             $this->assertSame(1, DB::table($table)->count());

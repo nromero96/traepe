@@ -1,6 +1,6 @@
 # Evidencia de Checkpoint 02F — Fixtures transaccionales locales
 
-Fecha: 10 de octubre de 2026. **Estado: checkpoint aprobado; commit/push/CI autorizados explícitamente por el usuario.**
+Fecha: 10 de octubre de 2026. **Estado: checkpoint aprobado/publicado en 3c9448c37c3736a155cd794b3f9bd2861e557796; CI completa correcta.**
 
 ## Autorización y trazabilidad
 
@@ -110,3 +110,7 @@ La migración es forward-only; revertir datos requeriría un plan revisado. No s
 ## Aprobación y publicación autorizadas
 
 Después de presentar la evidencia terminada y solicitar la aprobación de cierre/commit/push/CI, el usuario respondió «Apruebo y autorizo» el 10 de octubre de 2026. Esa respuesta aprueba 02F y su publicación con los 41 archivos del manifiesto. Se verificará la CI del mismo commit, incluidos build/migración, calidad/integración, reinicio/persistencia y limpieza. El resultado de publicación se comunicará al finalizar; este registro se incorpora antes del commit para evitar un commit posterior únicamente de contabilidad.
+
+### Resultado de publicación verificado
+
+02F se publicó en main / origin/main en `3c9448c37c3736a155cd794b3f9bd2861e557796`, con los 41 archivos aprobados, 1736 inserciones y 8 eliminaciones. [CI 38091316706](https://github.com/nromero96/traepe/actions/runs/38091316706) terminó correctamente sobre ese mismo SHA: run y job foundation completed/success, con build/migración, calidad/integración, reinicio/persistencia y limpieza completed/success. Repositorio limpio y ocho servicios locales saludables al cierre. Registro incorporado al preparar el siguiente checkpoint, sin commit adicional exclusivo de contabilidad.

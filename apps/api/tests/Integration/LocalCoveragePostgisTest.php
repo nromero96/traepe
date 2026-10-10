@@ -64,9 +64,8 @@ final class LocalCoveragePostgisTest extends PostgresTestCase
         $this->assertEquals($before, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename"));
         $this->assertSame(0, DB::table('users')->count());
         $this->assertSame(0, DB::table('identity_audit')->count());
-        foreach (['countries', 'markets', 'service_zones'] as $table) {
+        foreach (['countries', 'markets', 'service_zones', 'merchants', 'branches'] as $table) {
             $this->assertSame(0, DB::table($table)->count());
         }
-        $this->assertSame([], DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('merchants', 'branches')"));
     }
 }
