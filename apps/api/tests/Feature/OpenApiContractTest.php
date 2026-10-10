@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Modules\Marketplace\Application\Coverage\LocalZoneSource;
+use App\Modules\Marketplace\Domain\Coverage\ZoneCandidate;
 use App\Modules\Platform\Application\Health\DependencyProbe;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -44,7 +46,7 @@ class OpenApiContractTest extends TestCase
             }
         }
         sort($documented);
-        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/technical/broadcasting/auth'];
+        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/technical/broadcasting/auth'];
         $this->assertSame($expected, $documented);
         $actual = [];
         foreach (Route::getRoutes() as $route) {
@@ -90,6 +92,18 @@ class OpenApiContractTest extends TestCase
         }
     }
 
+    public function test_local_coverage_payloads_conform_to_the_versioned_schema(): void
+    {
+        $source = $this->mock(LocalZoneSource::class);
+        foreach ([[], [new ZoneCandidate('01ARZ3NDEKTSV4RRFFQ69G5FAZ', 10)], [new ZoneCandidate('01ARZ3NDEKTSV4RRFFQ69G5FAZ', 10), new ZoneCandidate('01ARZ3NDEKTSV4RRFFQ69G5FB0', 10)]] as $candidates) {
+            $source->shouldReceive('matches')->once()->andReturn($candidates);
+            $response = $this->getJson('/api/v1/marketplace/local-coverage-probe?longitude=0.5&latitude=0.5')->assertOk();
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalCoverageResponse']);
+        }
+        $invalid = $this->getJson('/api/v1/marketplace/local-coverage-probe?longitude=private-input&latitude=0')->assertUnprocessable();
+        $this->assertSchema(json_decode($invalid->getContent()), $this->document['components']['schemas']['ErrorResponse']);
+    }
+
     private function resolve(string $reference): array
     {
         $this->assertStringStartsWith('#/', $reference);
@@ -108,6 +122,9 @@ class OpenApiContractTest extends TestCase
         if (isset($schema['$ref'])) {
             $this->assertSchema($value, $this->resolve($schema['$ref']));
 
+            return;
+        }
+        if ($value === null && ($schema['nullable'] ?? false)) {
             return;
         }
         $this->assertTrue(match ($schema['type']) {

@@ -29,4 +29,10 @@ DP-001 sigue abierta: no están definidos ciudad/país, distritos o polígonos r
 
 02A está implementado y validado localmente bajo el alcance ficticio aprobado. Pasaron Pint (148 archivos), PHPStan nivel 8, OpenAPI, 67 pruebas Unit/Feature con 1505 aserciones y 32 de integración con 565 aserciones: 99 pruebas y 2070 aserciones en total. PostGIS real verifica los criterios de DP-027; la fundación y los ocho servicios Docker siguen correctos.
 
-La [evidencia de 02A](checkpoint-02a-evidence.md) registra archivos, comandos, resultados y límites. El 10 de octubre de 2026 el usuario respondió «Apruebo y autorizo» a la aprobación final de 02A y a su commit, push y validación en GitHub Actions. La publicación y comprobación de CI se ejecutan bajo esa autorización. DP-001 permanece abierta.
+La [evidencia de 02A](checkpoint-02a-evidence.md) registra archivos, comandos, resultados y límites. El 10 de octubre de 2026 el usuario respondió «Apruebo y autorizo» a la aprobación final de 02A y a su commit, push y validación en GitHub Actions. Se publicó en `edc1b0ffefd882e0c008342952d17a63f32afd0e`; [CI correcta](https://github.com/nromero96/traepe/actions/runs/38070750987), incluidos reinicio/persistencia y limpieza. DP-001 permanece abierta.
+
+## Checkpoint 02B — HTTP local
+
+Continuación solicitada por el usuario tras publicar 02A. GET `/api/v1/marketplace/local-coverage-probe` valida longitud/latitud de query y reutiliza el caso de uso existente. Lectura pública del fixture exclusivamente local/testing, sin sesión, privilegios, escrituras ni datos operativos. No implementa `/markets/resolve`. Mantiene DP-027 y DP-001 abierta.
+
+El contrato OpenAPI 1.3.0 describe el recurso técnico y sus errores; las pruebas incluyen formato/rangos, correlación, privacidad, throttling independiente de Identity, PostGIS real y caché local de rutas reutilizada en producción/staging. La fundación verifica HTTP a través de Nginx. Pasaron Pint (153 archivos), PHPStan nivel 8, OpenAPI y 116 pruebas con 2584 aserciones; ocho servicios saludables. [Evidencia y operación de 02B](checkpoint-02b-evidence.md). El usuario aprobó 02B y autorizó su commit, push y CI el 10 de octubre de 2026 mediante «Apruebo y autorizo». La publicación y comprobación remota se ejecutan bajo esa autorización.

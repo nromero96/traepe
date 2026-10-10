@@ -24,6 +24,13 @@ try {
     foundationAssert(Http::timeout(15)->get('http://nginx/horizon')->status() === 401, 'Horizon denies anonymous request');
     $missing = Http::timeout(15)->get('http://nginx/api/v1/absent');
     foundationAssert($missing->status() === 404 && $missing->json('error.code') === 'not_found', 'unregistered API route returns sanitized error');
+    if (app()->environment(['local', 'testing'])) {
+        $coverage = Http::timeout(15)->get('http://nginx/api/v1/marketplace/local-coverage-probe', ['longitude' => 3.5, 'latitude' => 0.5]);
+        foundationAssert($coverage->status() === 200 && $coverage->json('data.type') === 'local_coverage_probe'
+            && $coverage->json('data.id') === 'local-coverage-v1' && $coverage->json('data.attributes') === ['status' => 'selected', 'zone_id' => '01ARZ3NDEKTSV4RRFFQ69G5FB0'], 'local HTTP coverage uses real PostGIS fixture');
+        foundationAssert($coverage->header('X-Correlation-ID') === $coverage->json('meta.correlation_id')
+            && str_contains($coverage->header('Cache-Control'), 'no-store') && ! $coverage->header('Set-Cookie'), 'coverage response preserves correlation, privacy and no session');
+    }
     foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Identity', 'Marketplace', 'Platform'], 'only approved Identity, Marketplace and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));
     foundationAssert(array_intersect(['orders', 'payments', 'products', 'stores', 'inventories'], $tables) === [], 'no commercial tables');

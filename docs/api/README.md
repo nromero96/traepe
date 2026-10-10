@@ -47,6 +47,14 @@ docker compose --env-file .env.docker exec api php artisan test
 
 El lint usa el validador Draft-04 ya incluido en Composer 2.8.12 y el [esquema oficial](https://spec.openapis.org/oas/3.0/schema/2024-10-18), con prueba negativa de documento malformado. Véase [procedencia y licencia](schemas/README.md).
 
+## Ampliación local de Marketplace — 02B
+
+OpenAPI 1.3.0 incorpora GET `/api/v1/marketplace/local-coverage-probe`. Valida query `longitude`/`latitude`, números finitos dentro de [-180,180]/[-90,90]; invoca el ejercicio sintético de 02A. La lectura es pública exclusivamente local/testing, sin cookie, sesión o CSRF. La ruta operativa `/markets/resolve` continúa sin implementar.
+
+200 devuelve `data: {type: local_coverage_probe, id: local-coverage-v1, attributes: {status, zone_id}}` y `meta.correlation_id`. selected usa un ULID fijo de fixture; outside/ambiguous llevan null. El ID del recurso es la versión del diagnóstico, no una entidad persistida. Las respuestas no reflejan coordenadas. Cache-Control no-store/private evita almacenar el diagnóstico. DP-027 conserva bordes/prioridad/empate aprobados y DP-001 sigue abierta.
+
+Formato/rango inválido: 422; fallo interno: 500 sanitizado; límite técnico propio de 30/minuto por IP: 429 con Retry-After; métodos de mutación: 405 con Allow GET/HEAD. Fuera de local/testing: 404 antes de validación, throttling o PostgreSQL, incluso con una caché local reutilizada. No crea usuarios, grants, mercados o zonas operativas. Véase [evidencia de 02B](../sprints/sprint-02/checkpoint-02b-evidence.md).
+
 ## Webhooks
 
 Validar tamaño, cuerpo crudo, timestamp, firma y cuenta; persistir inbox; responder 2xx a duplicados; procesar por job idempotente y enviar a dead-letter según política de reintentos.

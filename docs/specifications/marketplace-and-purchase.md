@@ -29,3 +29,5 @@ Cada cotización/pedido conserva desglose de productos, descuentos y financiador
 ## Ejercicio de cobertura local — 02A
 
 El usuario aprobó un ejercicio ficticio previo a resolver DP-001. DP-027 fija WGS84/SRID 4326, longitud/latitud, bordes incluidos, máxima prioridad y rechazo por empate máximo entre zonas distintas. La selección se prueba con polígonos sintéticos, sin persistir mercados ni áreas reales. El resultado no indica sucursal abierta, disponibilidad, precio ni ETA; las reglas operativas descritas arriba continúan pendientes de su implementación autorizada. Véanse [decisión](../architecture/decisions/pending-decisions.md#dp-027--selección-geoespacial-del-ejercicio-local) y [alcance](../sprints/sprint-02/README.md).
+
+02B adapta el mismo ejercicio a una sonda HTTP de lectura pública local/testing, siguiendo el descubrimiento del visitante del maestro §58. No amplía las reglas de selección ni constituye la resolución operativa de mercado. El [contrato técnico](../api/README.md#ampliación-local-de-marketplace--02b) limita entrada/salida, errores, privacidad, entorno y tasa de solicitudes.

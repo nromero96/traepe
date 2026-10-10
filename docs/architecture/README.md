@@ -58,6 +58,8 @@ Tras Identity local aprobado/publicado, 02A materializa Marketplace con código 
 
 Los checks de ausencia de módulos prematuros admiten exactamente Identity, Marketplace y Platform. Las descripciones anteriores de Platform conservan el estado histórico de Sprint 00.
 
+02B agrega una sonda HTTP local en Interfaces y su registro en el provider existente. El controlador valida formato e invoca LocalCoverageProbe; la selección permanece en Domain y el acceso espacial en Infrastructure. El gate de entorno se ejecuta antes de resolver el puerto, incluso al reutilizar rutas cacheadas. No introduce dependencias entre módulos ni tablas o reglas operativas.
+
 ## Índice de detalle
 
 - [Modelo de datos](data-model/README.md)

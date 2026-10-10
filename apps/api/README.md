@@ -35,3 +35,7 @@ Sprint 00 está cerrado con aprobación explícita, revisión independiente y CI
 ## Estado posterior — 02A, 10 de octubre de 2026
 
 Identity local 01A–01F está aprobado/publicado; [CI de 01F](https://github.com/nromero96/traepe/actions/runs/38048298696) pasó para `3868484`. Marketplace inicia un [ejercicio de cobertura ficticia](../../docs/sprints/sprint-02/README.md) aprobado conforme a DP-027, con PostGIS existente y diagnóstico por consola. No agrega rutas ni datos comerciales. [Operación y evidencia 02A](../../docs/sprints/sprint-02/checkpoint-02a-evidence.md).
+
+## Estado posterior — 02B, 10 de octubre de 2026
+
+02A se publicó en `edc1b0f` con [CI correcta](https://github.com/nromero96/traepe/actions/runs/38070750987). 02B incorpora GET `/api/v1/marketplace/local-coverage-probe` en local/testing, con validación, bloqueo de otros entornos y contrato OpenAPI 1.3.0; reutiliza los polígonos y política aprobados. Es una lectura pública de fixtures sin sesión ni datos comerciales. [Operación y evidencia de 02B](../../docs/sprints/sprint-02/checkpoint-02b-evidence.md).
