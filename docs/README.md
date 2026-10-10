@@ -53,4 +53,4 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 | Preparación documental | Derivada de 1–112 | `sprints/preparation/` |
 | Sprint 00 ejecutable | 112 | `sprints/sprint-00/` |
 
-Checkpoint publicado más reciente confirmado: [01D](sprints/sprint-01/checkpoint-01d-evidence.md), aprobado y validado localmente y en [GitHub Actions](https://github.com/nromero96/traepe/actions/runs/38045795191) para `5f0f4f8`. [01E](sprints/sprint-01/checkpoint-01e-evidence.md) está aprobado y validado localmente; publicación y CI autorizados. Sprint 00 conserva su cierre aprobado en [00F](sprints/sprint-00/checkpoint-00f-evidence.md).
+Checkpoint publicado más reciente confirmado: [01E](sprints/sprint-01/checkpoint-01e-evidence.md), aprobado y validado localmente y en [GitHub Actions](https://github.com/nromero96/traepe/actions/runs/38046835597) para `48d544d`. [01F](sprints/sprint-01/checkpoint-01f-evidence.md) está aprobado y validado localmente; publicación y CI autorizados. Sprint 00 conserva su cierre aprobado en [00F](sprints/sprint-00/checkpoint-00f-evidence.md).

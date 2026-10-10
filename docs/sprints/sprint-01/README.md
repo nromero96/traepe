@@ -56,3 +56,22 @@ Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación l
 ## Checkpoint 01E
 
 [Protección de entorno de Identity local](checkpoint-01e-evidence.md): extiende el gate de 01D a las cuatro rutas de 01A y verifica una caché real local en procesos nuevos no locales. Mantiene el alcance de desarrollo aprobado, sin dependencias ni datos nuevos. Validado localmente: 75 pruebas/1622 aserciones y quality correcto. Aprobado el 10 de octubre de 2026; commit, push y validación remota autorizados.
+
+## Checkpoint 01F
+
+01E está publicado en `48d544d` y [CI pasó](https://github.com/nromero96/traepe/actions/runs/38046835597), incluida persistencia tras reinicio y limpieza del entorno aislado.
+
+[Sesiones por HTTP real](checkpoint-01f-evidence.md) completa la cobertura del flujo local aprobado: CSRF, rotación, cookies copiadas, logout, expiración/bloqueo, privacidad y fallo de auditoría. Usa PostgreSQL y almacenamiento temporal propios dentro de Docker, sin conceder permisos ni cambiar reglas. Validado localmente: 78 pruebas/1919 aserciones y quality correcto. Aprobado el 10 de octubre de 2026; commit, push y validación remota autorizados.
+
+## Estado del alcance local
+
+| Bloque | Evidencia | Estado |
+|---|---|---|
+| OTP, consentimiento ficticio y sesión | 01A | Aprobado/publicado y CI correcto |
+| Núcleo de autorización | 01B | Aprobado/publicado y CI correcto |
+| Directorio PostgreSQL vacío | 01C | Aprobado/publicado y CI correcto |
+| Sonda HTTP técnica | 01D | Aprobado/publicado y CI correcto |
+| Frontera local/testing y caché de rutas | 01E | Aprobado/publicado y CI correcto |
+| Cookies y CSRF por HTTP real | 01F | Aprobado y validado localmente; publicación y CI autorizados |
+
+Esto prepara el cierre del alcance Identity backend local elegido por el usuario. Identity productivo, privilegios administrativos, MFA, proveedores y comercio mantienen sus requisitos y decisiones separados.

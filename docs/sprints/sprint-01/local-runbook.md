@@ -45,3 +45,9 @@ La ruta no acepta parámetros de actor, capacidad, scope, recurso o tiempo para 
 Las cuatro rutas de autenticación de 01A también verifican local/testing en cada request, antes de web/auth/CSRF. Fuera de esos entornos devuelven 404, incluso con una sesión existente o una caché creada en local. El registro condicional de rutas y las restricciones del adaptador OTP siguen vigentes. OpenAPI 1.2.1 documenta esos rechazos.
 
 LocalIdentityEnvironmentTest genera una caché en un directorio temporal propio y la verifica con procesos nuevos en production/staging. No ejecuta route:clear ni route:cache sobre la caché del runtime; elimina únicamente su archivo temporal. La suite de integración sigue utilizando bases PostgreSQL aisladas.
+
+## Verificación de cookies y CSRF reales — 01F
+
+`composer test:integration` incluye LocalIdentityHttpTest. Inicia un servidor HTTP efímero únicamente en el loopback del contenedor api y usa cookies reales contra el kernel Laravel. La sesión de archivo cifrada, caché y logs usan almacenamiento temporal propio; usuarios, OTP y auditoría usan la base aislada del test. Los procesos y archivos se retiran antes de eliminar esa base.
+
+Comprueba rotación en login/logout, rechazo de cookies copiadas y tokens antiguos, persistencia tras reiniciar su proceso, expiración/bloqueo y revocación incluso si falla la escritura de auditoría en logout. No imprime códigos, cookies, logs ni cuerpos de respuesta; no requiere ejecutar identity:local-otp. Este transporte de pruebas complementa la verificación Nginx/PHP-FPM del entorno oficial.
