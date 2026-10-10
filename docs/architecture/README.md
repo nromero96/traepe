@@ -78,3 +78,9 @@ ArchitectureTest permite exclusivamente los siete tipos públicos de ese contrat
 - [Decisiones](decisions/README.md)
 - [API](../api/README.md)
 - [Eventos](../events/README.md)
+
+## Creación transaccional de fixtures — 02F
+
+DP-031 aprobada permite una mutación técnica local/testing con dos perfiles cerrados; [plan](../sprints/sprint-02/checkpoint-02f-plan.md) y [evidencia](../sprints/sprint-02/checkpoint-02f-evidence.md). Domain valida perfil y snapshot; Application define acceso/store/writer y el caso de uso. Interfaces valida JSON crudo y clave antes de invocarlo. Infrastructure crea el conjunto únicamente dentro de la transacción del puerto público Platform IdempotencyStore y resuelve la respuesta desde su registro propio inmutable.
+
+Los adaptadores específicos consumen los contratos públicos Identity y Platform permitidos por la lista exacta de ArchitectureTest, sin sustituir resolvers anteriores ni consultar tablas privadas cruzadas. El permiso create se revalida antes del callback transaccional y antes de resolver el snapshot, incluidos replays. No se promete serialización frente a una futura administración concurrente de grants. Sin eventos/efectos externos asociados a este ejercicio, no se agrega outbox ni consumidor sin uso. Desarrollo conserva vacías las cuatro tablas Marketplace; casos positivos solo en bases temporales propias.

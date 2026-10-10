@@ -6,7 +6,11 @@ use App\Modules\Identity\Infrastructure\IdentityUser;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedZoneSource;
 use App\Modules\Marketplace\Application\Coverage\LocalZoneSource;
+use App\Modules\Marketplace\Application\Fixtures\LocalDraftFixtureAccess;
+use App\Modules\Marketplace\Application\Fixtures\LocalFixtureWriter;
 use App\Modules\Marketplace\Domain\Coverage\ZoneCandidate;
+use App\Modules\Marketplace\Domain\Fixtures\FixtureOperation;
+use App\Modules\Marketplace\Domain\Fixtures\FixtureProfile;
 use App\Modules\Platform\Application\Health\DependencyProbe;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -49,7 +53,7 @@ class OpenApiContractTest extends TestCase
             }
         }
         sort($documented);
-        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /api/v1/marketplace/local-persisted-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/technical/broadcasting/auth'];
+        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /api/v1/marketplace/local-persisted-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/marketplace/local-draft-fixtures', 'POST /api/v1/technical/broadcasting/auth'];
         $this->assertSame($expected, $documented);
         $actual = [];
         foreach (Route::getRoutes() as $route) {
@@ -126,6 +130,27 @@ class OpenApiContractTest extends TestCase
         }
     }
 
+    public function test_fixture_post_and_snapshot_conform_to_the_closed_versioned_contract(): void
+    {
+        $this->app->detectEnvironment(fn () => 'testing');
+        config(['session.driver' => 'array']);
+        $url = '/api/v1/marketplace/local-draft-fixtures';
+        $this->assertSame([['LocalSessionCookie' => []]], $this->document['paths'][$url]['post']['security']);
+        $this->assertSchema(json_decode($this->postJson($url, [])->assertUnauthorized()->getContent()), $this->document['components']['schemas']['ErrorResponse']);
+        $this->actingAs((new IdentityUser)->forceFill(['id' => 11]), 'web');
+        $id = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $this->mock(LocalDraftFixtureAccess::class)->shouldReceive('actor')->andReturn($id);
+        foreach (FixtureProfile::cases() as $profile) {
+            $operation = new FixtureOperation($id, $profile, $id, $id, [$id, '01ARZ3NDEKTSV4RRFFQ69G5FB0', '01ARZ3NDEKTSV4RRFFQ69G5FB1']);
+            $this->mock(LocalFixtureWriter::class)->shouldReceive('execute')->once()->andReturn($operation);
+            $response = $this->withHeader('Idempotency-Key', 'contract-key')->postJson($url, ['fixture_profile' => $profile->value])->assertCreated();
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalDraftFixtureResponse']);
+        }
+        $schema = json_decode(file_get_contents('/var/www/docs/api/schemas/marketplace-local-draft-fixture-operation.v1.json'), true, flags: JSON_THROW_ON_ERROR);
+        unset($schema['$schema'], $schema['title']);
+        $this->assertSame($schema, $this->document['components']['schemas']['LocalDraftFixtureResponse']['properties']['data']['properties']['attributes']);
+    }
+
     private function resolve(string $reference): array
     {
         $this->assertStringStartsWith('#/', $reference);
@@ -179,6 +204,15 @@ class OpenApiContractTest extends TestCase
             }
         }
         if ($schema['type'] === 'array') {
+            if (isset($schema['minItems'])) {
+                $this->assertGreaterThanOrEqual($schema['minItems'], count($value));
+            }
+            if (isset($schema['maxItems'])) {
+                $this->assertLessThanOrEqual($schema['maxItems'], count($value));
+            }
+            if ($schema['uniqueItems'] ?? false) {
+                $this->assertSame(count($value), count(array_unique($value)));
+            }
             foreach ($value as $item) {
                 $this->assertSchema($item, $schema['items']);
             }

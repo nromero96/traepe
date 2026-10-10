@@ -86,3 +86,7 @@ La CI de la base 02D es correcta. El usuario aprobó publicar 02E; el commit/pus
 El 10 de octubre de 2026 el usuario respondió «continuar, aprobado» a la pregunta que presentaba 02E terminado, sus 25 archivos, 164 pruebas con 3478 aserciones y las validaciones de formato/análisis/contrato/secretos. Aprobó explícitamente el checkpoint y autorizó crear el commit, hacer push normal a main y comprobar GitHub Actions para ese commit, incluidos calidad, integración, reinicio/persistencia y limpieza. Se conserva el alcance local, las tablas geográficas vacías y DP-001 abierta.
 
 La publicación usa un commit/push normales desde main, tras verificar el alcance exacto y la ausencia de divergencia. La CI deberá completar sus fases requeridas para el SHA publicado; su resultado remoto se informa al cerrar la publicación.
+
+## Resultado de publicación
+
+Publicado en `79d4d3d76c3a4c60075aabf596d3207be333d42a` mediante commit/push normales de los 25 archivos aprobados: 1025 líneas agregadas y 8 retiradas. HEAD, origin/main y main remoto coincidieron y el repositorio quedó limpio al cerrar 02E. [GitHub Actions 38084025841](https://github.com/nromero96/traepe/actions/runs/38084025841) terminó completed/success para ese SHA y su job; construcción/migraciones, calidad/integración, reinicio/persistencia y limpieza completaron correctamente. El estado y las cuatro fases se volvieron a verificar al preparar 02F; ocho servicios locales saludables. La continuación posterior no autoriza silenciosamente escrituras ni datos operativos.

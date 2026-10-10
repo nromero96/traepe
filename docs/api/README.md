@@ -72,3 +72,11 @@ Validar tamaño, cuerpo crudo, timestamp, firma y cuenta; persistir inbox; respo
 ## Integraciones lógicas
 
 `PaymentGateway`, `RoutingProvider`, `NotificationProvider`, `StorageProvider`, `IdentityProvider` e `InvoicingProvider`. Los proveedores concretos son decisiones pendientes.
+
+## Creación técnica local — 02F / OpenAPI 1.5.0
+
+POST /api/v1/marketplace/local-draft-fixtures requiere cookie de sesión, X-XSRF-TOKEN e Idempotency-Key ASCII 1–255 sin espacios/control. Capacidad marketplace.local.draft_fixture.create independiente de read; scope/recurso técnicos fijos de servidor del [plan aprobado](../sprints/sprint-02/checkpoint-02f-plan.md). JSON cerrado: fixture_profile=synthetic-origin-a-v1 o synthetic-origin-b-v1. Autorización antes de validar y reservar. Medio no JSON: 415; formato/clave inválidos: 422 genérico; CSRF: 419; sin sesión con CSRF válido: 401; permiso denegado: 403; fuera de local/testing: 404 antes de sesión/CSRF/DI.
+
+201 devuelve data.type=local_draft_fixture_operation, data.id=ULID de operación y attributes cerrados: profile_version, country_public_id, market_public_id y zone_public_ids (tres ULIDs nuevos en orden A/B/C); meta.correlation_id corresponde a la solicitud actual. Replay autorizado conserva exactamente data y 201, sin filas nuevas; distinto perfil válido bajo scope/actor/key: 409 idempotency_mismatch. Expiry 24h desde primer claim, sin extensión/reuso: 409 idempotency_expired. País ZZ incompatible: 409 fixture_country_conflict. No devuelve autor, bigint, hashes ni clave. No-store/private y límite propio 30/minuto por actor; 429 con Retry-After, 500 sanitizado.
+
+[Snapshot v1](schemas/marketplace-local-draft-fixture-operation.v1.json), OpenAPI y [evidencia](../sprints/sprint-02/checkpoint-02f-evidence.md) documentan el contrato. Los cambios confirmados se auditan de forma append-only en la misma transacción; no existe evento/efecto externo. Desarrollo conserva tablas vacías y no tiene permisos positivos nuevos. Este ejercicio no define una API administrativa ni habilita el piloto real.

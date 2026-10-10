@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.4.0",
-    "description": "Platform, Identity cliente y diagnósticos Marketplace local/testing. La sonda inline es pública; leer borradores persistidos exige sesión cookie y permiso técnico exacto. No habilita mercados reales."
+    "version": "1.5.0",
+    "description": "Platform, Identity cliente y Marketplace local/testing. Lectura de borradores y creación de perfiles sintéticos fijos requieren sesión cookie y capacidades técnicas independientes. Sin mercados reales."
   },
   "servers": [
     {
@@ -12,6 +12,103 @@
     }
   ],
   "paths": {
+    "/api/v1/marketplace/local-draft-fixtures": {
+      "post": {
+        "operationId": "createLocalDraftFixtureV1",
+        "summary": "Crear un perfil sintético fijo draft/fixture en local/testing",
+        "description": "DP-031: capacidad marketplace.local.draft_fixture.create y scope/recurso técnicos resueltos por servidor. Cookie y CSRF obligatorios. Idempotencia por scope/actor/key durante 24 horas desde primer claim, sin extensión ni reuso al expirar. Replay autorizado: operación/snapshot original. Otro perfil válido: idempotency_mismatch. Expiración: idempotency_expired. País ZZ incompatible: fixture_country_conflict. Fuera de local/testing 404 antes de sesión, CSRF y consultas. Desarrollo sin permisos ni datos positivos; casos positivos solo en bases temporales propias.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "ASCII imprimible sin espacios/control; no se normaliza ni almacena en claro.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[!-~]{1,255}$"
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Token CSRF obtenido de la cookie XSRF-TOKEN, decodificado por el cliente.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalDraftFixtureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Operación creada o replay autorizado del snapshot original; correlación de solicitud actual.",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftFixtureResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
     "/api/v1/health/ready": {
       "get": {
         "operationId": "readinessV1",
@@ -763,6 +860,93 @@
       }
     },
     "schemas": {
+      "LocalDraftFixtureRequest": {
+        "type": "object",
+        "required": [
+          "fixture_profile"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "fixture_profile": {
+            "type": "string",
+            "enum": [
+              "synthetic-origin-a-v1",
+              "synthetic-origin-b-v1"
+            ]
+          }
+        }
+      },
+      "LocalDraftFixtureResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local_draft_fixture_operation"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+              },
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "profile_version",
+                  "country_public_id",
+                  "market_public_id",
+                  "zone_public_ids"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "profile_version": {
+                    "type": "string",
+                    "enum": [
+                      "synthetic-origin-a-v1",
+                      "synthetic-origin-b-v1"
+                    ]
+                  },
+                  "country_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+                  },
+                  "market_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+                  },
+                  "zone_public_ids": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
       "CorrelationId": {
         "type": "string",
         "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"

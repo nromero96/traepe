@@ -11,6 +11,23 @@ class ArchitectureTest extends TestCase
 {
     /** DP-030: only these two Infrastructure adapters may use Identity's public contract. */
     private const CROSS_MODULE_CONTRACTS = [
+        'Marketplace/Infrastructure/Fixtures/IdentityLocalDraftFixtureAccess.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthenticatedActorDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthorizationDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\PermissionService',
+        ],
+        'Marketplace/Infrastructure/Fixtures/LocalDraftFixtureResourceResolver.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\ResourceContextResolver',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceContext',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceReference',
+            'App\\Modules\\Identity\\Domain\\Authorization\\Scope',
+        ],
+        'Marketplace/Infrastructure/Fixtures/PlatformLocalFixtureWriter.php' => [
+            'App\\Modules\\Platform\\Application\\Delivery\\IdempotencyStore',
+            'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyExpired',
+            'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyMismatch',
+            'App\\Modules\\Platform\\Domain\\Delivery\\RequestFingerprint',
+        ],
         'Marketplace/Infrastructure/Coverage/IdentityLocalPersistedCoverageAccess.php' => [
             'App\\Modules\\Identity\\Application\\Authorization\\AuthenticatedActorDirectory',
             'App\\Modules\\Identity\\Application\\Authorization\\AuthorizationDirectory',

@@ -39,6 +39,7 @@ final class ApiExceptionRenderer
             403 => ['forbidden', 'Acceso denegado.'],
             404 => ['not_found', 'Recurso no encontrado.'],
             405 => ['method_not_allowed', 'Método no permitido.'],
+            415 => ['unsupported_media_type', 'Medio de solicitud no admitido.'],
             419 => ['csrf_token_mismatch', 'La sesión debe renovarse.'],
             422 => ['validation_failed', 'La entrada no es válida.'],
             429 => ['rate_limited', 'Demasiadas solicitudes.'],

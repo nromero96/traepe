@@ -3,6 +3,8 @@
 namespace Tests\Integration;
 
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
+use App\Modules\Marketplace\Application\Fixtures\LocalDraftFixtureAccess;
+use App\Modules\Marketplace\Domain\Fixtures\FixtureProfile;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Cookie\CookieValuePrefix;
@@ -84,11 +86,11 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         ]);
     }
 
-    private function send(string $method, string $path, int $status, #[\SensitiveParameter] array $payload = [], #[\SensitiveParameter] ?string $token = null, ?Client $client = null): ResponseInterface
+    private function send(string $method, string $path, int $status, #[\SensitiveParameter] array $payload = [], #[\SensitiveParameter] ?string $token = null, ?Client $client = null, #[\SensitiveParameter] array $headers = []): ResponseInterface
     {
         try {
             $response = ($client ?? $this->client)->request($method, $path, [
-                'json' => $payload, 'headers' => $token === null ? [] : ['X-XSRF-TOKEN' => $token],
+                'json' => $payload, 'headers' => $headers + ($token === null ? [] : ['X-XSRF-TOKEN' => $token]),
             ]);
         } catch (Throwable) {
             $this->fail('Isolated Identity HTTP transport failed.');
@@ -272,6 +274,61 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->send('GET', $path, 401);
         $this->send('GET', $path, 401, client: $this->clientFor($copy));
         $this->assertPrivateLogs(['+12025550133', $path]);
+    }
+
+    public function test_real_fixture_creation_csrf_replay_separate_read_permission_revocation_and_logout(): void
+    {
+        $url = '/api/v1/marketplace/local-draft-fixtures';
+        $payload = ['fixture_profile' => FixtureProfile::A->value];
+        $headers = ['Idempotency-Key' => 'private-fixture-http-key'];
+        $this->startServer();
+        $this->send('POST', $url, 419, $payload, headers: $headers);
+        $this->send('GET', '/sanctum/csrf-cookie', 204);
+        $this->send('POST', $url, 401, $payload, $this->token(), headers: $headers);
+        [$actor] = $this->login('+12025550134');
+        $this->send('POST', $url, 403, $payload, $this->token(), headers: $headers);
+        $permission = DB::table('identity_permissions')->insertGetId(['public_id' => (string) Str::ulid(), 'code' => LocalDraftFixtureAccess::CAPABILITY]);
+        $user = DB::table('users')->where('public_id', $actor)->value('id');
+        $grant = fn (int $permissionId, string $effect = 'allow') => DB::table('identity_permission_grants')->insertGetId([
+            'public_id' => (string) Str::ulid(), 'user_id' => $user, 'permission_id' => $permissionId,
+            'scope_type' => 'platform', 'scope_public_id' => LocalDraftFixtureAccess::SCOPE_PUBLIC_ID, 'effect' => $effect,
+        ]);
+        $grant($permission);
+        $this->send('POST', $url, 419, $payload, headers: $headers);
+        $this->send('POST', $url, 419, $payload, 'invalid-token', headers: $headers);
+        $first = $this->body($this->send('POST', $url, 201, $payload, $this->token(), headers: $headers));
+        $second = $this->body($this->send('POST', $url, 201, $payload, $this->token(), headers: $headers));
+        $this->assertSame($first['data'], $second['data']);
+        $this->assertNotSame($first['meta']['correlation_id'], $second['meta']['correlation_id']);
+        $this->assertSame($first['meta']['correlation_id'], DB::table('marketplace_local_fixture_operations')->value('correlation_id'));
+        $this->send('POST', $url, 409, ['fixture_profile' => FixtureProfile::B->value], $this->token(), headers: $headers);
+        $attributes = $first['data']['attributes'];
+        $read = '/api/v1/marketplace/local-persisted-coverage-probe?market_public_id='.$attributes['market_public_id'];
+        $this->send('GET', $read.'&longitude=0.5&latitude=0.5', 403);
+        $readPermission = DB::table('identity_permissions')->insertGetId(['public_id' => (string) Str::ulid(), 'code' => LocalPersistedCoverageAccess::CAPABILITY]);
+        $grant($readPermission);
+        foreach ([[0.5, 0.5, 'selected', $attributes['zone_public_ids'][0]], [3.5, 0.5, 'selected', $attributes['zone_public_ids'][1]], [1, 1.5, 'selected', $attributes['zone_public_ids'][0]], [1.5, 1.5, 'outside', null], [5.5, 1.5, 'ambiguous', null]] as [$longitude, $latitude, $status, $zone]) {
+            $response = $this->send('GET', $read.'&'.http_build_query(['longitude' => $longitude, 'latitude' => $latitude]), 200);
+            $this->assertSame(['status' => $status, 'zone_id' => $zone], $this->body($response)['data']['attributes']);
+        }
+        $deny = $grant($permission, 'deny');
+        $this->send('POST', $url, 403, $payload, $this->token(), headers: $headers);
+        DB::table('identity_permission_grants')->where('id', $deny)->delete();
+        DB::table('users')->where('id', $user)->update(['status' => 'blocked']);
+        $this->send('POST', $url, 403, $payload, $this->token(), headers: $headers);
+        DB::table('users')->where('id', $user)->update(['status' => 'active']);
+        DB::table('identity_permission_grants')->where('permission_id', $permission)->delete();
+        $this->send('POST', $url, 403, $payload, $this->token(), headers: $headers);
+        $grant($permission);
+        $this->send('POST', $url, 201, $payload, $this->token(), headers: $headers);
+        $copy = new CookieJar(false, $this->cookies->toArray());
+        $token = $this->token();
+        $this->send('POST', '/api/v1/auth/logout', 200, token: $token);
+        $this->send('POST', $url, 419, $payload, $token, client: $this->clientFor($copy), headers: $headers);
+        $this->send('GET', '/sanctum/csrf-cookie', 204);
+        $this->send('POST', $url, 401, $payload, $this->token(), headers: $headers);
+        $this->assertSame([1, 1, 3, 1, 1], array_map(fn ($table) => DB::table($table)->count(), ['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'platform_idempotency_keys']));
+        $this->assertPrivateLogs(['+12025550134', 'private-fixture-http-key', FixtureProfile::A->value, $token]);
     }
 
     private function assertPrivateLogs(#[\SensitiveParameter] array $secrets): void
