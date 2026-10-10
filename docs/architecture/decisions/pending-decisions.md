@@ -19,6 +19,8 @@ Las decisiones técnicas aprobadas para Sprint 00 se trasladaron a ADR. Este reg
 
 ## Técnica pendiente fuera de Sprint 00
 
+DP-001 conserva su bloqueo para mercados y zonas operativas reales. El 10 de octubre de 2026 el usuario eligió «Cobertura ficticia local (recomendado)» para continuar después de 01F. Esta excepción permite únicamente el ejercicio técnico 02A con polígonos sintéticos, sin persistencia de mercados/zones, distritos, horarios, tarifas ni operación de lanzamiento. No resuelve DP-001 ni cambia su responsable/fecha.
+
 | ID | Decisión | Contexto | Bloquea | Responsable | Fecha de revisión |
 |---|---|---|---|---|---|
 | DP-012 | Herramientas concretas de frontend | Frontend continúa fuera de Sprint 00 | Apps web futuras | Nilton | 2026-10-11 |
@@ -71,3 +73,12 @@ DP-011, DP-013A, DP-014, DP-014A y DP-015 a DP-021 quedaron resueltas mediante A
 - **Bloqueo resuelto:** implementación del núcleo y contratos de 01B con fixtures; no autoriza privilegios reales ni altera 01A.
 - **Seguimiento:** resuelta directamente por el usuario; sin asignación abierta.
 - **Plan revisable:** docs/sprints/sprint-01/checkpoint-01b-plan.md.
+
+## DP-027 — Selección geoespacial del ejercicio local
+
+- **Estado:** resuelta para el alcance ficticio por aprobación explícita del usuario el 10 de octubre de 2026.
+- **Fuente:** maestro v1.6 §§32–34.1: PostGIS, cobertura por polígonos y selección por prioridad/regla vigente. No fija inclusión de bordes ni resolución de empates.
+- **Ambigüedad:** implementar esos criterios silenciosamente cambiaría la selección de cobertura. Se mantuvo detenida la implementación afectada mientras se preparaba el alcance técnico.
+- **Reglas aprobadas:** WGS84/SRID 4326, longitud/latitud; bordes incluidos; mayor prioridad primero; rechazo si dos zonas de máxima prioridad empatan. El usuario respondió «Aprobar criterio local (recomendado)» a esa propuesta.
+- **Alcance:** 02A, núcleo puro, adaptador PostGIS de lectura con polígonos sintéticos y comando técnico exclusivamente local/testing. No habilita cobertura comercial, horarios, tarifas ni mercados reales. Las reglas productivas siguen condicionadas por DP-001 y la especificación operativa correspondiente.
+- **Referencias técnicas:** [ST_Covers 3.5](https://postgis.net/docs/manual-3.5/ST_Covers.html), [ST_MakePoint 3.5](https://postgis.net/docs/manual-3.5/ST_MakePoint.html). Documentan el predicado inclusivo y X=longitud/Y=latitud; no sustituyen aprobación de reglas de negocio.

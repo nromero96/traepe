@@ -46,6 +46,6 @@ class ArchitectureTest extends TestCase
         foreach ((new Filesystem)->allFiles(app_path('Shared')) as $file) {
             $this->assertStringNotContainsString('App\\Modules\\', $file->getContents(), $file->getPathname());
         }
-        $this->assertSame(['Identity', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
+        $this->assertSame(['Identity', 'Marketplace', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
     }
 }

@@ -52,7 +52,13 @@ Solo `Platform` existe como módulo: Application contiene los puertos de health/
 
 Cada módulo depende solo de `Shared` y de contratos aprobados de módulos anteriores. Engagement y DataAI consumen eventos publicados; DataAI no modifica agregados directamente. Ningún módulo consulta tablas privadas ajenas.
 
-## Detalle
+## Marketplace local — 02A
+
+Tras Identity local aprobado/publicado, 02A materializa Marketplace con código utilizado en las cuatro capas: punto/candidatos/selección puros, caso de uso y puerto, adaptador de lectura PostGIS y comando de diagnóstico. DP-027 gobierna únicamente polígonos sintéticos local/testing; no crea un mercado operativo ni tablas, seeds o APIs comerciales. No consulta tablas privadas de otro módulo. Véase [alcance de Sprint 02](../sprints/sprint-02/README.md).
+
+Los checks de ausencia de módulos prematuros admiten exactamente Identity, Marketplace y Platform. Las descripciones anteriores de Platform conservan el estado histórico de Sprint 00.
+
+## Índice de detalle
 
 - [Modelo de datos](data-model/README.md)
 - [Seguridad](security/README.md)

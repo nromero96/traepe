@@ -25,3 +25,7 @@ Flujo: cotización, creación, pago, envío a tienda, aceptación, preparación,
 ## Economía
 
 Cada cotización/pedido conserva desglose de productos, descuentos y financiador, logística, cargos al cliente, comisiones y liquidación. Los ítems guardan una instantánea inmutable; cambios del catálogo no alteran pedidos históricos.
+
+## Ejercicio de cobertura local — 02A
+
+El usuario aprobó un ejercicio ficticio previo a resolver DP-001. DP-027 fija WGS84/SRID 4326, longitud/latitud, bordes incluidos, máxima prioridad y rechazo por empate máximo entre zonas distintas. La selección se prueba con polígonos sintéticos, sin persistir mercados ni áreas reales. El resultado no indica sucursal abierta, disponibilidad, precio ni ETA; las reglas operativas descritas arriba continúan pendientes de su implementación autorizada. Véanse [decisión](../architecture/decisions/pending-decisions.md#dp-027--selección-geoespacial-del-ejercicio-local) y [alcance](../sprints/sprint-02/README.md).

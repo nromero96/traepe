@@ -72,6 +72,10 @@ Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación l
 | Directorio PostgreSQL vacío | 01C | Aprobado/publicado y CI correcto |
 | Sonda HTTP técnica | 01D | Aprobado/publicado y CI correcto |
 | Frontera local/testing y caché de rutas | 01E | Aprobado/publicado y CI correcto |
-| Cookies y CSRF por HTTP real | 01F | Aprobado y validado localmente; publicación y CI autorizados |
+| Cookies y CSRF por HTTP real | 01F | Aprobado/publicado y CI correcto |
 
 Esto prepara el cierre del alcance Identity backend local elegido por el usuario. Identity productivo, privilegios administrativos, MFA, proveedores y comercio mantienen sus requisitos y decisiones separados.
+
+## Continuación tras 01F
+
+01F se publicó en `38684843baf5fafbd2ef53d3f2bd9665ed106927` y [GitHub Actions pasó](https://github.com/nromero96/traepe/actions/runs/38048298696), incluida persistencia/limpieza. El alcance local 01A–01F queda implementado, aprobado y validado; no equivale a Identity productivo. El usuario eligió [Marketplace ficticio local — 02A](../sprint-02/README.md), manteniendo DP-001 abierta para la operación real.

@@ -31,3 +31,7 @@ La API queda disponible en `http://localhost:8000`. XAMPP, Apache, MySQL y el PH
 ## Estado posterior — 01A, 10 de octubre de 2026
 
 Sprint 00 está cerrado con aprobación explícita, revisión independiente y CI verde. [Identity local](../../docs/sprints/sprint-01/checkpoint-01a-evidence.md) incorpora OTP, consentimiento ficticio local-v1 y sesión Sanctum; [runbook](../../docs/sprints/sprint-01/local-runbook.md). Los párrafos de checkpoints anteriores conservan el alcance histórico. 01A no incluye frontend ni proveedores productivos, no agrega dependencias y aún no está publicado.
+
+## Estado posterior — 02A, 10 de octubre de 2026
+
+Identity local 01A–01F está aprobado/publicado; [CI de 01F](https://github.com/nromero96/traepe/actions/runs/38048298696) pasó para `3868484`. Marketplace inicia un [ejercicio de cobertura ficticia](../../docs/sprints/sprint-02/README.md) aprobado conforme a DP-027, con PostGIS existente y diagnóstico por consola. No agrega rutas ni datos comerciales. [Operación y evidencia 02A](../../docs/sprints/sprint-02/checkpoint-02a-evidence.md).

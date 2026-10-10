@@ -30,6 +30,7 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 18. [Instalación y calidad](installation/README.md)
 19. [Evidencia del Checkpoint 00F](sprints/sprint-00/checkpoint-00f-evidence.md)
 20. [Sprint 01 — Identity backend local](sprints/sprint-01/README.md)
+21. [Sprint 02 — Marketplace local](sprints/sprint-02/README.md)
 
 ## Reglas de gobernanza
 
@@ -53,4 +54,4 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 | Preparación documental | Derivada de 1–112 | `sprints/preparation/` |
 | Sprint 00 ejecutable | 112 | `sprints/sprint-00/` |
 
-Checkpoint publicado más reciente confirmado: [01E](sprints/sprint-01/checkpoint-01e-evidence.md), aprobado y validado localmente y en [GitHub Actions](https://github.com/nromero96/traepe/actions/runs/38046835597) para `48d544d`. [01F](sprints/sprint-01/checkpoint-01f-evidence.md) está aprobado y validado localmente; publicación y CI autorizados. Sprint 00 conserva su cierre aprobado en [00F](sprints/sprint-00/checkpoint-00f-evidence.md).
+Checkpoint publicado más reciente al preparar 02A: [01F](sprints/sprint-01/checkpoint-01f-evidence.md), aprobado y validado localmente y en [GitHub Actions](https://github.com/nromero96/traepe/actions/runs/38048298696) para `3868484`. [02A](sprints/sprint-02/checkpoint-02a-evidence.md) está implementado, validado localmente y aprobado; el usuario autorizó su commit, push y CI el 10 de octubre de 2026. La publicación y comprobación remota se ejecutan bajo esa autorización. DP-001 continúa abierta para el piloto real. Sprint 00 conserva su cierre aprobado en [00F](sprints/sprint-00/checkpoint-00f-evidence.md).

@@ -24,7 +24,7 @@ try {
     foundationAssert(Http::timeout(15)->get('http://nginx/horizon')->status() === 401, 'Horizon denies anonymous request');
     $missing = Http::timeout(15)->get('http://nginx/api/v1/absent');
     foundationAssert($missing->status() === 404 && $missing->json('error.code') === 'not_found', 'unregistered API route returns sanitized error');
-    foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Identity', 'Platform'], 'only approved Identity and Platform modules are materialized');
+    foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Identity', 'Marketplace', 'Platform'], 'only approved Identity, Marketplace and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));
     foundationAssert(array_intersect(['orders', 'payments', 'products', 'stores', 'inventories'], $tables) === [], 'no commercial tables');
     foundationAssert(DB::table('users')->whereNotNull('phone_key')->whereNull('public_id')->count() === 0, 'local identities have public identifiers');

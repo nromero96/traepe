@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Identity\Infrastructure\IdentityServiceProvider;
+use App\Modules\Marketplace\Infrastructure\MarketplaceServiceProvider;
 use App\Modules\Platform\Infrastructure\PlatformServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\HorizonServiceProvider;
@@ -10,4 +11,5 @@ return [
     HorizonServiceProvider::class,
     PlatformServiceProvider::class,
     IdentityServiceProvider::class,
+    MarketplaceServiceProvider::class,
 ];
