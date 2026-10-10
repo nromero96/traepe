@@ -36,3 +36,7 @@ Este documento es una propuesta ejecutable de alcance, no una nueva regla de neg
 ## Implementación preparada
 
 Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación local](local-runbook.md). Implementación aprobada por el usuario, publicada y validada localmente y en GitHub Actions para 748e937.
+
+## Siguiente checkpoint
+
+[01B: base de autorización](checkpoint-01b-plan.md) implementado conforme a DP-026 aprobada; [evidencia](checkpoint-01b-evidence.md). Validación local completa, pendiente aprobación/publicación del checkpoint. No incluye asignación de privilegios reales ni comercio/sucursales.

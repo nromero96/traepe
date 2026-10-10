@@ -60,3 +60,14 @@ DP-011, DP-013A, DP-014, DP-014A y DP-015 a DP-021 quedaron resueltas mediante A
 - **Definiciones aprobadas:** celular en formato internacional E.164 sin limitar país; estados iniciales active/blocked; consentimiento ficticio local-v1, exclusivo de desarrollo y con aceptación explícita. No equivale a términos legales productivos.
 - **Seguimiento:** decisión resuelta directamente por el usuario el 10 de octubre de 2026; no queda una asignación abierta por completar.
 - **Bloqueo resuelto:** implementación local del flujo OTP y sus datos/consentimientos en 01A puede avanzar bajo estas definiciones. Proveedores y operación productiva permanecen fuera del alcance.
+
+## DP-026 — Precedencia y alcance de autorización
+
+- **Estado:** resuelta por aprobación explícita del usuario («aprueba») el 10 de octubre de 2026.
+- **Fuente:** maestro v1.6 §§2.1, 35 y 60: capacidad + alcance + recurso, roles con scope y excepciones allow/deny con expiración.
+- **Ambigüedad:** no fija precedencia allow/deny, herencia entre scopes ni tratamiento exacto del límite de expiración.
+- **Reglas aprobadas:** deny por defecto; actor bloqueado denegado; deny explícito vigente prevalece; scopes exactos sin herencia ni comodines; expiración now >= expiry UTC; contexto de recurso resuelto por servidor y coincidente, desconocido denegado.
+- **Alcance:** núcleo puro y pruebas con fixtures; sin privilegios administrativos reales ni endpoints de asignación.
+- **Bloqueo resuelto:** implementación del núcleo y contratos de 01B con fixtures; no autoriza privilegios reales ni altera 01A.
+- **Seguimiento:** resuelta directamente por el usuario; sin asignación abierta.
+- **Plan revisable:** docs/sprints/sprint-01/checkpoint-01b-plan.md.

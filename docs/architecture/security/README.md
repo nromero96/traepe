@@ -25,3 +25,7 @@ No exponer IDs internos. Eliminar o anonimizar según política; nunca borrar hi
 ## Observabilidad técnica 00E
 
 Los logs usan una lista cerrada de campos y mensajes técnicos; los datos del request y las excepciones completas se descartan. El evento ficticio del outbox se cifra con APP_KEY y su contenido e identidad son inmutables mediante trigger PostgreSQL. Redis recibe una referencia pública, sin payload. La correlación es trazabilidad, nunca autorización. Véase la [operación local](../../installation/docker.md#checkpoint-00e-correlación-y-entrega-técnica).
+
+## Núcleo de autorización — 01B
+
+DP-026 aprobada el 10 de octubre de 2026: denegar por defecto y para actor bloqueado; denegación explícita vigente prevalece; coincidencia exacta de alcance sin herencia ni comodines; expiración al alcanzar el instante UTC; contexto del recurso resuelto por servidor y coherente con la solicitud. El núcleo Domain/Application y sus contratos se prueban con fixtures, sin conceder privilegios ni agregar endpoints. Véanse [plan](../../sprints/sprint-01/checkpoint-01b-plan.md) y [evidencia](../../sprints/sprint-01/checkpoint-01b-evidence.md). Su integración persistente y las políticas comerciales quedan para checkpoints posteriores.
