@@ -40,3 +40,7 @@ Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación l
 ## Siguiente checkpoint
 
 [01B: base de autorización](checkpoint-01b-plan.md) implementado conforme a DP-026 aprobada; [evidencia](checkpoint-01b-evidence.md). Validación local completa, pendiente aprobación/publicación del checkpoint. No incluye asignación de privilegios reales ni comercio/sucursales.
+
+## Checkpoint 01C
+
+[Directorio de autorización PostgreSQL](checkpoint-01c-evidence.md): adaptador de lectura y esquema vacío, con pruebas aisladas. No asigna privilegios ni agrega rutas. Implementación local preparada para revisión/publicación.

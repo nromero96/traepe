@@ -2,7 +2,9 @@
 
 namespace App\Modules\Identity\Infrastructure;
 
+use App\Modules\Identity\Application\Authorization\AuthorizationDirectory;
 use App\Modules\Identity\Application\LocalOtp;
+use App\Modules\Identity\Infrastructure\Authorization\PostgresAuthorizationDirectory;
 use App\Modules\Identity\Interfaces\Console\ReadLocalOtp;
 use App\Modules\Identity\Interfaces\Http\LocalIdentityController;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +15,7 @@ final class IdentityServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(LocalOtp::class, PostgresLocalOtp::class);
+        $this->app->bind(AuthorizationDirectory::class, PostgresAuthorizationDirectory::class);
     }
 
     public function boot(): void
