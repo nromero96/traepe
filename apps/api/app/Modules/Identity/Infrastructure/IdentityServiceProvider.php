@@ -36,7 +36,7 @@ final class IdentityServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([ReadLocalOtp::class]);
         }
-        Route::prefix('api/v1/auth')->middleware(['web', 'throttle:30,1'])->group(function (): void {
+        Route::prefix('api/v1/auth')->middleware([LocalIdentityEnvironment::class, 'web', 'throttle:30,1'])->group(function (): void {
             Route::post('otp/request', [LocalIdentityController::class, 'request']);
             Route::post('otp/verify', [LocalIdentityController::class, 'verify']);
             Route::post('logout', [LocalIdentityController::class, 'logout'])->middleware('auth:sanctum');

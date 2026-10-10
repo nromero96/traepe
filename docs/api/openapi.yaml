@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Platform e Identity cliente exclusivamente local. OTP y consentimiento local-v1 deshabilitados en producción; requiere sesión cookie Sanctum y CSRF."
   },
   "servers": [
@@ -173,7 +173,11 @@
     },
     "/api/v1/auth/otp/request": {
       "post": {
+        "description": "Solo local/testing. Fuera de estos entornos devuelve 404 antes de CSRF, validación o almacenamiento, incluso con una caché de rutas local reutilizada.",
         "responses": {
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
           "401": {
             "$ref": "#/components/responses/ApiError"
           },
@@ -225,7 +229,11 @@
     },
     "/api/v1/auth/otp/verify": {
       "post": {
+        "description": "Solo local/testing. Fuera de estos entornos devuelve 404 antes de CSRF, validación o almacenamiento, incluso con una caché de rutas local reutilizada.",
         "responses": {
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
           "401": {
             "$ref": "#/components/responses/ApiError"
           },
@@ -303,7 +311,11 @@
     },
     "/api/v1/auth/me": {
       "get": {
+        "description": "Solo local/testing. Fuera de estos entornos devuelve 404 antes de autenticación o almacenamiento, incluso con una sesión existente y una caché de rutas local reutilizada.",
         "responses": {
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
           "401": {
             "$ref": "#/components/responses/ApiError"
           },
@@ -336,7 +348,11 @@
     },
     "/api/v1/auth/logout": {
       "post": {
+        "description": "Solo local/testing. Fuera de estos entornos devuelve 404 antes de autenticación, CSRF o almacenamiento, incluso con una sesión existente y una caché de rutas local reutilizada.",
         "responses": {
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
           "401": {
             "$ref": "#/components/responses/ApiError"
           },

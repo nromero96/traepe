@@ -39,3 +39,9 @@ El contrato exacto está en docs/api/openapi.yaml. Rutas y entrega OTP no están
 GET /api/v1/identity/local-authorization-probe utiliza la misma sesión cookie de 01A. Sin sesión devuelve 401; con sesión y sin grant exacto devuelve 403. Ese rechazo es el comportamiento esperado del entorno de desarrollo con directorio vacío. No agregar permisos manualmente para obtener 200: el caso positivo se verifica en LocalAuthorizationProbeTest dentro de bases aisladas.
 
 La ruta no acepta parámetros de actor, capacidad, scope, recurso o tiempo para modificar su decisión. El único recurso es un fixture técnico; no representa permisos administrativos. Solo local/testing; 404 fuera de esos entornos, incluso con ruta local cacheada. OpenAPI 1.2.0 documenta la sesión y respuestas. Los contadores del runtime conservan su límite de 30 requests/min; el aislamiento array se limita al harness de integración.
+
+## Protección de entorno — 01E
+
+Las cuatro rutas de autenticación de 01A también verifican local/testing en cada request, antes de web/auth/CSRF. Fuera de esos entornos devuelven 404, incluso con una sesión existente o una caché creada en local. El registro condicional de rutas y las restricciones del adaptador OTP siguen vigentes. OpenAPI 1.2.1 documenta esos rechazos.
+
+LocalIdentityEnvironmentTest genera una caché en un directorio temporal propio y la verifica con procesos nuevos en production/staging. No ejecuta route:clear ni route:cache sobre la caché del runtime; elimina únicamente su archivo temporal. La suite de integración sigue utilizando bases PostgreSQL aisladas.

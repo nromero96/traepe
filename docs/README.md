@@ -29,6 +29,7 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 17. [Evidencia del Checkpoint 00E](sprints/sprint-00/checkpoint-00e-evidence.md)
 18. [Instalación y calidad](installation/README.md)
 19. [Evidencia del Checkpoint 00F](sprints/sprint-00/checkpoint-00f-evidence.md)
+20. [Sprint 01 — Identity backend local](sprints/sprint-01/README.md)
 
 ## Reglas de gobernanza
 
@@ -52,4 +53,4 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 | Preparación documental | Derivada de 1–112 | `sprints/preparation/` |
 | Sprint 00 ejecutable | 112 | `sprints/sprint-00/` |
 
-Evidencia ejecutable más reciente: [checkpoint 00F](sprints/sprint-00/checkpoint-00f-evidence.md), validado localmente y en GitHub Actions para `f009a1b`; revisión independiente completada y aprobación final recibida el 10 de octubre de 2026.
+Checkpoint publicado más reciente confirmado: [01D](sprints/sprint-01/checkpoint-01d-evidence.md), aprobado y validado localmente y en [GitHub Actions](https://github.com/nromero96/traepe/actions/runs/38045795191) para `5f0f4f8`. [01E](sprints/sprint-01/checkpoint-01e-evidence.md) está aprobado y validado localmente; publicación y CI autorizados. Sprint 00 conserva su cierre aprobado en [00F](sprints/sprint-00/checkpoint-00f-evidence.md).

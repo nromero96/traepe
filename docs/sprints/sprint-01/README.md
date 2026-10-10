@@ -48,3 +48,11 @@ Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación l
 ## Checkpoint 01D
 
 [Integración HTTP local de autorización](checkpoint-01d-evidence.md): ruta de prueba conectada a sesión y directorio, con recurso ficticio fijado por servidor. Sin permisos asignados ni acciones comerciales. Validado localmente; pendiente aprobación/publicación.
+
+## Estado confirmado al iniciar 01E
+
+01B, 01C y 01D fueron aprobados y publicados. GitHub Actions pasó para `ae3888d`, `4fe405c` y `5f0f4f8`, respectivamente. [CI de 01D](https://github.com/nromero96/traepe/actions/runs/38045795191) también verificó persistencia tras reinicio y limpieza del entorno aislado. Los párrafos anteriores describen el estado al preparar cada checkpoint.
+
+## Checkpoint 01E
+
+[Protección de entorno de Identity local](checkpoint-01e-evidence.md): extiende el gate de 01D a las cuatro rutas de 01A y verifica una caché real local en procesos nuevos no locales. Mantiene el alcance de desarrollo aprobado, sin dependencias ni datos nuevos. Validado localmente: 75 pruebas/1622 aserciones y quality correcto. Aprobado el 10 de octubre de 2026; commit, push y validación remota autorizados.
