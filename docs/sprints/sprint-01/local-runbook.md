@@ -34,3 +34,8 @@ No redirigir ni guardar esa salida en logs. El comando falla con --no-interactio
 422 indica verificación fallida/entrada inválida, 419 CSRF faltante y 429 límite de solicitud/reenvío. Solicitud válida nunca revela si el contacto ya existe. No agregar permisos administrativos para probar el flujo.
 
 El contrato exacto está en docs/api/openapi.yaml. Rutas y entrega OTP no están disponibles en producción; SMS/MFA/proveedores requieren checkpoint y decisiones separados.
+## Prueba de autorización — 01D
+
+GET /api/v1/identity/local-authorization-probe utiliza la misma sesión cookie de 01A. Sin sesión devuelve 401; con sesión y sin grant exacto devuelve 403. Ese rechazo es el comportamiento esperado del entorno de desarrollo con directorio vacío. No agregar permisos manualmente para obtener 200: el caso positivo se verifica en LocalAuthorizationProbeTest dentro de bases aisladas.
+
+La ruta no acepta parámetros de actor, capacidad, scope, recurso o tiempo para modificar su decisión. El único recurso es un fixture técnico; no representa permisos administrativos. Solo local/testing; 404 fuera de esos entornos, incluso con ruta local cacheada. OpenAPI 1.2.0 documenta la sesión y respuestas. Los contadores del runtime conservan su límite de 30 requests/min; el aislamiento array se limita al harness de integración.

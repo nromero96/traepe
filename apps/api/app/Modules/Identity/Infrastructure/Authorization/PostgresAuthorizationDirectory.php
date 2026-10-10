@@ -2,6 +2,7 @@
 
 namespace App\Modules\Identity\Infrastructure\Authorization;
 
+use App\Modules\Identity\Application\Authorization\AuthenticatedActorDirectory;
 use App\Modules\Identity\Application\Authorization\AuthorizationDirectory;
 use App\Modules\Identity\Domain\Authorization\PermissionEffect;
 use App\Modules\Identity\Domain\Authorization\PermissionRule;
@@ -9,8 +10,15 @@ use App\Modules\Identity\Domain\Authorization\Scope;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 
-final class PostgresAuthorizationDirectory implements AuthorizationDirectory
+final class PostgresAuthorizationDirectory implements AuthenticatedActorDirectory, AuthorizationDirectory
 {
+    public function publicId(int $authenticatedId): ?string
+    {
+        $id = DB::table('users')->where('id', $authenticatedId)->value('public_id');
+
+        return is_string($id) ? $id : null;
+    }
+
     public function isActive(string $actorPublicId): bool
     {
         return DB::table('users')->where('public_id', $actorPublicId)->where('status', 'active')->exists();

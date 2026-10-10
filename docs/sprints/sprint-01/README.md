@@ -44,3 +44,7 @@ Véanse [evidencia y pruebas de 01A](checkpoint-01a-evidence.md) y [operación l
 ## Checkpoint 01C
 
 [Directorio de autorización PostgreSQL](checkpoint-01c-evidence.md): adaptador de lectura y esquema vacío, con pruebas aisladas. No asigna privilegios ni agrega rutas. Implementación local preparada para revisión/publicación.
+
+## Checkpoint 01D
+
+[Integración HTTP local de autorización](checkpoint-01d-evidence.md): ruta de prueba conectada a sesión y directorio, con recurso ficticio fijado por servidor. Sin permisos asignados ni acciones comerciales. Validado localmente; pendiente aprobación/publicación.

@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Platform e Identity cliente exclusivamente local. OTP y consentimiento local-v1 deshabilitados en producción; requiere sesión cookie Sanctum y CSRF."
   },
   "servers": [
@@ -366,6 +366,98 @@
         "summary": "Identity local, sesión cookie y CSRF",
         "operationId": "endLocalSessionV1"
       }
+    },
+    "/api/v1/identity/local-authorization-probe": {
+      "get": {
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "200": {
+            "description": "Autorización de fixture local concedida; no acceso comercial.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "required": [
+                        "type",
+                        "id",
+                        "attributes"
+                      ],
+                      "properties": {
+                        "id": {
+                          "enum": [
+                            "01ARZ3NDEKTSV4RRFFQ69G5FAW"
+                          ],
+                          "type": "string"
+                        },
+                        "attributes": {
+                          "required": [
+                            "allowed"
+                          ],
+                          "properties": {
+                            "allowed": {
+                              "enum": [
+                                true
+                              ],
+                              "type": "boolean"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": {
+                          "enum": [
+                            "authorization_probes"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "meta": {
+                      "required": [
+                        "correlation_id"
+                      ],
+                      "properties": {
+                        "correlation_id": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        },
+        "description": "Solo local/testing. Actor autenticado y capacidad/scope/recurso/tiempo fijados por servidor; no acepta claims del cliente ni concede permisos. Sin grants exactos devuelve 403.",
+        "operationId": "localAuthorizationProbeV1",
+        "summary": "Probar autorización local con sesión cookie Sanctum",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -374,6 +466,12 @@
         "type": "http",
         "scheme": "basic",
         "description": "Credencial local ignorada; no corresponde a identidad ni permisos de negocio."
+      },
+      "LocalSessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "trae-pe-session",
+        "description": "Sesión Sanctum web. Nombre predeterminado con APP_NAME=trae.pe; puede configurarse mediante SESSION_COOKIE. No es un token API."
       }
     },
     "headers": {

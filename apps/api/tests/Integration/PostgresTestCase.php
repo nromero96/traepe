@@ -2,6 +2,7 @@
 
 namespace Tests\Integration;
 
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -16,6 +17,10 @@ abstract class PostgresTestCase extends TestCase
         if (getenv('TRAEPE_INTEGRATION_TESTS') !== '1') {
             $this->markTestSkipped('Set TRAEPE_INTEGRATION_TESTS=1 in Docker to run isolated real PostgreSQL checks.');
         }
+        // Databases are isolated but fixture user IDs repeat; limiter state must be too.
+        // This affects only the test container and never flushes shared Redis data.
+        config(['cache.limiter' => 'array']);
+        $this->app->forgetInstance(RateLimiter::class);
         config(['database.default' => 'pgsql', 'database.connections.pgsql.database' => 'postgres']);
         DB::purge('pgsql');
         $name = 'traepe_00e_test_'.bin2hex(random_bytes(8));
