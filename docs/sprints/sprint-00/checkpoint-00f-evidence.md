@@ -1,8 +1,8 @@
 # Checkpoint 00F — Calidad, CI y reproducción
 
-Fecha: 3 de octubre de 2026. El usuario aprobó 00E y autorizó 00F. Alcance: S00-014, S00-015 y S00-016; documento maestro v1.6 §§51–64 y 112, ADR-001/004 y criterios del Sprint 00. La implementación está preparada y validada localmente. El cierre final permanece pendiente de ejecución remota de GitHub Actions, revisión independiente y aprobación explícita.
+Fecha: 3 de octubre de 2026. El usuario aprobó 00E y autorizó 00F. Alcance: S00-014, S00-015 y S00-016; documento maestro v1.6 §§51–64 y 112, ADR-001/004 y criterios del Sprint 00. La implementación está publicada y validada localmente y en GitHub Actions. El cierre final permanece pendiente de revisión independiente y aprobación explícita. Las validaciones iniciales y su estado histórico se conservan abajo.
 
-No se hizo commit, push, merge, publicación ni despliegue. No se implementaron dominios comerciales ni flujos de identidad. HEAD y origin/main siguen en `a96ac04400bfe9d8d24ff142e537059dca813c48`.
+Estado histórico al iniciar la validación local del 3 de octubre: todavía no se había hecho commit ni push de 00C–00F; HEAD y origin/main estaban en `a96ac04400bfe9d8d24ff142e537059dca813c48`. La publicación autorizada y las ejecuciones remotas posteriores se registran al final. No se implementaron dominios comerciales ni flujos de identidad.
 
 ## Resultado
 
@@ -87,7 +87,7 @@ Imagen PHP: `traepe/php-fpm:8.4.24-00f`, digest `sha256:5705d0865ef3117be669a964
 | Tarea | Estado |
 |---|---|
 | S00-014 | Implementación y validación completas; revisión de checkpoint pendiente |
-| S00-015 | Workflow/runner completos y reproducción local verde; falta ejecución remota desde commit publicado |
+| S00-015 | DONE: reproducción local y ejecución remota verdes; véase resultado verificado |
 | S00-016 | Runbook, instalación nueva y reinicio verificados; falta revisión independiente y aprobación final |
 
 No se declara terminado Sprint 00 mientras estas puertas sigan pendientes. Publicar los cambios requiere autorización explícita conforme a AGENTS.md; aprobar 00E/iniciar 00F no constituye autorización de commit/push.
@@ -112,3 +112,22 @@ Validación posterior: Pint 99 archivos, PHPStan nivel 8 sin errores, OpenAPI co
 [GitHub Actions 37159042917](https://github.com/nromero96/traepe/actions/runs/37159042917) concluyó `success` para SHA `17784dbc12a00b24fb6de6d97d79268de2cf6409`. Checkout limpio, configuración desechable, build/migraciones, calidad e integración, fallas controladas, infraestructura real, alcance negativo, reinicio/persistencia y limpieza pasaron. S00-015 queda DONE. S00-016 conserva pendientes la revisión independiente y la aprobación final; este resultado no autoriza iniciar funcionalidades comerciales.
 
 Los ocho servicios de desarrollo permanecen saludables y sus seis volúmenes se conservaron. Tras recrear API, se reinició Nginx para refrescar la dirección del upstream. La comprobación de permisos como www-data pasó también en el stack local. El primer fallo remoto se conserva arriba como evidencia histórica, resuelto mediante el commit de corrección.
+
+## Revisión de preparación para cierre — 4 de octubre de 2026
+
+HEAD y origin/main coinciden en `f009a1b61140e60072044fe983ce6595e9e4ce9c`. [CI del último commit](https://github.com/nromero96/traepe/actions/runs/37165611154) fue consultado nuevamente: completed/success. Sin cambios de código desde la ejecución verde de 34 pruebas/825 aserciones, no se repitió la suite completa.
+
+Se revisaron el maestro v1.6 §112, criterios de aceptación, definición de terminado, runbook, workflow y controles de arquitectura. Se ejecutaron nuevamente `verify-foundation.php` y, como www-data, `verify-runtime-permissions.php`: todos sus controles pasaron. Los ocho servicios estaban healthy. No se instalaron dependencias, alteraron datos comerciales ni eliminaron volúmenes.
+
+Se corrigieron referencias obsoletas a CI pendiente en el índice y en el resumen de esta evidencia. Esta revisión es del mismo autor; no se presenta como independiente. S00-016 permanece IN_PROGRESS hasta una revisión independiente de la instalación documentada y la aprobación explícita de 00F. Alcance sugerido para el revisor: instalación/CI reproducibles, límites modulares, secretos y logs, limpieza aislada, permisos Linux y correspondencia con los criterios de aceptación. Debe registrar hallazgos con archivo/línea, severidad y validación, o declarar expresamente ausencia de hallazgos bloqueantes.
+
+Riesgos residuales: MinIO archivado solo para desarrollo; decisiones de hosting/CD, retención, RTO/RPO y negocio fuera de este checkpoint. No se declara preparación productiva ni se inicia Sprint 01.
+## Revisión independiente autorizada — 4 de octubre de 2026
+
+[Informe independiente](review-00f-independent.md): sin hallazgos técnicos bloqueantes. Hallazgo P2 de gobernanza: las 13 decisiones abiertas carecen de responsable/fecha y debe verificarse su relación con el próximo sprint. Se solicitó asignación explícita al usuario. La puerta de revisión independiente está ejecutada; S00-016 conserva pendiente resolver el hallazgo y obtener aprobación final. No se ejecutó una instalación nueva por el revisor; revisó instrucciones y reproducción automatizada existente.
+
+## Aprobación final — 10 de octubre de 2026
+
+El usuario aprobó explícitamente el cierre de 00F respondiendo «si apruebo» a la propuesta de cierre tras revisión independiente y configuración OTP para el checkpoint siguiente. S00-014/S00-015/S00-016 quedan DONE y Sprint 00 cerrado. El alcance siguiente elegido es Identity backend local, excluyendo mercados y proveedores productivos; las 13 decisiones previas tienen responsable Nilton y revisión 2026-10-11. La revisión independiente y el resultado remoto se conservan con su alcance y limitaciones; no se declara preparación productiva.
+
+DP-025 surge en la planificación del siguiente checkpoint: parámetros OTP aprobados; formato de celular, estados y consentimiento aún deben concretarse antes de implementar el registro. Esta aprobación no autoriza nuevas dependencias, commit/push ni despliegue de Identity.

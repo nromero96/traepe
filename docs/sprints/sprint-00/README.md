@@ -82,3 +82,7 @@ El orden detallado y las dependencias están en el [backlog](backlog.md).
 Checkpoint 00A está aprobado y cerrado. 00B fue autorizado y publicado el 3 de octubre de 2026; su commit fue `a96ac04400bfe9d8d24ff142e537059dca813c48`. 00C fue aprobado explícitamente y 00D autorizado el 3 de octubre de 2026. 00D fue aprobado explícitamente el 3 de octubre de 2026; 00E fue aprobado explícitamente el 3 de octubre de 2026; 00F está implementado y validado localmente y en GitHub Actions para `17784db`; publicación autorizada de 00C–00F realizada. DP-023 y DP-024 están resueltas. 00F requiere evidencia y aprobación final. Véase [evidencia de 00E](checkpoint-00e-evidence.md). DP-012, DP-013B y proveedores productivos permanecen fuera del alcance ejecutable.
 
 Véase [evidencia de 00F](checkpoint-00f-evidence.md). GitHub Actions pasó; su cierre aún exige revisión independiente y aprobación final; no se iniciará un sprint comercial automáticamente.
+
+## Cierre formal — 10 de octubre de 2026
+
+00F aprobado explícitamente por el usuario tras revisión independiente y CI verde. S00-001 a S00-016 quedan DONE. El siguiente alcance autorizado para preparación es [Identity backend local](../sprint-01/README.md); sus decisiones específicas pendientes se conservan en DP-025. Los párrafos anteriores describen la secuencia histórica de validaciones.

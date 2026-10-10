@@ -30,7 +30,7 @@ class SanctumFoundationTest extends TestCase
         Route::middleware(['api', 'auth:sanctum'])->get('/api/v1/fixture-protected', fn () => []);
         $this->getJson('/api/v1/fixture-protected')->assertUnauthorized()->assertJsonPath('error.code', 'unauthenticated');
         $this->assertFalse(EnsureFrontendRequestsAreStateful::fromFrontend(Request::create('/api/v1/health/ready', 'GET', [], [], [], ['HTTP_ORIGIN' => 'https://untrusted.example.test'])));
-        $this->assertDirectoryDoesNotExist(app_path('Modules/Identity'));
+        $this->assertDirectoryExists(app_path('Modules/Identity'));
         $this->assertFalse(in_array('Laravel\\Sanctum\\HasApiTokens', class_uses(User::class), true));
     }
 }

@@ -8,11 +8,11 @@ Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 0
 - Arquitectura aprobada: monolito modular sobre Laravel 13 y PHP 8.4.
 - Backend base instalado en `apps/api`: Laravel 13.34.0 sobre PHP 8.4.
 - Interfaces futuras: cliente, comercio y administrador maestro como aplicaciones separadas.
-- 00B publicado; 00C aprobado; 00D aprobado; 00E aprobado; 00F implementado y validado localmente y en GitHub Actions; revisión final pendiente. 00C–00F publicados con autorización explícita; GitHub Actions verde para `17784db`.
+- 00B publicado; 00C aprobado; 00D aprobado; 00E aprobado; 00F validado localmente y en GitHub Actions, revisado independientemente y aprobado el 10 de octubre de 2026; Sprint 00 cerrado. 00C–00F publicados con autorización explícita; GitHub Actions verde para `17784db`.
 - Docker Compose ejecuta Nginx, PHP-FPM 8.4, PostgreSQL/PostGIS y Redis con imágenes fijadas.
 - Horizon, Reverb, MinIO y Mailpit operativos en Docker; dashboard y canal técnico protegidos mediante credencial local aprobada. MinIO se construye desde commits oficiales fijos, solo para desarrollo. Sanctum 4.3.3 configura la base cookie/CSRF; GitHub Actions está configurado en 00F; su ejecución remota pasó tras la publicación autorizada. Véase [evidencia de 00F](docs/sprints/sprint-00/checkpoint-00f-evidence.md).
 - Platform, Shared HTTP y generador modular probados; API técnica versionada con [OpenAPI](docs/api/openapi.yaml).
-- No se implementaron autenticación funcional ni dominios comerciales.
+- Identity backend local (01A) implementado y validado, pendiente revisión/publicación: OTP, consentimiento de prueba y sesión cookie. Sin frontend, SMS real ni dominios comerciales.
 
 ## Navegación
 
@@ -35,7 +35,7 @@ La estructura muestra el estado actual y los destinos futuros:
 ```text
 apps/
   api/                  Backend maestro Laravel 13
-    app/Modules/        Solo Platform materializado
+    app/Modules/        Platform e Identity materializados
     app/Shared/         Contratos HTTP transversales
   customer-web/         Web/PWA cliente
   merchant-dashboard/   Interfaz de comercio y sucursal
@@ -48,7 +48,7 @@ infrastructure/
 docs/
 ```
 
-Solo `apps/api` existe actualmente. Platform, Shared y el generador se crearán en 00D; los demás módulos únicamente al iniciar su implementación. No se crean directorios vacíos para simular avance.
+Solo `apps/api` existe actualmente. Platform, Shared y el generador están implementados; Identity local se incorpora en 01A. Los demás módulos únicamente al iniciar su implementación. No se crean directorios vacíos para simular avance.
 
 ## Fuente de verdad
 

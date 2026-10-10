@@ -286,7 +286,7 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** versiones incompatibles, reglas demasiado laxas o CI lento.
 
-**Estado:** `DONE` — herramientas y fallas controladas verificadas; aprobación final de 00F pendiente.
+**Estado:** `DONE` — herramientas y fallas controladas verificadas; 00F aprobado explícitamente el 10 de octubre de 2026.
 
 ## S00-015 — Pipeline GitHub Actions
 
@@ -322,4 +322,4 @@ No se inicia un checkpoint si el anterior no tiene aprobación explícita regist
 
 **Riesgos:** documentación dependiente de conocimiento tácito, comandos destructivos ambiguos o éxito solo en una máquina.
 
-**Estado:** `IN_PROGRESS` — instalación/reinicio documentados y verificados; faltan revisión independiente y aprobación final.
+**Estado:** `DONE` — instalación/reinicio y CI verificados, revisión independiente completada, responsables/fechas registrados y alcance siguiente limitado a Identity local; aprobación final de 00F el 10 de octubre de 2026.

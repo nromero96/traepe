@@ -24,10 +24,10 @@ try {
     foundationAssert(Http::timeout(15)->get('http://nginx/horizon')->status() === 401, 'Horizon denies anonymous request');
     $missing = Http::timeout(15)->get('http://nginx/api/v1/absent');
     foundationAssert($missing->status() === 404 && $missing->json('error.code') === 'not_found', 'unregistered API route returns sanitized error');
-    foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Platform'], 'only Platform module is materialized');
+    foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Identity', 'Platform'], 'only approved Identity and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));
     foundationAssert(array_intersect(['orders', 'payments', 'products', 'stores', 'inventories'], $tables) === [], 'no commercial tables');
-    foundationAssert(DB::table('users')->count() === 0, 'Laravel starter users table remains empty; no identity flow implemented');
+    foundationAssert(DB::table('users')->whereNotNull('phone_key')->whereNull('public_id')->count() === 0, 'local identities have public identifiers');
     foundationAssert(config('logging.default') === 'safe' && config('app.debug') === false, 'safe logging and debug disabled');
     $log = file_get_contents(storage_path('logs/technical.jsonl'));
     foreach (['app.key', 'database.connections.pgsql.password', 'database.redis.default.password', 'technical.password', 'filesystems.disks.s3.secret', 'broadcasting.connections.reverb.secret'] as $setting) {

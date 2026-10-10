@@ -52,4 +52,4 @@ El maestro gobierna requisitos funcionales, datos, API, UX y diseño. Esta docum
 | Preparación documental | Derivada de 1–112 | `sprints/preparation/` |
 | Sprint 00 ejecutable | 112 | `sprints/sprint-00/` |
 
-Evidencia ejecutable más reciente: [checkpoint 00F](sprints/sprint-00/checkpoint-00f-evidence.md), validado localmente; ejecución remota, revisión independiente y aprobación final pendientes.
+Evidencia ejecutable más reciente: [checkpoint 00F](sprints/sprint-00/checkpoint-00f-evidence.md), validado localmente y en GitHub Actions para `f009a1b`; revisión independiente completada y aprobación final recibida el 10 de octubre de 2026.

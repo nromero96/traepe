@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.0.0",
-    "description": "Checkpoint 00D. Maestro v1.6 §§58–60. Solo salud, CSRF y firma técnica local; sin identidad funcional ni rutas comerciales."
+    "version": "1.1.0",
+    "description": "Platform e Identity cliente exclusivamente local. OTP y consentimiento local-v1 deshabilitados en producción; requiere sesión cookie Sanctum y CSRF."
   },
   "servers": [
     {
@@ -169,6 +169,202 @@
             }
           }
         ]
+      }
+    },
+    "/api/v1/auth/otp/request": {
+      "post": {
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResource"
+                }
+              }
+            },
+            "description": "Resultado local"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "phone"
+                ],
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9][0-9]{1,14}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Identity local, sesión cookie y CSRF",
+        "operationId": "requestLocalOtpV1"
+      }
+    },
+    "/api/v1/auth/otp/verify": {
+      "post": {
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResource"
+                }
+              }
+            },
+            "description": "Resultado local"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "challenge_id",
+                  "code",
+                  "name",
+                  "consent_version",
+                  "consent_accepted"
+                ],
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "minLength": 26,
+                    "type": "string",
+                    "maxLength": 26
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "consent_accepted": {
+                    "enum": [
+                      true
+                    ],
+                    "type": "boolean"
+                  },
+                  "consent_version": {
+                    "enum": [
+                      "local-v1"
+                    ],
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[0-9]{6}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Identity local, sesión cookie y CSRF",
+        "operationId": "verifyLocalOtpV1"
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResource"
+                }
+              }
+            },
+            "description": "Resultado local"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        },
+        "summary": "Identity local, sesión cookie y CSRF",
+        "operationId": "currentLocalIdentityV1"
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResource"
+                }
+              }
+            },
+            "description": "Resultado local"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        },
+        "summary": "Identity local, sesión cookie y CSRF",
+        "operationId": "endLocalSessionV1"
       }
     }
   },
@@ -503,6 +699,50 @@
                 "type": "boolean"
               },
               "filters": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "IdentityResource": {
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object",
+        "properties": {
+          "meta": {
+            "required": [
+              "correlation_id"
+            ],
+            "type": "object",
+            "properties": {
+              "correlation_id": {
+                "type": "string"
+              }
+            }
+          },
+          "data": {
+            "required": [
+              "id",
+              "type",
+              "attributes"
+            ],
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "users",
+                  "otp_challenges",
+                  "sessions"
+                ],
+                "type": "string"
+              },
+              "attributes": {
                 "type": "object"
               }
             }

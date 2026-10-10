@@ -44,7 +44,7 @@ class OpenApiContractTest extends TestCase
             }
         }
         sort($documented);
-        $expected = ['GET /api/v1/health/ready', 'GET /sanctum/csrf-cookie', 'POST /api/v1/technical/broadcasting/auth'];
+        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/technical/broadcasting/auth'];
         $this->assertSame($expected, $documented);
         $actual = [];
         foreach (Route::getRoutes() as $route) {
@@ -55,7 +55,7 @@ class OpenApiContractTest extends TestCase
             }
         }
         sort($actual);
-        $this->assertSame([$expected[0], $expected[2]], $actual);
+        $this->assertSame(array_values(array_filter($expected, fn ($route) => str_contains($route, '/api/v1/'))), $actual);
         $walk = function (array $node) use (&$walk): void {
             if (isset($node['$ref'])) {
                 $this->assertIsArray($this->resolve($node['$ref']));

@@ -1,29 +1,29 @@
 # Decisiones pendientes
 
-Las decisiones técnicas aprobadas para Sprint 00 se trasladaron a ADR. Este registro conserva únicamente asuntos todavía abiertos.
+Las decisiones técnicas aprobadas para Sprint 00 se trasladaron a ADR. Este registro conserva únicamente asuntos todavía abiertos. El usuario asignó el 4 de octubre de 2026 a Nilton como responsable de las 13 decisiones abiertas, con revisión el 11 de octubre de 2026. La fecha es de revisión; no implica que las reglas o proveedores estén aprobados.
 
 ## Negocio pendiente
 
-| ID | Decisión | Contexto | Bloquea |
-|---|---|---|---|
-| DP-001 | Mercado piloto | Distritos y horarios de lanzamiento | Markets/zones |
-| DP-002 | Modelo inicial de cobro | Tarifa cliente, comisión y subsidios | Pricing/Settlements |
-| DP-003 | Modelo de flota | Propia, terceros, independientes o mixto | Logistics |
-| DP-004 | Pago y proveedor inicial | Pasarela, Yape/Plin, efectivo/contraentrega | Payments |
-| DP-005 | Facturación | Emisor y separación de cargos | Payments/Settlements |
-| DP-006 | Política de cancelación | Ventanas, responsables y costos | Ordering/Payments |
-| DP-007 | Verificación de edad | Procedimiento y rechazo | Ordering/Logistics |
-| DP-008 | Valores de SLA | Aceptación, preparación, búsqueda y entrega | Platform/Logistics |
-| DP-009 | Modelo de soporte | Canales, horarios, escalamiento y compensaciones | Support |
-| DP-010 | Proveedores externos productivos | Mapas, mensajería, storage, identidad, correo e invoicing | Adaptadores productivos |
+| ID | Decisión | Contexto | Bloquea | Responsable | Fecha de revisión |
+|---|---|---|---|---|---|
+| DP-001 | Mercado piloto | Distritos y horarios de lanzamiento | Markets/zones | Nilton | 2026-10-11 |
+| DP-002 | Modelo inicial de cobro | Tarifa cliente, comisión y subsidios | Pricing/Settlements | Nilton | 2026-10-11 |
+| DP-003 | Modelo de flota | Propia, terceros, independientes o mixto | Logistics | Nilton | 2026-10-11 |
+| DP-004 | Pago y proveedor inicial | Pasarela, Yape/Plin, efectivo/contraentrega | Payments | Nilton | 2026-10-11 |
+| DP-005 | Facturación | Emisor y separación de cargos | Payments/Settlements | Nilton | 2026-10-11 |
+| DP-006 | Política de cancelación | Ventanas, responsables y costos | Ordering/Payments | Nilton | 2026-10-11 |
+| DP-007 | Verificación de edad | Procedimiento y rechazo | Ordering/Logistics | Nilton | 2026-10-11 |
+| DP-008 | Valores de SLA | Aceptación, preparación, búsqueda y entrega | Platform/Logistics | Nilton | 2026-10-11 |
+| DP-009 | Modelo de soporte | Canales, horarios, escalamiento y compensaciones | Support | Nilton | 2026-10-11 |
+| DP-010 | Proveedores externos productivos | Mapas, mensajería, storage, identidad, correo e invoicing | Adaptadores productivos | Nilton | 2026-10-11 |
 
 ## Técnica pendiente fuera de Sprint 00
 
-| ID | Decisión | Contexto | Bloquea |
-|---|---|---|---|
-| DP-012 | Herramientas concretas de frontend | Frontend continúa fuera de Sprint 00 | Apps web futuras |
-| DP-013B | CD y hosting | Proveedor, ambientes, secretos, despliegue y rollback | Despliegue futuro |
-| DP-022 | RTO/RPO iniciales | Requiere objetivos de negocio y capacidad operativa | Recuperación productiva |
+| ID | Decisión | Contexto | Bloquea | Responsable | Fecha de revisión |
+|---|---|---|---|---|---|
+| DP-012 | Herramientas concretas de frontend | Frontend continúa fuera de Sprint 00 | Apps web futuras | Nilton | 2026-10-11 |
+| DP-013B | CD y hosting | Proveedor, ambientes, secretos, despliegue y rollback | Despliegue futuro | Nilton | 2026-10-11 |
+| DP-022 | RTO/RPO iniciales | Requiere objetivos de negocio y capacidad operativa | Recuperación productiva | Nilton | 2026-10-11 |
 
 ## DP-023 — Autorización técnica de Checkpoint 00C
 
@@ -50,3 +50,13 @@ Las decisiones técnicas aprobadas para Sprint 00 se trasladaron a ADR. Este reg
 ## Decisiones retiradas por aprobación
 
 DP-011, DP-013A, DP-014, DP-014A y DP-015 a DP-021 quedaron resueltas mediante ADR-001 a ADR-005. Los ADR sustituyen únicamente decisiones técnicas; no modifican el documento maestro v1.6 ni sus reglas de negocio.
+
+## DP-025 — Concreción de Identity local / OTP
+
+- **Estado:** resuelta por aprobación explícita del usuario el 10 de octubre de 2026.
+- **Fuente:** maestro v1.6 §§35, 59–60 y 71; alcance Identity backend local elegido por el usuario.
+- **Vacío:** no se fijan longitud/TTL OTP, intentos, reenvío, entrega de desarrollo, normalización de celular, estados habilitados ni versión/texto de consentimiento para el checkpoint.
+- **Parámetros aprobados:** OTP de 6 dígitos, TTL 5 minutos, máximo 5 intentos, reenvío tras 60 segundos invalidando el código anterior; entrega exclusivamente local mediante adaptador restringido, sin SMS real ni OTP en logs. El usuario respondió «si apruebo» a esta propuesta y al cierre de 00F.
+- **Definiciones aprobadas:** celular en formato internacional E.164 sin limitar país; estados iniciales active/blocked; consentimiento ficticio local-v1, exclusivo de desarrollo y con aceptación explícita. No equivale a términos legales productivos.
+- **Seguimiento:** decisión resuelta directamente por el usuario el 10 de octubre de 2026; no queda una asignación abierta por completar.
+- **Bloqueo resuelto:** implementación local del flujo OTP y sus datos/consentimientos en 01A puede avanzar bajo estas definiciones. Proveedores y operación productiva permanecen fuera del alcance.

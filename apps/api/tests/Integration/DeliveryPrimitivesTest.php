@@ -189,8 +189,11 @@ class DeliveryPrimitivesTest extends PostgresTestCase
         } catch (QueryException $exception) {
             $this->assertSame('23514', $exception->errorInfo[0]);
         }
-        // Rollback only the latest additive migration in this test-owned database.
-        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]));
+        // Target Platform explicitly; newer Identity history is forward-only.
+        $batch = DB::table('migrations')->where('migration', '2026_10_03_000000_create_platform_delivery_primitives')->value('batch');
+        $this->assertSame(0, Artisan::call('migrate:rollback', [
+            '--batch' => $batch, '--path' => ['database/migrations/2026_10_03_000000_create_platform_delivery_primitives.php'], '--force' => true,
+        ]));
         $this->assertFalse(Schema::hasTable('platform_outbox_messages'));
         $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
         $this->assertTrue(Schema::hasTable('platform_outbox_messages'));

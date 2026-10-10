@@ -27,3 +27,7 @@ La API queda disponible en `http://localhost:8000`. XAMPP, Apache, MySQL y el PH
 
 
 00E está aprobado. 00F incorpora Pest 4.7.8, Larastan 3.12.2/PHPStan 2.2.16 y Pint con comandos Composer y CI aislada. La [guía de instalación](../../docs/installation/README.md) documenta instalación nueva, calidad, recuperación segura y reproducción del pipeline. La validación remota de GitHub y la aprobación final siguen pendientes.
+
+## Estado posterior — 01A, 10 de octubre de 2026
+
+Sprint 00 está cerrado con aprobación explícita, revisión independiente y CI verde. [Identity local](../../docs/sprints/sprint-01/checkpoint-01a-evidence.md) incorpora OTP, consentimiento ficticio local-v1 y sesión Sanctum; [runbook](../../docs/sprints/sprint-01/local-runbook.md). Los párrafos de checkpoints anteriores conservan el alcance histórico. 01A no incluye frontend ni proveedores productivos, no agrega dependencias y aún no está publicado.

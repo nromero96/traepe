@@ -15,17 +15,17 @@ class ModuleScaffoldingTest extends TestCase
         mkdir($root);
         $this->app->instance(ModuleGenerator::class, new ModuleScaffolder($root));
         try {
-            $this->artisan('make:module Identity')->assertSuccessful();
+            $this->artisan('make:module Support')->assertSuccessful();
             foreach (['Domain', 'Application', 'Infrastructure', 'Interfaces'] as $layer) {
-                $this->assertFileExists($root.'/Identity/'.$layer.'/README.md');
+                $this->assertFileExists($root.'/Support/'.$layer.'/README.md');
             }
-            $provider = $root.'/Identity/Infrastructure/IdentityServiceProvider.php';
+            $provider = $root.'/Support/Infrastructure/SupportServiceProvider.php';
             $before = hash_file('sha256', $provider);
             require $provider;
-            $this->assertTrue(class_exists('App\\Modules\\Identity\\Infrastructure\\IdentityServiceProvider'));
-            $this->artisan('make:module Identity')->assertFailed();
+            $this->assertTrue(class_exists('App\\Modules\\Support\\Infrastructure\\SupportServiceProvider'));
+            $this->artisan('make:module Support')->assertFailed();
             $this->assertSame($before, hash_file('sha256', $provider));
-            foreach (['../escape', 'identity', 'Unapproved', 'Identity\\Other'] as $name) {
+            foreach (['../escape', 'identity', 'Unapproved', 'Support\\Other'] as $name) {
                 $this->artisan('make:module', ['name' => $name])->assertFailed();
             }
             $this->artisan('make:module Catalog')->assertSuccessful();
@@ -41,6 +41,6 @@ class ModuleScaffoldingTest extends TestCase
             (new Filesystem)->deleteDirectory($root);
         }
         $this->assertDirectoryDoesNotExist($root);
-        $this->assertSame(['Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
+        $this->assertSame(['Identity', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
     }
 }

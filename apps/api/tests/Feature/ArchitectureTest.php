@@ -37,13 +37,15 @@ class ArchitectureTest extends TestCase
                     $this->assertStringNotContainsString('\\Infrastructure\\', $reference, $path);
                 }
                 if (str_starts_with($reference, 'App\\Modules\\')) {
-                    $this->assertStringStartsWith('App\\Modules\\Platform\\', $reference, 'Unapproved cross-module dependency: '.$path);
+                    $module = explode('/Modules/', $path)[1];
+                    $module = explode('/', $module)[0];
+                    $this->assertStringStartsWith('App\\Modules\\'.$module.'\\', $reference, 'Unapproved cross-module dependency: '.$path);
                 }
             }
         }
         foreach ((new Filesystem)->allFiles(app_path('Shared')) as $file) {
             $this->assertStringNotContainsString('App\\Modules\\', $file->getContents(), $file->getPathname());
         }
-        $this->assertSame(['Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
+        $this->assertSame(['Identity', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
     }
 }
