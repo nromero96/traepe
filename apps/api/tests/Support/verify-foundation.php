@@ -57,6 +57,12 @@ try {
         $exit = Artisan::call('marketplace:local-persisted-coverage', ['market_public_id' => '01ARZ3NDEKTSV4RRFFQ69G5FAZ', 'longitude' => '0', 'latitude' => '0']);
         $diagnostic = json_decode(trim(Artisan::output()), true, flags: JSON_THROW_ON_ERROR);
         foundationAssert($exit === 0 && $diagnostic === ['fixture_version' => 'local-persisted-coverage-v1', 'status' => 'market_not_found', 'zone_id' => null], 'persisted geographic diagnostic reads empty foundation without fixtures');
+        $contextTables = array_values(array_unique(array_merge($tables, ['migrations'])));
+        $counts = array_map(fn ($table) => DB::table($table)->count(), $contextTables);
+        $exit = Artisan::call('marketplace:local-commercial-context', ['merchant_public_id' => '01ARZ3NDEKTSV4RRFFQ69G5FAZ', 'market_public_id' => '01ARZ3NDEKTSV4RRFFQ69G5FB0', 'branch_public_id' => '01ARZ3NDEKTSV4RRFFQ69G5FB1']);
+        $diagnostic = json_decode(trim(Artisan::output()), true, flags: JSON_THROW_ON_ERROR);
+        foundationAssert($exit === 0 && $diagnostic === ['fixture_version' => 'local-commercial-context-v1', 'status' => 'not_found'], 'commercial context diagnostic reads empty foundation without private details');
+        foundationAssert($counts === array_map(fn ($table) => DB::table($table)->count(), $contextTables), 'commercial context diagnostic preserves all foundation counts');
     }
     foundationAssert(array_intersect(['zone_rules', 'addresses', 'geocoding_results', 'merchant_documents', 'merchant_contracts', 'commission_rules', 'branch_schedules', 'branch_schedule_exceptions', 'branch_service_areas', 'branch_settings', 'branch_memberships'], $tables) === [], 'no operational Marketplace configuration tables');
     foundationAssert(DB::table('users')->whereNotNull('phone_key')->whereNull('public_id')->count() === 0, 'local identities have public identifiers');

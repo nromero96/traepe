@@ -38,3 +38,9 @@ Las pruebas verifican FK/ULID/checks/tipos/índices, multi-comercio/mercado, geo
 No hay contratos/comisiones/documentos, horarios/cobertura por sucursal, configuración, personal, catálogo/stock, discovery/checkout ni API comercial. No se sustituye una operación real abierto/pausado/aprobación por draft. Una futura mutación administrativa necesitará capacidad/alcance/recurso del servidor, MFA sensible, correlación, idempotencia/concurrencia, historial/auditoría y outbox si publica eventos, conforme al maestro.
 
 La aprobación de DP-032 no autoriza commit/push/CI ni despliegue productivo; la publicación del checkpoint se solicitará con [evidencia terminada](../../sprints/sprint-02/checkpoint-02g-evidence.md).
+
+## Continuidad aprobada — 02H
+
+Después de publicar 02G, el usuario aprobó DP-033 y el [plan 02H](../../sprints/sprint-02/checkpoint-02h-plan.md) mediante «Apruebo implementarlo» el 10 de octubre de 2026. La ampliación agrega componentes con consumidor concreto: un diagnóstico de consola local/testing de solo lectura por tres public_id estrictos. Una sentencia privada de Marketplace exige relación Branch/Merchant/Market exacta y estado draft de las tres entidades; devuelve únicamente coincidencia booleana, transformada en versión técnica y matched/not_found.
+
+No modifica el esquema ni los límites de la base 02G. Sin HTTP, modelos, escrituras, datos/grants en desarrollo, membresías o contrato de acceso para otro módulo. Comando/puerto registrados solo en local/testing y guards antes de DI/SQL, sin datos de perfil/ubicación/fiscalidad en salida. Matched no es autorización ni estado operativo. Fixtures positivos solo en bases temporales propias; las sondas anteriores siguen independientes. [Evidencia](../../sprints/sprint-02/checkpoint-02h-evidence.md). La aprobación de implementación reserva commit/push/CI al cierre.

@@ -143,3 +143,13 @@ DP-011, DP-013A, DP-014, DP-014A y DP-015 a DP-021 quedaron resueltas mediante A
 - **Bloqueo resuelto:** el usuario respondió «Apruebo» al plan 02G de base vacía. Autorizó implementación, pruebas y aplicación local de la migración vacía con todos sus límites; la publicación quedó reservada al cierre.
 - **Plan revisable:** [Checkpoint 02G](../../sprints/sprint-02/checkpoint-02g-plan.md), con campos/checks/índices exactos, relación multi-merchant/market, restricciones provisionales y pruebas.
 - **Seguimiento:** después de presentar el resultado terminado, el usuario autorizó commit/push/CI mediante «Si autorizo» el 10 de octubre de 2026; véase el [registro de aprobación](../../sprints/sprint-02/checkpoint-02g-evidence.md#aprobación-y-publicación-autorizadas). DP-001 y las decisiones productivas permanecen abiertas.
+
+## DP-033 — Diagnóstico local de contexto comercial
+
+- **Estado:** resuelta por aprobación explícita del usuario mediante «Apruebo implementarlo» el 10 de octubre de 2026; detectada al continuar después de 02G.
+- **Fuente:** maestro v1.6 §§3.1, 9, 32–33, 36, 52–56, 60, 72 y 78–79; DP-032 y ADR-007 aprobaron merchants/branches vacías, sin interfaz de consulta.
+- **Vacío original:** no se había autorizado una lectura diagnóstica de las relaciones privadas comercio/sucursal/mercado ni su salida/acceso. No se puede convertir una relación draft en sucursal operativa, permiso de usuario o elegibilidad comercial.
+- **Propuesta aprobada:** [plan 02H](../../sprints/sprint-02/checkpoint-02h-plan.md): consola local/testing de solo lectura con tres ULID explícitos (merchant, market, branch), coincidencia exacta de las FK y estado draft de las tres entidades en una sentencia. Salida únicamente versión técnica y matched/not_found, sin nombres, ubicación, datos fiscales ni identificadores internos. Desconocidos y relaciones cruzadas indistinguibles.
+- **Datos y límites:** sin API, escrituras, migraciones, seeds, usuarios/permisos, membresías, activación o contratos entre módulos. Desarrollo conserva las seis tablas Marketplace vacías; fixtures positivos solo en bases temporales propias. No cambia las sondas geográficas ni creación fija 02F.
+- **Bloqueo resuelto:** el usuario aprobó implementar el plan 02H, incluido el alcance de lectura/acceso/salida. Permite implementar y validar; no autoriza publicación.
+- **Seguimiento:** la decisión no modifica responsables/fechas de DP-001 ni resuelve decisiones productivas. Después de presentar el resultado terminado, el usuario autorizó commit/push/CI mediante «Autorizo» el 10 de octubre de 2026; véase el [registro de aprobación](../../sprints/sprint-02/checkpoint-02h-evidence.md#aprobación-y-publicación-autorizadas).
