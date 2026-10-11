@@ -76,6 +76,7 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "test:integration": [
+            "Composer\\Config::disableProcessTimeout",
             "@putenv TRAEPE_INTEGRATION_TESTS=1",
             "@php vendor/bin/pest --ci --testsuite=Integration"
         ],

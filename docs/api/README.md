@@ -96,3 +96,22 @@ POST /api/v1/catalog/local-draft-catalogs requiere sesión cookie, X-XSRF-TOKEN,
 201 devuelve data.type=local_draft_catalog_operation, data.id de operación y attributes v1 cerrados: schema_version=1, merchant_public_id, catalog {public_id,name,status:draft,version:1}, product {public_id,catalog_public_id,name,description,brand,status:draft,version:1}. Product_type no se expone. GET /api/v1/catalog/local-draft-catalogs/{operationPublicId} devuelve ese data original 200 al creador con catalog.local.draft_catalog.read vigente. Otra operación/actor devuelve 404 not_found; no reconstruye perfiles ni lee claims.
 
 Claim, catálogo, producto y diario cifrado son atómicos. Replay autorizado conserva data/201 con correlación actual y TTL 24h sin extender/purgar/reusar; 409 idempotency_mismatch/idempotency_expired. 401 sesión, 403 permiso, 419 CSRF, 415 medio, 422 formato, 429 tasa, 500 genérico. No-store/private y límites independientes 30/minuto por actor. Solo local/testing, guard antes de sesión/puertos aun con caché reutilizada. [Snapshot v1](schemas/catalog-local-draft-operation.v1.json), [ADR-008](../architecture/decisions/ADR-008-catalog-local-draft-foundation.md), [plan](../sprints/sprint-03/checkpoint-03a-plan.md) y [evidencia](../sprints/sprint-03/checkpoint-03a-evidence.md). Desarrollo vacío; ningún producto vendible/publicable, frontend o dato real.
+
+## Productos adicionales y contenido actual — 03B / OpenAPI 1.8.0
+
+[Plan completo aprobado](../sprints/sprint-03/checkpoint-03b-plan.md) incorpora cuatro rutas locales, manteniendo 03A:
+
+| Método/ruta bajo /api/v1/catalog | Capacidad | Resultado |
+|---|---|---|
+| GET /local-draft-profiles/{catalogPublicId} | catalog.local.draft_content.read | Perfil draft actual propio, ETag fuerte |
+| GET /local-draft-profiles/{catalogPublicId}/products | catalog.local.draft_content.read | Página actual; limit/cursor y revisión |
+| POST /local-draft-profiles/{catalogPublicId}/products | catalog.local.draft_product.create | Alta adicional 201/versionado/snapshot |
+| GET /local-draft-product-operations/{operationPublicId} | catalog.local.draft_product.read | Snapshot original propio 200 |
+
+POST requiere cookie/CSRF, clave ASCII exacta y un único If-Match fuerte "catalog:<ULID>:v<N>" ligado al catálogo (N=1–2147483647). JSON cerrado product {name,description,brand}, mismos límites/nulls/textos exactos 03A. Faltante 428, formato 422, versión distinta/máxima 409 version_conflict. Claim, comprobación/bloqueo Merchant por contrato, bloqueo Catalog propio de 03A, producto, incremento de revisión y diario cifrado se confirman juntos. Replay conserva 201/snapshot original con create vigente y TTL 24h; entrada/revisión distinta en misma clave produce mismatch. No revalida estado actual en replay.
+
+GET perfil devuelve ETag/revisión actual; GET products admite solo limit decimal 1–50 (default 20) y cursor, orden keyset fijo interno. Incluye inicial/adicionales draft no borrados, una sentencia con revisión/página y limit+1. Meta cerrada correlation_id, catalog_version, next_cursor, has_more, filters {catalog_public_id,limit}. Cursor autenticado/cifrado, actor/catálogo/limit/revisión, expiración original 15 min; manipulación/contexto 422, vencido 409 cursor_expired, revisión cambiada 409 catalog_changed y reinicio. ID interno nunca en claro; cursor no concede acceso.
+
+Historial adicional incluye catalog {public_id,name,status,version_before,version_after} y product original version 1; GET no lee perfiles/claim. Ownership/404 indistinguible, capacidades independientes, actor activo/DP-026 y reautorización; guard anterior a sesión/CSRF/DI/SQL en local/testing. No-store/private y correlación actual; buckets alta/contenido/historial 30/minuto independientes, perfil/colección comparten contenido. Otros errores 401/403/404/415/419/422/429/500 sanitizados.
+
+Esquemas cerrados: [operación v1](schemas/catalog-local-draft-product-operation.v1.json), [perfil v1](schemas/catalog-local-draft-profile.v1.json), [página v1](schemas/catalog-local-draft-products-page.v1.json). No SKU/dinero/stock/listings/activación o datos reales; desarrollo vacío y positivos solo en bases temporales propias. [Evidencia](../sprints/sprint-03/checkpoint-03b-evidence.md).

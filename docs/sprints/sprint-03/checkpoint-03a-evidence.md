@@ -1,6 +1,6 @@
 # Evidencia de Checkpoint 03A — Catálogo y primer producto conceptual
 
-Fecha: 10 de octubre de 2026. **Estado: implementado y validado localmente; publicación autorizada mediante «Si autorizo»; commit/push/CI en curso.**
+Fecha: 10 de octubre de 2026. **Estado: implementado, validado localmente y publicado en 0690cc0ec63493a163652ec68db52c184f700e26; CI completa correcta sobre ese SHA.**
 
 Base main/origin/main 0ab976d25c7e1c3993bc712ab437b5257ee4eed0, [02I publicado con CI completa correcta](https://github.com/nromero96/traepe/actions/runs/38098790155). DP-035 y el [plan completo 03A](checkpoint-03a-plan.md) fueron aprobados mediante «Aprobar plan completo 03A (recomendado)». Autoriza implementación/pruebas y tres tablas vacías locales; commit/push/CI quedan reservados al cierre.
 
@@ -29,7 +29,7 @@ Solo local/testing; guard antes de sesión/CSRF/DI/SQL incluso con caché local 
 | Runtime www-data / puertas negativas | PASS: escritura/lectura/limpieza propias y liveness; Pest/Pint/PHPStan rechazan fallos controlados con exit 1 |
 | verify-foundation.php | PASS: HTTP real/CSRF/401, correlación/privacidad, diez tablas Marketplace/Catalog vacías, Identity/grants/claims preservados y ninguna base temporal remanente |
 | Alcance/codificación/secretos/enlaces/master/diff | PASS: 57 archivos exactos, 335 enlaces locales, UTF-8 sin BOM/LF, maestro SHA-256 intacto, secretos locales ausentes y git diff --check correcto |
-| Git | main/HEAD/origin/main 0ab976d25c7e1c3993bc712ab437b5257ee4eed0; staging vacío, sin commit/push 03A |
+| Git al cierre local, antes de publicar | main/HEAD/origin/main 0ab976d25c7e1c3993bc712ab437b5257ee4eed0; staging vacío, sin commit/push 03A en ese momento |
 | Servicios | Ocho servicios locales running/healthy |
 
 Unit/Feature cubren formato/tipos cerrados, ULID estricto, UTF-8/C0/DEL/límites y LF, NULL frente a vacío, preservación de espacios, inmutabilidad, restauración y relación catálogo/producto, fingerprint/callback, permisos independientes, controles de entorno, límites separados por actor, contratos, corrupción/fallos genéricos y logs privados.
@@ -110,10 +110,18 @@ Un helper temporal ignorado verificó entorno local/base traepe y exactamente la
 
 Este resultado es ficticio local/testing; no habilita productos vendibles o catálogo público ni define categorías/restricciones favorables. MFA de administración sensible, retención productiva y decisiones abiertas DP-001/DP-002/DP-007/DP-012 conservan responsables y revisión. Las restricciones draft/NULL requieren futuras decisiones/migraciones compatibles para operar.
 
-Implementación aprobada mediante «Aprobar plan completo 03A (recomendado)». Después de revisar el resultado terminado, el usuario autorizó commit/push/CI de 03A mediante «Si autorizo». Se registra la autorización antes del commit conforme a AGENTS.md:81; publicación y verificación en curso. No se avanza a otro checkpoint.
+Implementación aprobada mediante «Aprobar plan completo 03A (recomendado)». Después de revisar el resultado terminado, el usuario autorizó commit/push/CI de 03A mediante «Si autorizo». La autorización se registró antes del commit conforme a AGENTS.md:81; publicación y verificación completadas. El usuario solicitó continuar después del cierre; [03B](checkpoint-03b-plan.md) está preparado y requiere resolver DP-036 antes de implementar.
 
 ## Aprobación y publicación autorizadas
 
 El usuario respondió «Si autorizo» el 10 de octubre de 2026 a la solicitud de commit, push y validación en CI de 03A. La aprobación llega después de presentar el bloque completo: 57 archivos, 282 pruebas/7190 aserciones, calidad/contratos correctos, migración aditiva vacía con datos anteriores preservados y ocho servicios saludables.
 
 Antes de publicar se verifica main/HEAD/origin/main sobre la base 0ab976d25c7e1c3993bc712ab437b5257ee4eed0, staging inicialmente vacío y manifiesto exacto, master/secretos/enlaces/codificación/diff. Se crea un único commit de este alcance y se realiza push normal a origin/main; sin force, merge, rebase o descarte de cambios. La CI debe completar correctamente build/migración, calidad/integración, reinicio/persistencia y limpieza sobre el SHA enviado. Su resultado se reportará al terminar la ejecución, sin anticipar éxito remoto.
+
+## Publicación confirmada
+
+Resultado verificado después de publicar y corroborado al iniciar 03B: commit 0690cc0ec63493a163652ec68db52c184f700e26, padre 0ab976d25c7e1c3993bc712ab437b5257ee4eed0; 57 archivos, 2639 inserciones y 21 eliminaciones. Push normal a origin/main y repositorio limpio/sincronizado al terminar 03A.
+
+[Run 38109718961](https://github.com/nromero96/traepe/actions/runs/38109718961) y job 114382575818 completed/success sobre el mismo SHA exacto. Build and migrate fresh stack, Blocking quality and integration checks, Restart and verify persistence y Remove disposable resources completed/success. No se anticipó éxito ni se usó un run anterior como validación del commit.
+
+Las validaciones locales anteriores se conservan sin cambiar sus conteos; esta actualización retrospectiva cierra el estado documental y prepara la continuidad solicitada por el usuario. Ocho servicios locales siguen running/healthy. [03B](checkpoint-03b-plan.md) fue aprobado después de preparar su plan completo; implementado y validado localmente; publicación autorizada mediante «Autorizado» el 11 de octubre de 2026, con [verificación remota en curso](checkpoint-03b-evidence.md#aprobación-y-publicación-autorizadas).

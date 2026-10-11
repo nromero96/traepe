@@ -38,7 +38,7 @@ try {
             && str_contains($persisted->header('Cache-Control'), 'no-store')
             && $persisted->header('X-Correlation-ID') === $persisted->json('error.correlation_id'), 'persisted coverage HTTP requires session and preserves privacy');
         foundationAssert($identityCounts === array_map(fn ($table) => DB::table($table)->count(), $identityTables), 'anonymous persisted diagnostic creates no users or permissions');
-        $fixtureTables = ['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'platform_idempotency_keys'];
+        $fixtureTables = ['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'platform_idempotency_keys'];
         $fixtureCounts = array_map(fn ($table) => DB::table($table)->count(), $fixtureTables);
         $creation = Http::timeout(15)->acceptJson()->withHeaders(['Idempotency-Key' => 'synthetic-foundation-key'])->post('http://nginx/api/v1/marketplace/local-draft-fixtures', ['fixture_profile' => 'synthetic-origin-a-v1']);
         foundationAssert($creation->status() === 419 && $creation->json('error.code') === 'csrf_token_mismatch'
@@ -67,10 +67,26 @@ try {
         foundationAssert($fixtureCounts === array_map(fn ($table) => DB::table($table)->count(), $fixtureTables)
             && $identityCounts === array_map(fn ($table) => DB::table($table)->count(), $identityTables), 'anonymous catalog requests change no data, grants or claims');
     }
+    if (app()->environment(['local', 'testing'])) {
+        $productTables = ['catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'platform_idempotency_keys', 'users', 'identity_permission_grants'];
+        $productBefore = array_map(fn ($table) => DB::table($table)->count(), $productTables);
+        $productBase = 'http://nginx/api/v1/catalog/local-draft-profiles/01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $responses = [
+            Http::timeout(15)->acceptJson()->post($productBase.'/products', []),
+            Http::timeout(15)->acceptJson()->get($productBase),
+            Http::timeout(15)->acceptJson()->get($productBase.'/products'),
+            Http::timeout(15)->acceptJson()->get('http://nginx/api/v1/catalog/local-draft-product-operations/01ARZ3NDEKTSV4RRFFQ69G5FAZ'),
+        ];
+        foundationAssert(array_map(fn ($response) => $response->status(), $responses) === [419, 401, 401, 401], 'additional product creation requires CSRF; current content and history require session');
+        foreach ($responses as $response) {
+            foundationAssert(str_contains($response->header('Cache-Control'), 'no-store') && $response->header('X-Correlation-ID') === $response->json('error.correlation_id'), 'product rejection preserves privacy and correlation');
+        }
+        foundationAssert($productBefore === array_map(fn ($table) => DB::table($table)->count(), $productTables), 'anonymous product requests preserve foundation data, grants and claims');
+    }
     foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Catalog', 'Identity', 'Marketplace', 'Platform'], 'only approved Catalog, Identity, Marketplace and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));
     foundationAssert(array_intersect(['orders', 'payments', 'product_variants', 'branch_listings', 'stores', 'inventories'], $tables) === [], 'no ordering, payment, sale or inventory tables');
-    foreach (['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations'] as $table) {
+    foreach (['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations'] as $table) {
         foundationAssert(in_array($table, $tables, true) && DB::table($table)->count() === 0, 'approved Marketplace/Catalog foundation table remains empty');
     }
     if (app()->environment(['local', 'testing'])) {

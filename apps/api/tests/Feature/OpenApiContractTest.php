@@ -5,8 +5,16 @@ namespace Tests\Feature;
 use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogAccess;
 use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogWriter;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductStore;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductWriter;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogInput;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogOperation;
+use App\Modules\Catalog\Domain\Drafts\DraftCatalogProfile;
+use App\Modules\Catalog\Domain\Drafts\DraftProductData;
+use App\Modules\Catalog\Domain\Drafts\DraftProductOperation;
+use App\Modules\Catalog\Domain\Drafts\DraftProductPage;
+use App\Modules\Catalog\Domain\Drafts\DraftProductProfile;
 use App\Modules\Identity\Infrastructure\IdentityUser;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceStore;
@@ -68,6 +76,10 @@ class OpenApiContractTest extends TestCase
         $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /api/v1/marketplace/local-draft-commerces/{operationPublicId}', 'GET /api/v1/marketplace/local-persisted-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/marketplace/local-draft-commerces', 'POST /api/v1/marketplace/local-draft-fixtures', 'POST /api/v1/technical/broadcasting/auth'];
         $expected[] = 'GET /api/v1/catalog/local-draft-catalogs/{operationPublicId}';
         $expected[] = 'POST /api/v1/catalog/local-draft-catalogs';
+        $expected[] = 'GET /api/v1/catalog/local-draft-profiles/{catalogPublicId}';
+        $expected[] = 'GET /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products';
+        $expected[] = 'POST /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products';
+        $expected[] = 'GET /api/v1/catalog/local-draft-product-operations/{operationPublicId}';
         sort($expected);
         $this->assertSame($expected, $documented);
         $actual = [];
@@ -220,6 +232,42 @@ class OpenApiContractTest extends TestCase
         $this->assertEquals($schema, $this->document['components']['schemas']['LocalDraftCatalogResponse']['properties']['data']['properties']['attributes']);
     }
 
+    public function test_product_current_profile_page_and_additional_history_match_closed_contracts(): void
+    {
+        $this->app->detectEnvironment(fn () => 'testing');
+        config(['session.driver' => 'array']);
+        $id = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $this->actingAs((new IdentityUser)->forceFill(['id' => 11]), 'web');
+        $this->mock(LocalDraftProductAccess::class)->shouldReceive('actor')->andReturn($id);
+        $profile = new DraftCatalogProfile($id, $id, 'Synthetic Catalog', 1);
+        $product = new DraftProductProfile($id, $id, new DraftProductData('Synthetic Product', null, null));
+        $operation = new DraftProductOperation($id, $profile, $product);
+        $store = $this->mock(LocalDraftProductStore::class);
+        $store->shouldReceive('profile')->once()->andReturn($profile);
+        $store->shouldReceive('page')->once()->andReturn(new DraftProductPage(1, [$product], false, 11));
+        $store->shouldReceive('find')->once()->andReturn($operation);
+        $this->mock(LocalDraftProductWriter::class)->shouldReceive('execute')->once()->andReturn($operation);
+        $base = '/api/v1/catalog/local-draft-profiles/'.$id;
+        foreach ([
+            [$this->getJson($base)->assertOk(), 'LocalDraftCatalogProfileResponse'],
+            [$this->getJson($base.'/products')->assertOk(), 'LocalDraftProductCollectionResponse'],
+            [$this->withHeaders(['If-Match' => $profile->etag(), 'Idempotency-Key' => 'contract-product-key'])->postJson($base.'/products', ['product' => $product->product->snapshot()])->assertCreated(), 'LocalDraftProductOperationResponse'],
+            [$this->getJson('/api/v1/catalog/local-draft-product-operations/'.$id)->assertOk(), 'LocalDraftProductOperationResponse'],
+        ] as [$response,$schema]) {
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas'][$schema]);
+        }
+        $snap = json_decode(file_get_contents('/var/www/docs/api/schemas/catalog-local-draft-product-operation.v1.json'), true, flags: JSON_THROW_ON_ERROR);
+        unset($snap['$schema'],$snap['title']);
+        foreach (['description', 'brand'] as $field) {
+            $snap['properties']['product']['properties'][$field]['type'] = 'string';
+            $snap['properties']['product']['properties'][$field]['nullable'] = true;
+        }
+        $this->assertEquals($snap, $this->document['components']['schemas']['LocalDraftProductOperationResponse']['properties']['data']['properties']['attributes']);
+        foreach (['/api/v1/catalog/local-draft-profiles/{catalogPublicId}' => 'get', '/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products' => 'post', '/api/v1/catalog/local-draft-product-operations/{operationPublicId}' => 'get'] as $path => $method) {
+            $this->assertSame([['LocalSessionCookie' => []]], $this->document['paths'][$path][$method]['security']);
+        }
+    }
+
     private function resolve(string $reference): array
     {
         $this->assertStringStartsWith('#/', $reference);
@@ -248,6 +296,7 @@ class OpenApiContractTest extends TestCase
             'array' => is_array($value),
             'string' => is_string($value),
             'integer' => is_int($value),
+            'boolean' => is_bool($value),
             'number' => is_int($value) || is_float($value),
             default => false,
         });

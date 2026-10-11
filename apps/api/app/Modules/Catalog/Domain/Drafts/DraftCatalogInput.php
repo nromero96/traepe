@@ -16,16 +16,8 @@ final readonly class DraftCatalogInput
         if (! self::publicId($merchantPublicId)) {
             throw new InvalidArgumentException('Invalid draft catalog input.');
         }
-        foreach ([$catalogName, $productName, $brand] as $name) {
-            if ($name !== null && (! mb_check_encoding($name, 'UTF-8') || mb_strlen($name, 'UTF-8') > 255
-                || trim($name, ' ') === '' || preg_match('/[\x00-\x1F\x7F]/u', $name))) {
-                throw new InvalidArgumentException('Invalid draft catalog input.');
-            }
-        }
-        if ($description !== null && (! mb_check_encoding($description, 'UTF-8') || mb_strlen($description, 'UTF-8') > 4000
-            || preg_match('/[\x00-\x09\x0B-\x1F\x7F]/u', $description))) {
-            throw new InvalidArgumentException('Invalid draft catalog input.');
-        }
+        DraftProductData::name($catalogName);
+        new DraftProductData($productName, $description, $brand);
     }
 
     public static function publicId(string $value): bool

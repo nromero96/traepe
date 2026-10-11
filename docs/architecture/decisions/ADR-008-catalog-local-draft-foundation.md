@@ -36,3 +36,17 @@ Se descartó anticipar SKU, precios, stock, publicación por sucursal, estados o
 ## Consecuencias
 
 El flujo backend permite crear comercio, catálogo y primer producto ficticios con trazabilidad y consulta protegida. Las restricciones locales deberán evolucionar mediante decisiones y migraciones compatibles antes de operación real. Retención productiva, categorías/restricciones, venta, mercado piloto y demás decisiones abiertas conservan sus responsables y revisión. Commit/push/CI requieren autorización de cierre independiente conforme a AGENTS.md.
+
+## Ampliación aprobada — 03B
+
+Aprobación explícita: «Aprobar plan completo 03B (recomendado)», 10 de octubre de 2026, [DP-036](pending-decisions.md#dp-036--productos-adicionales-y-consulta-del-catálogo-actual) y [plan completo](../../sprints/sprint-03/checkpoint-03b-plan.md). Amplía exclusivamente el ejercicio local: agregar producto a catálogo propio de 03A, perfil/colección actuales y snapshot de alta adicional. Los contratos y diarios 03A conservan su significado.
+
+Catalog incorpora catalog_local_draft_product_operations append-only y un índice parcial products(catalog_id,id) para páginas draft/no borradas. Diario tiene producto unique, revisión antes/después consecutiva, unique catálogo/revisión posterior, FK simples/compuestas propias, actor/merchant públicos, hashes/correlación/ciphertext y created_at. Migración aditiva forward-only vacía; reglas completas en plan, sin alterar constraints/filas de 03A.
+
+Nueva mutación requiere revisión If-Match ligada al catálogo y serializa claim → Merchant → Catalog. Merchant usa el mismo contrato público Marketplace; Catalog verifica autoría 03A propia y revalida bajo bloqueo. Product, incremento de Catalog y diario se confirman junto al claim Platform. Conflicto o fallo parcial revierte todas las escrituras. Replay conserva snapshot original/versiones históricas con create vigente y TTL 24h, sin consultar perfiles actuales.
+
+Tres capacidades nuevas independientes para alta, contenido actual e historial; scope/recurso fijos aprobados en plan, sin extender las de 03A. GET actual solo lee tablas Catalog propias. Página/revisión en una sentencia; cursor cifrado con Crypt existente y payload v1 cerrado, actor/catálogo/limit/revisión/último id interno/expiración UTC en segundos Unix, TTL 15 minutos original. No bigint en claro, autoridad por cursor o colección congelada: cambios de revisión exigen reiniciar.
+
+Se aprueban exactamente tres consumidores Infrastructure adicionales de los mismos tipos públicos: IdentityLocalDraftProductAccess (directorios/PermissionService), LocalDraftProductResourceResolver (resolver/DTOs de autorización) y PlatformLocalDraftProductWriter (IdempotencyStore/fingerprint/fallos). ArchitectureTest enumera archivos/tipos; reutiliza MarketplaceLocalDraftMerchantSource, sin nuevo contrato o dependencia privada cruzada. Domain/Application puros, Shared y resolver global intactos.
+
+Reglas de texto de producto se concentran en DraftProductData dentro de Domain Catalog y se reutilizan en 03A/03B con comportamiento idéntico. Perfiles actuales y operación adicional son DTOs propios cerrados; no modelos Eloquent compartidos. No efectos externos/outbox sin consumidor, MFA administrativo real, negocio operativo, dependencias nuevas o permisos positivos de desarrollo.

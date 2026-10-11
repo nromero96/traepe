@@ -373,18 +373,18 @@ final class LocalDraftCatalogPostgresTest extends PostgresTestCase
         try {
             config(['database.connections.pgsql.database' => $legacy]);
             DB::purge('pgsql');
-            $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn ($path) => basename($path) !== self::MIGRATION));
+            $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn ($path) => basename($path) < self::MIGRATION));
             $this->assertSame(0, Artisan::call('migrate', ['--path' => $paths, '--realpath' => true, '--force' => true]));
             $this->assertFalse(Schema::hasTable('catalogs'));
             $this->merchant($this->actor());
             $tables = array_column(DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> 'migrations'"), 'tablename');
             $before = $this->snapshot($tables);
             $migrations = DB::table('migrations')->count();
-            $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
+            $this->assertSame(0, Artisan::call('migrate', ['--path' => 'database/migrations/'.self::MIGRATION, '--force' => true]));
             $this->assertSame($before, $this->snapshot($tables));
             $this->assertSame($migrations + 1, DB::table('migrations')->count());
             $this->assertSame([0, 0, 0, 1], $this->counts());
-            $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
+            $this->assertSame(0, Artisan::call('migrate', ['--path' => 'database/migrations/'.self::MIGRATION, '--force' => true]));
             $this->assertStringContainsString('Nothing to migrate', Artisan::output());
             $this->assertSame($migrations + 1, DB::table('migrations')->count());
             $this->assertSame($before, $this->snapshot($tables));

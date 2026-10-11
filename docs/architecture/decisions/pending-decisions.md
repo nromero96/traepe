@@ -1,5 +1,17 @@
 # Decisiones pendientes
 
+## DP-036 — Productos adicionales y consulta del catálogo actual
+
+- **Estado:** resuelta mediante «Aprobar plan completo 03B (recomendado)»; detectada y aprobada el 10 de octubre de 2026 al continuar después de 03A publicado.
+- **Fuente:** maestro v1.6 §§9, 25, 32, 36–37, 49–50, 52–60, 72 y 78–79; ADR-008/DP-026/DP-035.
+- **Vacío:** 03A autoriza exclusivamente catálogo/primer producto e historial original. El maestro no concreta ampliación local, acceso al contenido actual, alta adicional, incremento de versión, forma de If-Match, política de cursor ni diario de esas mutaciones. No se pueden extender permisos o datos de 03A silenciosamente.
+- **Propuesta completa:** [plan 03B](../../sprints/sprint-03/checkpoint-03b-plan.md): alta de producto conceptual adicional en catálogo draft propio creado en 03A; perfil/colección actuales y snapshot histórico adicional; sesión/CSRF, tres capacidades independientes, versión esperada y bloqueo, claim Platform 24h, diario cifrado append-only, cursor cifrado ligado a actor/catálogo/revisión y expiración 15 minutos. Una tabla inicialmente vacía e índice keyset; todos los campos, rechazos, contratos y pruebas están en el plan.
+- **Arquitectura propuesta:** mismas dependencias públicas ya aprobadas de Catalog → Identity/Platform/Marketplace; autoría de 03A comprobada solo en tablas Catalog, referencia Merchant mediante contrato público existente; sin consulta privada ajena ni nueva dependencia.
+- **Bloqueo resuelto:** la aprobación explícita autoriza código/API/capacidades, mutación/versionado, cursor, pruebas y migración local aditiva vacía conforme al plan completo. Preparación y verificación retrospectiva de 03A completadas.
+- **Límites:** ficticio local/testing; positivos solo en bases temporales propias, desarrollo vacío y sin grants/usuarios nuevos. No SKU, precios/stock/listings, categorías/restricciones, edición/borrado, frontend/dependencias, datos reales o activación. Mantiene responsables/fechas de decisiones productivas.
+- **Aprobación recibida:** plan conjunto, implementación/pruebas y aplicación local aditiva vacía. Tras presentar el resultado terminado, el usuario autorizó separadamente commit/push/CI mediante «Autorizado» el 11 de octubre de 2026; [registro](../../sprints/sprint-03/checkpoint-03b-evidence.md#aprobación-y-publicación-autorizadas), conforme a AGENTS.md.
+- **Responsable:** Nilton; revisión solicitada en esta continuidad el 10 de octubre de 2026. No modifica la revisión del 11 de octubre de decisiones productivas anteriores.
+
 ## DP-035 — Catálogo local con primer producto conceptual
 
 - **Estado:** resuelta por aprobación explícita del plan completo mediante «Aprobar plan completo 03A (recomendado)» el 10 de octubre de 2026.

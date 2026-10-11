@@ -96,3 +96,42 @@ foreach ([['unexpected', true], ['schema_version', 2], ['merchant_public_id', '1
     }
 }
 echo "PASS: catalog snapshot v1; nullable and Unicode limits accepted; open shape, invalid references/state/text rejected.\n";
+
+$productId = '01ARZ3NDEKTSV4RRFFQ69G5FB1';
+$catalogId = '01ARZ3NDEKTSV4RRFFQ69G5FB0';
+$productOperation = json_decode('{"schema_version":1,"merchant_public_id":"01ARZ3NDEKTSV4RRFFQ69G5FAZ","catalog":{"public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB0","name":"Synthetic","status":"draft","version_before":1,"version_after":2},"product":{"public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB1","catalog_public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB0","name":"Synthetic","description":null,"brand":null,"status":"draft","version":1}}', flags: JSON_THROW_ON_ERROR);
+$productProfile = (object) ['schema_version' => 1, 'merchant_public_id' => $productOperation->merchant_public_id, 'name' => 'Synthetic', 'status' => 'draft', 'version' => 2];
+$productPage = (object) ['data' => [(object) ['type' => 'local_draft_product', 'id' => $productId, 'attributes' => (object) ['schema_version' => 1, 'catalog_public_id' => $catalogId, 'name' => 'Synthetic', 'description' => null, 'brand' => null, 'status' => 'draft', 'version' => 1]]],
+    'meta' => (object) ['correlation_id' => $catalogId, 'catalog_version' => 2, 'next_cursor' => null, 'has_more' => false, 'filters' => (object) ['catalog_public_id' => $catalogId, 'limit' => 20]]];
+foreach (['catalog-local-draft-product-operation.v1.json' => $productOperation, 'catalog-local-draft-profile.v1.json' => $productProfile, 'catalog-local-draft-products-page.v1.json' => $productPage] as $file => $sample) {
+    $contract = json_decode(file_get_contents($directory.'/schemas/'.$file), flags: JSON_THROW_ON_ERROR);
+    $check = new Validator;
+    $check->validate($sample, $contract);
+    if (! $check->isValid()) {
+        throw new RuntimeException('Product contract sample rejected.');
+    }
+    $bad = json_decode(json_encode($sample, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $bad->unexpected = true;
+    $reject = new Validator;
+    $reject->validate($bad, $contract);
+    if ($reject->isValid()) {
+        throw new RuntimeException('Open product contract accepted.');
+    }
+}
+$bad = clone $productOperation;
+$bad->product = clone $productOperation->product;
+$bad->product->description = "\tcontrol";
+$reject = new Validator;
+$reject->validate($bad, json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-product-operation.v1.json')));
+if ($reject->isValid()) {
+    throw new RuntimeException('Invalid product description accepted.');
+}
+$bad = clone $productPage;
+$bad->meta = clone $productPage->meta;
+$bad->meta->next_cursor = 'invalid cursor';
+$reject = new Validator;
+$reject->validate($bad, json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-products-page.v1.json')));
+if ($reject->isValid()) {
+    throw new RuntimeException('Invalid cursor contract accepted.');
+}
+echo "PASS: product operation/profile/page v1; closed shape, text and cursor negatives rejected.\n";

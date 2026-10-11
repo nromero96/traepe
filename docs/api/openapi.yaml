@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.7.0",
-    "description": "Platform, Identity cliente y Marketplace local/testing. Lectura de borradores, creación de perfiles sintéticos y alta/consulta de comercio draft requieren sesión cookie y capacidades técnicas independientes. Sin mercados reales."
+    "version": "1.8.0",
+    "description": "Platform, Identity cliente, Marketplace y Catalog local/testing. Creación/consulta de comercio y catálogo draft, productos adicionales y contenido actual requieren sesión cookie y capacidades técnicas independientes. Sin mercados reales."
   },
   "servers": [
     {
@@ -12,6 +12,302 @@
     }
   ],
   "paths": {
+    "/api/v1/catalog/local-draft-profiles/{catalogPublicId}": {
+      "get": {
+        "operationId": "readLocalDraftCatalogProfileV1",
+        "summary": "Consultar perfil actual de catálogo draft propio",
+        "description": "DP-036 aprobado: solo ficticio local/testing, cookie de sesión y capacidades técnicas independientes con ownership del diario 03A; guard antes de sesión/CSRF/DI/SQL incluso con caché local reutilizada. No-store/private, correlación actual y 30/minuto por actor/bucket. Sin IDs internos, permisos automáticos o acceso comercial real. Capacidad catalog.local.draft_content.read, compartiendo bucket con colección; catálogo ausente/ajeno/manual/borrado devuelve mismo 404. ETag de catálogo para If-Match, sin 304 ni caché. Una sentencia Catalog, sin lectura privada de otros módulos.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "catalogPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil actual, versión vigente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftCatalogProfileResponse"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Un único ETag fuerte \"catalog:<ULID>:v<N>\"",
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"catalog:[0-7][0-9A-HJKMNP-TV-Z]{25}:v[1-9][0-9]{0,9}\"(?![\\s\\S])"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products": {
+      "get": {
+        "operationId": "listLocalDraftProductsV1",
+        "summary": "Recorrer productos conceptuales actuales del catálogo propio",
+        "description": "DP-036 aprobado: solo ficticio local/testing, cookie de sesión y capacidades técnicas independientes con ownership del diario 03A; guard antes de sesión/CSRF/DI/SQL incluso con caché local reutilizada. No-store/private, correlación actual y 30/minuto por actor/bucket. Sin IDs internos, permisos automáticos o acceso comercial real. catalog.local.draft_content.read; incluye producto inicial/adicionales draft no borrados, orden interno fijo por id. Una sentencia con limit+1 y snapshot de catálogo/página. Cursor cifrado v1 ligado a actor/catálogo/limit/revisión, TTL 15 minutos desde primera página sin extensión; corrupto/contexto=422, vencido=409 cursor_expired, revisión distinta=409 catalog_changed. No filtros/query adicionales; cursor no concede acceso.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "catalogPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Decimal canónico 1–50; default 20, sin signo/ceros iniciales/fracción.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096,
+              "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página actual, next_cursor y revisión",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftProductCollectionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createLocalDraftProductV1",
+        "summary": "Agregar producto conceptual draft al catálogo propio con versión esperada",
+        "description": "DP-036 aprobado: solo ficticio local/testing, cookie de sesión y capacidades técnicas independientes con ownership del diario 03A; guard antes de sesión/CSRF/DI/SQL incluso con caché local reutilizada. No-store/private, correlación actual y 30/minuto por actor/bucket. Sin IDs internos, permisos automáticos o acceso comercial real. catalog.local.draft_product.create; sesión/CSRF, Idempotency-Key exacta, If-Match obligatorio ligado al catálogo. JSON product cerrado con reglas de texto 03A. Primera ejecución: reautoriza, verifica autoría Catalog/03A y Merchant/02I por contrato público, bloquea Merchant→Catalog, comprueba versión e inserta producto/incrementa catálogo/diario cifrado junto al claim. Igual clave/entrada/If-Match conserva operación original 201 sin nueva validación de perfil/version; fingerprint diferente=409, TTL claim 24h sin extensión/reuso. Versión distinta/máxima=409 version_conflict; 428 sin If-Match. Merchant/catálogo no elegibles devuelven mismo 404.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "catalogPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "ASCII imprimible sin espacios/control; no se normaliza ni almacena en claro.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[!-~]{1,255}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Token CSRF obtenido de la cookie XSRF-TOKEN, decodificado por el cliente.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "description": "ETag fuerte exacto de GET perfil, ligado al ULID de ruta; una versión decimal 1–2147483647. Sin *, listas o ETag débil. Se comprueba bajo bloqueo solo en primera ejecución.",
+            "schema": {
+              "type": "string",
+              "pattern": "^\"catalog:[0-7][0-9A-HJKMNP-TV-Z]{25}:v[1-9][0-9]{0,9}\"(?![\\s\\S])"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalDraftProductRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Alta adicional original o replay autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftProductOperationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "428": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/local-draft-product-operations/{operationPublicId}": {
+      "get": {
+        "operationId": "readLocalDraftProductOperationV1",
+        "summary": "Consultar snapshot original de alta adicional propia",
+        "description": "DP-036 aprobado: solo ficticio local/testing, cookie de sesión y capacidades técnicas independientes con ownership del diario 03A; guard antes de sesión/CSRF/DI/SQL incluso con caché local reutilizada. No-store/private, correlación actual y 30/minuto por actor/bucket. Sin IDs internos, permisos automáticos o acceso comercial real. catalog.local.draft_product.read independiente; snapshot original cifrado/validado incluso tras cambiar/borrar perfiles. Sin lectura de claim o reconstrucción de perfil. Operación ajena/inexistente=404 indistinguible después de capacidad.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "operationPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshot original de alta adicional",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftProductOperationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
     "/api/v1/marketplace/local-draft-fixtures": {
       "post": {
         "operationId": "createLocalDraftFixtureV1",
@@ -1186,6 +1482,409 @@
       }
     },
     "schemas": {
+      "LocalDraftProductRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "product"
+        ],
+        "properties": {
+          "product": {
+            "type": "object",
+            "required": [
+              "name",
+              "description",
+              "brand"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 4000,
+                "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])"
+              },
+              "brand": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "LocalDraftProductOperationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local_draft_product_operation"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+              },
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "schema_version",
+                  "merchant_public_id",
+                  "catalog",
+                  "product"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "schema_version": {
+                    "enum": [
+                      1
+                    ],
+                    "type": "integer"
+                  },
+                  "merchant_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  },
+                  "catalog": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "name",
+                      "status",
+                      "version_before",
+                      "version_after"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "status": {
+                        "enum": [
+                          "draft"
+                        ],
+                        "type": "string"
+                      },
+                      "version_before": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483646
+                      },
+                      "version_after": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 2147483647
+                      }
+                    }
+                  },
+                  "product": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "catalog_public_id",
+                      "name",
+                      "description",
+                      "brand",
+                      "status",
+                      "version"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "catalog_public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 4000,
+                        "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])",
+                        "nullable": true
+                      },
+                      "brand": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                        "nullable": true
+                      },
+                      "status": {
+                        "enum": [
+                          "draft"
+                        ],
+                        "type": "string"
+                      },
+                      "version": {
+                        "enum": [
+                          1
+                        ],
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "LocalDraftCatalogProfileResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local_draft_catalog_profile"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+              },
+              "attributes": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "schema_version",
+                  "merchant_public_id",
+                  "name",
+                  "status",
+                  "version"
+                ],
+                "properties": {
+                  "schema_version": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  },
+                  "merchant_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft"
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "LocalDraftProductCollectionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "id",
+                "attributes"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "local_draft_product"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                },
+                "attributes": {
+                  "type": "object",
+                  "required": [
+                    "schema_version",
+                    "catalog_public_id",
+                    "name",
+                    "description",
+                    "brand",
+                    "status",
+                    "version"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "catalog_public_id": {
+                      "type": "string",
+                      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255,
+                      "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 4000,
+                      "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])",
+                      "nullable": true
+                    },
+                    "brand": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255,
+                      "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                      "nullable": true
+                    },
+                    "status": {
+                      "enum": [
+                        "draft"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 2147483647
+                    },
+                    "schema_version": {
+                      "type": "integer",
+                      "enum": [
+                        1
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "correlation_id",
+              "catalog_version",
+              "next_cursor",
+              "has_more",
+              "filters"
+            ],
+            "properties": {
+              "correlation_id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+              },
+              "catalog_version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              },
+              "next_cursor": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])",
+                "nullable": true
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "filters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "catalog_public_id",
+                  "limit"
+                ],
+                "properties": {
+                  "catalog_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "LocalDraftFixtureRequest": {
         "type": "object",
         "required": [

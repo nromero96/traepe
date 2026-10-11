@@ -3,6 +3,7 @@
 namespace Tests\Integration;
 
 use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Application\Fixtures\LocalDraftFixtureAccess;
@@ -456,6 +457,44 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->send('GET', $read, 403);
         DB::table('users')->where('id', $user)->update(['status' => 'active']);
         $this->send('POST', $url, 201, $payload, $this->token(), headers: $headers);
+        $catalogId = $first['data']['attributes']['catalog']['public_id'];
+        $profileUrl = '/api/v1/catalog/local-draft-profiles/'.$catalogId;
+        $productUrl = $profileUrl.'/products';
+        $productBody = ['product' => ['name' => 'Private Synthetic Additional', 'description' => "Private Additional Description\nliteral", 'brand' => null]];
+        $productHeaders = ['Idempotency-Key' => 'private-additional-http-key', 'If-Match' => '"catalog:'.$catalogId.':v1"'];
+        $this->send('GET', $profileUrl, 403);
+        $this->send('POST', $productUrl, 403, $productBody, $this->token(), headers: $productHeaders);
+        $grant(LocalDraftProductAccess::CREATE);
+        $this->send('POST', $productUrl, 419, $productBody, headers: $productHeaders);
+        $this->send('POST', $productUrl, 428, $productBody, $this->token(), headers: ['Idempotency-Key' => 'missing-version']);
+        $this->send('POST', $productUrl, 422, [], $this->token(), headers: $productHeaders);
+        $additional = $this->body($this->send('POST', $productUrl, 201, $productBody, $this->token(), headers: $productHeaders));
+        $this->assertSame(2, $additional['data']['attributes']['catalog']['version_after']);
+        $repeated = $this->body($this->send('POST', $productUrl, 201, $productBody, $this->token(), headers: $productHeaders));
+        $this->assertSame($additional['data'], $repeated['data']);
+        $this->send('POST', $productUrl, 409, $productBody, $this->token(), headers: array_replace($productHeaders, ['Idempotency-Key' => 'stale-version']));
+        $this->send('GET', $profileUrl, 403);
+        $contentGrant = $grant(LocalDraftProductAccess::CONTENT);
+        $current = $this->send('GET', $profileUrl, 200);
+        $this->assertSame('"catalog:'.$catalogId.':v2"', $current->getHeaderLine('ETag'));
+        $firstPage = $this->body($this->send('GET', $productUrl.'?limit=1', 200));
+        $cursor = $firstPage['meta']['next_cursor'];
+        $this->assertTrue($firstPage['meta']['has_more']);
+        $lastPage = $this->body($this->send('GET', $productUrl.'?limit=1&cursor='.rawurlencode($cursor), 200));
+        $this->assertFalse($lastPage['meta']['has_more']);
+        $this->assertNull($lastPage['meta']['next_cursor']);
+        $this->assertSame($additional['data']['attributes']['product']['public_id'], $lastPage['data'][0]['id']);
+        $historyUrl = '/api/v1/catalog/local-draft-product-operations/'.$additional['data']['id'];
+        $this->send('GET', $historyUrl, 403);
+        $grant(LocalDraftProductAccess::READ);
+        $this->assertSame($additional['data'], $this->body($this->send('GET', $historyUrl, 200))['data']);
+        $this->assertSame($first['data'], $this->body($this->send('GET', $read, 200))['data']);
+        DB::table('identity_permission_grants')->where('id', $contentGrant)->delete();
+        $this->send('GET', $profileUrl, 403);
+        $this->send('GET', $historyUrl, 200);
+        $productDeny = $grant(LocalDraftProductAccess::CREATE, 'deny');
+        $this->send('POST', $productUrl, 403, $productBody, $this->token(), headers: $productHeaders);
+        DB::table('identity_permission_grants')->where('id', $productDeny)->delete();
         $copy = new CookieJar(false, $this->cookies->toArray());
         $token = $this->token();
         $this->send('POST', '/api/v1/auth/logout', 200, token: $token);
@@ -463,8 +502,9 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->send('GET', $read, 401, client: $this->clientFor($copy));
         $this->send('GET', '/sanctum/csrf-cookie', 204);
         $this->send('POST', $url, 401, $payload, $this->token(), headers: $headers);
-        $this->assertSame([1, 1, 1, 1, 1, 1, 2], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'platform_idempotency_keys']));
-        $this->assertPrivateLogs(['+12025550136', $headers['Idempotency-Key'], 'private-chain-commerce-key', 'Private Synthetic Catalog', 'Private Synthetic Product', "Private Synthetic Description\nliteral", 'Private Synthetic Mismatch', 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', $token]);
+        $this->send('GET', $historyUrl, 401, client: $this->clientFor($copy));
+        $this->assertSame([1, 1, 1, 1, 2, 1, 1, 3], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'platform_idempotency_keys']));
+        $this->assertPrivateLogs(['+12025550136', $headers['Idempotency-Key'], 'private-additional-http-key', 'Private Synthetic Additional', "Private Additional Description\nliteral", $cursor, 'private-chain-commerce-key', 'Private Synthetic Catalog', 'Private Synthetic Product', "Private Synthetic Description\nliteral", 'Private Synthetic Mismatch', 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', $token]);
     }
 
     private function assertPrivateLogs(#[\SensitiveParameter] array $secrets): void
