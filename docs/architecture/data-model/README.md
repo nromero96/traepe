@@ -83,3 +83,13 @@ Una migración añade solo esa tabla vacía y products_local_draft_page_index pa
 FK compuestas catálogo/comercio y producto/catálogo impiden referencias cruzadas. Unique catálogo/revisión y producto/revisión permiten múltiples ediciones por producto; índices cubren FK y public_id cubre GET exacto con filtro de actor. No índice nuevo de products o índices preventivos. Trigger rechaza UPDATE/DELETE, sin updated_at/deleted_at o FK Identity; down forward-only. Snapshot cerrado antes/después cifrado/hash/metadata verificados. La secuencia entre diarios de alta/cambio se serializa por lock/versión del catálogo, sin unique entre tablas distintas.
 
 Una tabla inicialmente vacía aditiva, sin modificar constraints/filas previas. PUT cambia únicamente tres textos/version/updated_at del producto y version/updated_at del catálogo; los datos históricos originales se conservan. [Plan completo](../../sprints/sprint-03/checkpoint-03c-plan.md).
+
+## Variantes draft y diario de alta — 03D
+
+[DP-038](../decisions/pending-decisions.md#dp-038--variantes-draft-locales)/[ADR-008](../decisions/ADR-008-catalog-local-draft-foundation.md#ampliación-aprobada--03d) aprobados mediante «si apruebo». [Plan completo](../../sprints/sprint-03/checkpoint-03d-plan.md) define dos tablas privadas Catalog vacías, inicialmente draft y forward-only: product_variants y catalog_local_draft_variant_operations.
+
+Variant tiene bigint/ULID, FK compuestas propias catálogo/comercio y producto/catálogo, seis campos descriptivos, timestamps UTC/soft-delete y versión 1. SKU único por comercio sin condición de borrado; índice product_id,id para keyset/FK e índice catalog_id para FK. Attributes JSONB objeto con función CHECK propia immutable de forma/cardinalidad/claves/strings; no relación principal o valor numérico operativo.
+
+Diario tiene variante única y FK variant_id,product_id, más FK producto/catálogo y catálogo/comercio; ULIDs actor/merchant sin FK Identity, pares de revisiones consecutivos/unique por catálogo y producto, hashes/correlación/ciphertext y created_at UTC. Trigger rechaza UPDATE/DELETE. Snapshot original conserva producto/catálogo/variante y se valida contra metadata, sin reconstrucción mutable.
+
+Una alta confirma variante/diario y versiones catálogo/producto +1 junto al claim; no modifica textos/identidad/estado. Migración aditiva conserva las 35 tablas anteriores y agrega exactamente dos vacías, con segundo migrate sin cambios; sin seeds/reset/rollback de desarrollo. No precio, inventario, listings o tablas de otros módulos.

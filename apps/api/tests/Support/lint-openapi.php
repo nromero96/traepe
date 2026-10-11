@@ -162,3 +162,62 @@ foreach ([['unexpected', true], ['product.before.version', 0], ['product.after.v
     }
 }
 echo "PASS: product change snapshot v1; closed before/after, text and revision limits verified.\n";
+
+$variantSchema = json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-variant-operation.v1.json'), flags: JSON_THROW_ON_ERROR);
+$variantPageSchema = json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-variants-page.v1.json'), flags: JSON_THROW_ON_ERROR);
+$variant = (object) [
+    'schema_version' => 1, 'merchant_public_id' => $catalogId,
+    'catalog' => (object) ['public_id' => $catalogId, 'name' => 'Catalog', 'status' => 'draft', 'version_before' => 1, 'version_after' => 2],
+    'product' => (object) ['public_id' => $productId, 'catalog_public_id' => $catalogId, 'name' => 'Product', 'description' => null, 'brand' => null, 'status' => 'draft', 'version_before' => 1, 'version_after' => 2],
+    'variant' => (object) ['public_id' => $productId, 'product_public_id' => $productId, 'name' => 'Presentation', 'sku' => 'DEMO-001', 'size' => null, 'unit' => 'unidad', 'barcode' => null, 'attributes' => (object) [], 'status' => 'draft', 'version' => 1],
+];
+$check = new Validator;
+$check->validate($variant, $variantSchema);
+if (! $check->isValid()) {
+    throw new RuntimeException('Variant snapshot rejected.');
+}
+foreach ([
+    ['unexpected', true], ['variant.sku', 'lower'], ['variant.sku', "SKU\n"], ['variant.size', ''], ['variant.unit', ' '], ['variant.barcode', ' '],
+    ['variant.name', "name\n"], ['variant.attributes', []], ['variant.attributes', null], ['variant.attributes', (object) ['A' => 'x']],
+    ['variant.attributes', (object) ['a' => true]], ['variant.attributes', (object) ['a' => []]], ['variant.attributes', (object) ['a' => "x\n"]],
+    ['variant.attributes', (object) array_fill_keys(array_map(fn ($i) => 'k'.$i, range(0, 20)), 'x')], ['variant.version', 2], ['product.version_before', 0], ['catalog.version_after', 2147483648],
+] as [$path,$value]) {
+    $bad = json_decode(json_encode($variant, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $node = $bad;
+    $parts = explode('.', $path);
+    $leaf = array_pop($parts);
+    foreach ($parts as $part) {
+        $node = $node->{$part};
+    }$node->{$leaf} = $value;
+    $negative = new Validator;
+    $negative->validate($bad, $variantSchema);
+    if ($negative->isValid()) {
+        throw new RuntimeException('Invalid variant snapshot accepted.');
+    }
+}
+$variantResource = (object) ['type' => 'local_draft_variant', 'id' => $productId, 'attributes' => (object) [
+    'schema_version' => 1, 'catalog_public_id' => $catalogId, 'product_public_id' => $productId, 'name' => 'Presentation', 'sku' => 'DEMO-001',
+    'size' => null, 'unit' => 'unidad', 'barcode' => null, 'attributes' => (object) ['color' => 'azul'], 'status' => 'draft', 'version' => 1]];
+$variantPage = (object) ['data' => [$variantResource], 'meta' => (object) ['correlation_id' => $catalogId, 'catalog_version' => 2, 'product_version' => 2,
+    'next_cursor' => null, 'has_more' => false, 'filters' => (object) ['catalog_public_id' => $catalogId, 'product_public_id' => $productId, 'limit' => 20]]];
+$check = new Validator;
+$check->validate($variantPage, $variantPageSchema);
+if (! $check->isValid()) {
+    throw new RuntimeException('Variant page rejected.');
+}
+$variantPage->data = [];
+$check = new Validator;
+$check->validate($variantPage, $variantPageSchema);
+if (! $check->isValid()) {
+    throw new RuntimeException('Empty variant page rejected.');
+}
+foreach (['product_version' => 0, 'next_cursor' => 'invalid cursor', 'extra' => 'private'] as $field => $value) {
+    $bad = json_decode(json_encode($variantPage, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $bad->meta->{$field} = $value;
+    $negative = new Validator;
+    $negative->validate($bad, $variantPageSchema);
+    if ($negative->isValid()) {
+        throw new RuntimeException('Invalid variant page accepted.');
+    }
+}
+echo "PASS: variant operation/page v1; object map, SKU/text/revision/cursor closed positives and negatives verified.\n";

@@ -120,3 +120,9 @@ Marketplace es dueño de la consulta de propiedad y del bloqueo mediante OwnedLo
 [DP-037/ADR-008](decisions/ADR-008-catalog-local-draft-foundation.md#ampliación-aprobada--03c) aprobados agregan update/read de cambios, entrada/snapshot puros, puertos propios y persistencia del diario antes/después. Tres consumidores Infrastructure explícitos adicionales de los tipos públicos Identity/Platform existentes, enumerados por ArchitectureTest; reutiliza OwnedLocalDraftMerchantV1 mediante el puente Marketplace aprobado.
 
 Transacción compartida claim → Merchant → Catalog → Product compatible con alta 03B, versiones +1 e historial cifrado. GET histórico solo lee Catalog; contenido actual/cursores 03B mantienen contrato. No SQL privado cruzado, Shared vertical, contrato externo, dependencia instalada o carpetas futuras. [Plan completo](../sprints/sprint-03/checkpoint-03c-plan.md).
+
+## Variantes locales — 03D
+
+[Plan completo 03D](../sprints/sprint-03/checkpoint-03d-plan.md) implementado: alta/colección/historial de variantes draft, dos tablas privadas Catalog, versiones catálogo/producto e idempotencia. Reutiliza los contratos públicos existentes Identity/Platform/Marketplace con tres consumidores Infrastructure explícitos adicionales; Domain/Application puros, sin SQL privado cruzado/ciclos o reglas verticales en Shared. ArchitectureTest verifica trece consumidores Catalog; transacción claim → Merchant → Catalog → Product compatible con 03B/03C.
+
+[DP-038](decisions/pending-decisions.md#dp-038--variantes-draft-locales) aprobada mediante «si apruebo» antes de código, capacidades o migración. Ampliación validada conforme al plan completo y ADR-008; publicación autorizada mediante «Autorizado y continuar» después de presentar el resultado terminado, en curso. Sin precios, inventario/listings, venta, datos reales, activación, frontend/dependencias o carpetas futuras. [Evidencia de implementación](../sprints/sprint-03/checkpoint-03d-evidence.md).

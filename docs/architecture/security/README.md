@@ -87,3 +87,11 @@ DP-037/ADR-008 aprobados requieren cookie/sesión y CSRF para PUT, actor activo 
 Procedencia propia de catálogo/producto en diarios Catalog 03A/03B y confirmación Merchant/02I pública para primera escritura. GET filtra actor del diario propio, sin perfiles mutables/claims. Idempotencia 24h con fingerprints exactos, If-Match/revisión, rollback íntegro, cifrado y append-only. Dos buckets 30/minuto separados de permisos/budgets anteriores, errores sanitizados, no-store/private y correlación actual; sin entrada/historia, claves/cursors o SQL en logs.
 
 Guard local/testing antes de sesión/CSRF/DI/SQL aun con caché de rutas reutilizada. No usuarios/grants positivos en desarrollo, borrado, operación real o excepción al MFA sensible; positivos en bases temporales propias.
+
+## Capacidades de variantes locales — 03D
+
+[DP-038](../decisions/pending-decisions.md#dp-038--variantes-draft-locales)/[plan](../../sprints/sprint-03/checkpoint-03d-plan.md) aprobados antes del código mediante «si apruebo». catalog.local.draft_variant.create/read_current/read son independientes, scope técnico FB2 y recursos FBE/FBF/FBG completos del plan, resueltos por servidor; no amplían permisos anteriores, no grants automáticos.
+
+Sesión cookie/CSRF, actor activo, default deny/deny wins/alcance exacto/expiry UTC y buckets independientes 30/minuto. Recursos propios se acreditan con diarios Catalog 03A/03B/03D y FK; primera escritura confirma comercio 02I por contrato Marketplace, sin SQL privado cruzado. Reautorización en caso de uso/callback/postreferencia; replay exige create, historial read y autoría. GET no repara datos ni consulta claims.
+
+Guard local/testing previo a middleware/DI/SQL, también en procesos no locales con rutas cacheadas. Objetos/maps/strings y referencias se validan en límites/Domain/DB. SKU conflict no expone variante existente; snapshots cifrados/hash/metadata y diario append-only, privacidad en errores/logs, no datos/usuarios/grants positivos de desarrollo. No autorización de administración sensible real ni exención MFA.

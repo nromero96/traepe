@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.9.0",
+    "version": "1.10.0",
     "description": "Platform, Identity cliente, Marketplace y Catalog local/testing. Creación/consulta de comercio y catálogo draft, productos adicionales y contenido actual requieren sesión cookie y capacidades técnicas independientes. Sin mercados reales."
   },
   "servers": [
@@ -1521,6 +1521,267 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LocalDraftProductChangeOperationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants": {
+      "post": {
+        "operationId": "createLocalDraftVariantV1",
+        "summary": "Crear variante draft propia con SKU único por comercio",
+        "description": "DP-038 aprobado mediante si apruebo: solo ficticio local/testing, sesión cookie, permiso independiente, guard antes de sesión/CSRF/DI/SQL incluso con caché local. No-store/private, correlación actual, 30/minuto por actor/bucket; sin venta, precio, stock o IDs internos. Create catalog.local.draft_variant.create, CSRF, Idempotency-Key 24h e If-Match fuerte de catálogo. Catálogo/producto propio con procedencia 03A/03B y comercio 02I verificado por contrato. Lock claim→Merchant→Catalog→Product; ambos incrementan versión +1. Revisión antigua/máxima 409 version_conflict antes de SKU repetido 409 sku_conflict. SKU único por comercio incluido soft-delete. Replay 201 original sin reevaluar perfiles o exigir read; rollback completo.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "catalogPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "productPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "ASCII imprimible sin espacios/control; no se normaliza ni almacena en claro.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[!-~]{1,255}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Token CSRF obtenido de la cookie XSRF-TOKEN, decodificado por el cliente.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "description": "ETag fuerte exacto de GET perfil, ligado al ULID de ruta; una versión decimal 1–2147483647. Sin *, listas o ETag débil. Se comprueba bajo bloqueo solo en primera ejecución.",
+            "schema": {
+              "type": "string",
+              "pattern": "^\"catalog:[0-7][0-9A-HJKMNP-TV-Z]{25}:v[1-9][0-9]{0,9}\"(?![\\s\\S])"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalDraftVariantRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Alta adicional original o replay autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftVariantOperationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "428": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listLocalDraftVariantsV1",
+        "summary": "Recorrer variantes draft actuales de un producto propio",
+        "description": "DP-038 aprobado mediante si apruebo: solo ficticio local/testing, sesión cookie, permiso independiente, guard antes de sesión/CSRF/DI/SQL incluso con caché local. No-store/private, correlación actual, 30/minuto por actor/bucket; sin venta, precio, stock o IDs internos. Capacidad catalog.local.draft_variant.read_current. Solo variantes propias con diario 03D, draft/no borradas; padres propios/elegibles o 404. Una sentencia con ambas revisiones/página; cursor autenticado actor/catálogo/producto/limit/revisiones/id/expiry original 15 minutos. Contexto 422, vencido cursor_expired, revisión distinta catalog_changed. ETag de catálogo sin 304.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "catalogPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "productPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Decimal canónico 1–50; default 20, sin signo/ceros iniciales/fracción.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096,
+              "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página actual, next_cursor y revisión",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftVariantCollectionResponse"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Un único ETag fuerte \"catalog:<ULID>:v<N>\"",
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"catalog:[0-7][0-9A-HJKMNP-TV-Z]{25}:v[1-9][0-9]{0,9}\"(?![\\s\\S])"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/local-draft-variant-operations/{operationPublicId}": {
+      "get": {
+        "operationId": "readLocalDraftVariantOperationV1",
+        "summary": "Consultar snapshot original de alta de variante propia",
+        "description": "DP-038 aprobado mediante si apruebo: solo ficticio local/testing, sesión cookie, permiso independiente, guard antes de sesión/CSRF/DI/SQL incluso con caché local. No-store/private, correlación actual, 30/minuto por actor/bucket; sin venta, precio, stock o IDs internos. Capacidad catalog.local.draft_variant.read y actor creador; 404 indistinguible para ajena/ausente. Diario cifrado append-only, original aunque cambien perfiles; sin consulta mutable/claim/Marketplace.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "operationPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshot original de alta adicional",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftVariantOperationResponse"
                 }
               }
             }
@@ -3170,6 +3431,493 @@
           },
           "meta": {
             "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "LocalDraftVariantRequest": {
+        "type": "object",
+        "required": [
+          "variant"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "variant": {
+            "type": "object",
+            "required": [
+              "name",
+              "sku",
+              "size",
+              "unit",
+              "barcode",
+              "attributes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+              },
+              "sku": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[A-Z0-9][A-Z0-9._-]{0,63}(?![\\s\\S])"
+              },
+              "size": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                "nullable": true
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+              },
+              "barcode": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[!-~]{1,64}(?![\\s\\S])",
+                "nullable": true
+              },
+              "attributes": {
+                "type": "object",
+                "maxProperties": 20,
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                },
+                "description": "Objeto de 0–20 pares descriptivos; claves ^[a-z][a-z0-9_]{0,63}(?![\\s\\S]). El JSON Schema v1 y servidor validan el patrón de claves."
+              }
+            }
+          }
+        }
+      },
+      "LocalDraftVariantOperationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local_draft_variant_operation"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+              },
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "schema_version",
+                  "merchant_public_id",
+                  "catalog",
+                  "product",
+                  "variant"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "schema_version": {
+                    "enum": [
+                      1
+                    ],
+                    "type": "integer"
+                  },
+                  "merchant_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  },
+                  "catalog": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "name",
+                      "status",
+                      "version_before",
+                      "version_after"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "status": {
+                        "enum": [
+                          "draft"
+                        ],
+                        "type": "string"
+                      },
+                      "version_before": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483646
+                      },
+                      "version_after": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 2147483647
+                      }
+                    }
+                  },
+                  "product": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "catalog_public_id",
+                      "name",
+                      "description",
+                      "brand",
+                      "status",
+                      "version_before",
+                      "version_after"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "catalog_public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 4000,
+                        "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])",
+                        "nullable": true
+                      },
+                      "brand": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                        "nullable": true
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "draft"
+                        ]
+                      },
+                      "version_before": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483646
+                      },
+                      "version_after": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 2147483647
+                      }
+                    }
+                  },
+                  "variant": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "product_public_id",
+                      "name",
+                      "sku",
+                      "size",
+                      "unit",
+                      "barcode",
+                      "attributes",
+                      "status",
+                      "version"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "product_public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[A-Z0-9][A-Z0-9._-]{0,63}(?![\\s\\S])"
+                      },
+                      "size": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                        "nullable": true
+                      },
+                      "unit": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "barcode": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[!-~]{1,64}(?![\\s\\S])",
+                        "nullable": true
+                      },
+                      "attributes": {
+                        "type": "object",
+                        "maxProperties": 20,
+                        "additionalProperties": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255,
+                          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                        },
+                        "description": "Objeto de 0–20 pares descriptivos; claves ^[a-z][a-z0-9_]{0,63}(?![\\s\\S]). El JSON Schema v1 y servidor validan el patrón de claves."
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "draft"
+                        ]
+                      },
+                      "version": {
+                        "type": "integer",
+                        "enum": [
+                          1
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "LocalDraftVariantCollectionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "id",
+                "attributes"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "local_draft_variant"
+                  ]
+                },
+                "attributes": {
+                  "type": "object",
+                  "required": [
+                    "schema_version",
+                    "catalog_public_id",
+                    "product_public_id",
+                    "name",
+                    "sku",
+                    "size",
+                    "unit",
+                    "barcode",
+                    "attributes",
+                    "status",
+                    "version"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "schema_version": {
+                      "type": "integer",
+                      "enum": [
+                        1
+                      ]
+                    },
+                    "catalog_public_id": {
+                      "type": "string",
+                      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                    },
+                    "product_public_id": {
+                      "type": "string",
+                      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255,
+                      "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                    },
+                    "sku": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[A-Z0-9][A-Z0-9._-]{0,63}(?![\\s\\S])"
+                    },
+                    "size": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255,
+                      "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                      "nullable": true
+                    },
+                    "unit": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                    },
+                    "barcode": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[!-~]{1,64}(?![\\s\\S])",
+                      "nullable": true
+                    },
+                    "attributes": {
+                      "type": "object",
+                      "maxProperties": 20,
+                      "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "description": "Objeto de 0–20 pares descriptivos; claves ^[a-z][a-z0-9_]{0,63}(?![\\s\\S]). El JSON Schema v1 y servidor validan el patrón de claves."
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "enum": [
+                        1
+                      ]
+                    }
+                  }
+                },
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "correlation_id",
+              "catalog_version",
+              "next_cursor",
+              "has_more",
+              "filters",
+              "product_version"
+            ],
+            "properties": {
+              "correlation_id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+              },
+              "catalog_version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              },
+              "next_cursor": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])",
+                "nullable": true
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "filters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "catalog_public_id",
+                  "limit",
+                  "product_public_id"
+                ],
+                "properties": {
+                  "catalog_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "product_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  }
+                }
+              },
+              "product_version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              }
+            }
           }
         }
       }

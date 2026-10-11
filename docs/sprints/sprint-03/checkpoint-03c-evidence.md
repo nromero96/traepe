@@ -1,6 +1,6 @@
 # Evidencia de Checkpoint 03C — Edición de productos draft
 
-Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «aprobar y continuar»; implementado y validado localmente, migración aditiva vacía aplicada y datos anteriores preservados. Commit/push/CI autorizados mediante «autorizado» el 11 de octubre de 2026; publicación y comprobación de CI en curso.**
+Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «aprobar y continuar»; implementado y validado localmente, migración aditiva vacía aplicada y datos anteriores preservados. Publicado en main b88add660b33b8a94c612ae56fe6275272634c90 mediante «autorizado»; CI completa correcta sobre ese SHA.**
 
 ## Base y aprobación
 
@@ -111,4 +111,12 @@ La aprobación «aprobar y continuar» cubre el plan completo, código/pruebas y
 
 El 11 de octubre de 2026, tras presentar los 44 archivos y la validación completa de 329 pruebas/9445 aserciones, el usuario respondió «autorizado» a la solicitud de commit, push y CI de 03C. La autorización se registra antes del commit conforme a AGENTS.md:81. Comprende un commit del manifiesto revisado, push normal a origin/main y comprobación de Foundation CI sobre el SHA enviado.
 
-Publicación en curso al registrar esta evidencia. Se comprobarán el SHA del run y del job, y las cuatro etapas: construcción/migración fresca, calidad/integración, reinicio/persistencia y limpieza. La CI previa de 03B no se presenta como validación de 03C.
+La autorización se ejecutó con un commit del manifiesto y push normal; la verificación remota terminó correctamente. La CI de 03C se comprobó por su SHA exacto, sin usar la CI anterior de 03B como sustituto.
+
+## Publicación confirmada
+
+Commit b88add660b33b8a94c612ae56fe6275272634c90, padre ad395112e4f261ea4a5450068957eab1cf76e8d2: 44 archivos, 2438 inserciones y 20 eliminaciones. Push normal a origin/main autorizado mediante «autorizado». main/HEAD/origin/main/remote iguales y repositorio limpio al terminar; se conservan las 329 pruebas locales/9445 aserciones sin sumar reruns focalizados.
+
+[Foundation CI 38120914021](https://github.com/nromero96/traepe/actions/runs/38120914021), job 114415279745: run y job completed/success, ambos SHA exactos b88add660b33b8a94c612ae56fe6275272634c90, rama main/evento push. Construcción/migración fresca, calidad/integración, reinicio/persistencia y limpieza: cuatro etapas completed/success, corroboradas al iniciar la continuidad solicitada por el usuario.
+
+Entorno corroborado en esta continuidad: ocho servicios running/healthy, 35 tablas no-migrations y doce Marketplace/Catalog vacías; verify-foundation.php correcto. El usuario pidió «Continuar»: [plan completo 03D](checkpoint-03d-plan.md) preparado para variantes draft/colección/historial; DP-038 aprobada mediante «si apruebo» después de la preparación y antes de código o tablas. [Evidencia de preparación](checkpoint-03d-evidence.md).

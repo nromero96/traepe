@@ -1,6 +1,6 @@
 # Plan de Checkpoint 03C — Edición de productos draft e historial de cambios
 
-Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «aprobar y continuar» el 11 de octubre de 2026; implementado y validado localmente, migración vacía aplicada y 34 tablas anteriores preservadas. 329 pruebas/9445 aserciones correctas; commit/push/CI autorizados mediante «autorizado» el 11 de octubre de 2026; publicación y comprobación de CI en curso.**
+Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «aprobar y continuar» el 11 de octubre de 2026; implementado y validado localmente, migración vacía aplicada y 34 tablas anteriores preservadas. 329 pruebas/9445 aserciones correctas; commit/push/CI autorizados mediante «autorizado» el 11 de octubre de 2026; [publicado en main b88add660b33b8a94c612ae56fe6275272634c90 con CI completa correcta](checkpoint-03c-evidence.md#publicación-confirmada).**
 
 ## Base y fuente
 

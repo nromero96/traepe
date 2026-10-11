@@ -47,3 +47,15 @@ Bloquea claim → Merchant → Catalog → Product, reautoriza y aumenta en uno 
 Diario adicional cifrado append-only conserva antes/después, identidad/relación y pares de versiones. GET local-draft-product-change-operations/{operationPublicId} requiere read y autor propio, incluso tras nuevas ediciones o borrado de perfiles. Las operaciones de alta 03A/03B siguen originales. Las consultas actuales 03B ven los textos/versiones nuevos; cursores anteriores devuelven catalog_changed y requieren reiniciar.
 
 Reglas completas, contratos, constraints, errores y pruebas en el plan. Migración local aditiva vacía y forward-only; positivos solo en bases temporales propias, desarrollo vacío. Sin borrado, venta, SKU/precio/stock, activación, frontend/dependencias o datos reales; decisiones productivas y MFA sensibles reales permanecen vigentes.
+
+## Variantes draft y consulta por producto — 03D
+
+Fuente: maestro v1.6 §§37, 49, 58–60, 72 y 90; [DP-038 aprobada](../architecture/decisions/pending-decisions.md#dp-038--variantes-draft-locales), [ADR-008](../architecture/decisions/ADR-008-catalog-local-draft-foundation.md#ampliación-aprobada--03d) y [plan completo](../sprints/sprint-03/checkpoint-03d-plan.md). «si apruebo» autoriza todas las reglas antes del código.
+
+POST agrega una variante draft a producto inicial/adicional propio, GET variants consulta la colección y GET local-draft-variant-operations consulta el alta original. Entrada cerrada variant {name,sku,size,unit,barcode,attributes}; reglas exactas y mapa objeto acotado en el plan. SKU único por comercio, también soft-deleted, sin normalización ni reutilización; otros comercios pueden repetirlo.
+
+Tres permisos nuevos independientes, sesión/CSRF/DP-026, If-Match de catálogo, claim 24h y bloqueo claim → Merchant → Catalog → Product. Revalida procedencia/propiedad y comercio mediante contrato público; incrementa catálogo/producto +1 sin cambiar sus textos. Revisión antigua/máxima produce version_conflict antes de sku_conflict; errores revierten toda escritura y claim.
+
+Colección keyset con dos revisiones y página en una sentencia, variantes propias con diario 03D, cursor cifrado ligado a actor/catálogo/producto/limit/revisiones, TTL 15 minutos original. Mutaciones 03B/03C/03D invalidan cursores anteriores del catálogo. Historial cifrado/append-only y replay conservan original aunque cambien perfiles; snapshots/contratos previos no cambian.
+
+Dos tablas locales vacías aditivas y forward-only, pruebas positivas solo en bases temporales propias. No edición/borrado de variante, precio/stock/listing, venta/activación, categorías/tipos/restricciones, frontend/dependencias o datos reales. [Evidencia](../sprints/sprint-03/checkpoint-03d-evidence.md).

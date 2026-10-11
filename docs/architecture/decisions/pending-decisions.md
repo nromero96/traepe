@@ -1,5 +1,19 @@
 # Decisiones pendientes
 
+## DP-038 — Variantes draft locales
+
+- **Estado:** resuelta mediante «si apruebo» el 11 de octubre de 2026, antes del código; plan completo 03D aprobado.
+- **Fuente:** maestro v1.6 §§9, 25, 32–33, 37, 49–50, 52–60, 64, 72, 78–79 y 90; ADR-008/DP-026/DP-035/DP-036/DP-037.
+- **Vacío:** el maestro contempla variantes, SKU único en alcance, nombre, tamaño/unidad/barcode/atributos, pero no concreta el alcance de unicidad, formatos/estados, permisos del ejercicio ficticio, creación/lecturas, revisión del producto/catálogo por alta de variante ni snapshot/cursores. Los planes 03A/03B/03C excluyeron variantes/SKU; su aprobación no permite inventar esas reglas.
+- **Plan completo aprobado:** [plan 03D](../../sprints/sprint-03/checkpoint-03d-plan.md): alta de variante draft propia, colección actual paginada y snapshot original; seis campos requeridos, SKU ASCII único por comercio incluido soft-delete, mapa de atributos acotado, tres permisos independientes, If-Match, claim 24h, lock claim → Merchant → Catalog → Product y ambos incrementos +1. Dos tablas inicialmente vacías; reglas de FK/CHECK/append-only/cifrado/cursor y pruebas en el plan.
+- **Arquitectura aprobada:** mismos contratos públicos Identity/Platform/Marketplace existentes, tres nuevos consumidores Infrastructure explícitos y puente Merchant reutilizado; Domain/Application puros, Shared/resolver global intactos, sin SQL privado cruzado o nuevas dependencias.
+- **Bloqueo resuelto:** «si apruebo» autoriza las reglas completas, código/API/capacidades, nuevas tablas/diario, revisiones y pruebas de 03D; preparación y cierre retrospectivo de 03C verificados previamente.
+- **Aprobación recibida:** todas las reglas del plan, implementación/pruebas y aplicación local aditiva de dos tablas vacías. Después de presentar el resultado terminado, el usuario autorizó commit/push/CI mediante «Autorizado y continuar» el 11 de octubre de 2026; publicación en curso.
+- **Resultado local:** 51 archivos, 355 pruebas/11260 aserciones, Pint 322/PHPStan 8/contratos correctos; dos tablas vacías aplicadas y 35 previas preservadas, segundo migrate sin cambios. Catorce tablas Marketplace/Catalog vacías, ocho servicios saludables y verify-foundation correcto. Publicación autorizada sobre este resultado terminado.
+- **Límites:** solo ficticio local/testing; positivos en bases temporales propias y desarrollo vacío. Sin edición/borrado de variantes, precios/stock/listings, venta/activación, frontend/dependencias/datos reales o exención MFA. DP-001/DP-002/DP-007/DP-012 y las demás productivas conservan responsables/fechas.
+- **Responsable:** Nilton; revisión solicitada en esta continuidad el 11 de octubre de 2026.
+- **Evidencia:** [implementación y validaciones de 03D](../../sprints/sprint-03/checkpoint-03d-evidence.md).
+
 ## DP-037 — Edición local de productos draft
 
 - **Estado:** resuelta mediante «aprobar y continuar» el 11 de octubre de 2026, antes de iniciar implementación; plan completo 03C aprobado.
@@ -10,7 +24,7 @@
 - **Bloqueo resuelto:** el usuario aprobó el plan completo mediante «aprobar y continuar». Autoriza implementación, pruebas y aplicación local aditiva vacía conforme a todas sus reglas, después de la preparación documental verificada.
 - **Límites:** ficticio local/testing; desarrollo vacío, positivos en bases temporales propias. Sin borrado/restauración, catálogo renombrado/reasignación, categorías/tipo/restricciones, SKU/precio/stock/listings, publicación/activación, frontend/dependencias, datos reales o excepción MFA. DP-001/DP-002/DP-007/DP-012 y demás productivas permanecen abiertas.
 - **Aprobación recibida:** todas las reglas del plan, implementación/pruebas y aplicación local aditiva de una tabla vacía. Después de presentar el resultado terminado, commit/push/CI de 03C fueron autorizados mediante «autorizado» el 11 de octubre de 2026; [registro](../../sprints/sprint-03/checkpoint-03c-evidence.md#aprobación-y-publicación-autorizadas).
-- **Resultado local:** implementado y validado, 329 pruebas/9445 aserciones, migración vacía aplicada y 34 tablas anteriores preservadas; doce tablas Marketplace/Catalog vacías y ocho servicios saludables. 44 archivos revisados; publicación autorizada y comprobación de CI en curso. [Evidencia](../../sprints/sprint-03/checkpoint-03c-evidence.md).
+- **Resultado local:** implementado y validado, 329 pruebas/9445 aserciones, migración vacía aplicada y 34 tablas anteriores preservadas; doce tablas Marketplace/Catalog vacías y ocho servicios saludables. 44 archivos publicados en main b88add660b33b8a94c612ae56fe6275272634c90; [CI completa correcta y cierre](../../sprints/sprint-03/checkpoint-03c-evidence.md#publicación-confirmada) con run/job SHA exactos y cuatro etapas correctas. [Evidencia](../../sprints/sprint-03/checkpoint-03c-evidence.md).
 - **Responsable:** Nilton; revisión solicitada en esta continuidad el 11 de octubre de 2026. No cambia responsabilidades/fechas de decisiones productivas.
 - **Evidencia:** [preparación, aprobación y resultado de 03C](../../sprints/sprint-03/checkpoint-03c-evidence.md).
 

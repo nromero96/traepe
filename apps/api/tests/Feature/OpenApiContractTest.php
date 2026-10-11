@@ -8,6 +8,9 @@ use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogWriter;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductAccess;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductWriter;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantStore;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantWriter;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogInput;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogOperation;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogProfile;
@@ -16,6 +19,10 @@ use App\Modules\Catalog\Domain\Drafts\DraftProductData;
 use App\Modules\Catalog\Domain\Drafts\DraftProductOperation;
 use App\Modules\Catalog\Domain\Drafts\DraftProductPage;
 use App\Modules\Catalog\Domain\Drafts\DraftProductProfile;
+use App\Modules\Catalog\Domain\Drafts\DraftVariantData;
+use App\Modules\Catalog\Domain\Drafts\DraftVariantOperation;
+use App\Modules\Catalog\Domain\Drafts\DraftVariantPage;
+use App\Modules\Catalog\Domain\Drafts\DraftVariantProfile;
 use App\Modules\Identity\Infrastructure\IdentityUser;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceStore;
@@ -83,6 +90,9 @@ class OpenApiContractTest extends TestCase
         $expected[] = 'GET /api/v1/catalog/local-draft-product-operations/{operationPublicId}';
         $expected[] = 'PUT /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}';
         $expected[] = 'GET /api/v1/catalog/local-draft-product-change-operations/{operationPublicId}';
+        $expected[] = 'POST /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants';
+        $expected[] = 'GET /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants';
+        $expected[] = 'GET /api/v1/catalog/local-draft-variant-operations/{operationPublicId}';
         sort($expected);
         $this->assertSame($expected, $documented);
         $actual = [];
@@ -297,6 +307,32 @@ class OpenApiContractTest extends TestCase
         }
     }
 
+    public function test_variant_http_responses_match_closed_oas_operation_and_page_contracts(): void
+    {
+        $this->app->detectEnvironment(fn () => 'testing');
+        config(['session.driver' => 'array', 'cache.limiter' => 'array']);
+        $id = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $product = '01ARZ3NDEKTSV4RRFFQ69G5FB1';
+        $this->actingAs((new IdentityUser)->forceFill(['id' => 11, 'public_id' => $id, 'status' => 'active']), 'web');
+        $this->mock(LocalDraftVariantAccess::class)->shouldReceive('actor')->andReturn($id);
+        $data = new DraftVariantData('Presentation', 'DEMO-001', null, 'unit', null, ['color' => ' azul ']);
+        $variant = new DraftVariantProfile($id, $id, $product, $data);
+        $op = new DraftVariantOperation($id, new DraftCatalogProfile($id, $id, 'Catalog', 1),
+            new DraftProductProfile($product, $id, new DraftProductData('Product', null, null), 1), $variant);
+        $this->mock(LocalDraftVariantWriter::class)->shouldReceive('execute')->once()->andReturn($op);
+        $this->mock(LocalDraftVariantStore::class)->shouldReceive('find')->once()->andReturn($op)
+            ->shouldReceive('page')->once()->andReturn(new DraftVariantPage(2, 2, [$variant], false, 1));
+        $url = '/api/v1/catalog/local-draft-profiles/'.$id.'/products/'.$product.'/variants';
+        $created = $this->withHeaders(['If-Match' => '"catalog:'.$id.':v1"', 'Idempotency-Key' => 'contract-variant-key'])->postJson($url, ['variant' => $data->snapshot()])->assertCreated();
+        $history = $this->getJson('/api/v1/catalog/local-draft-variant-operations/'.$id)->assertOk();
+        foreach ([$created, $history] as $response) {
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalDraftVariantOperationResponse']);
+        }
+        $page = $this->getJson($url)->assertOk()->assertHeader('ETag', '"catalog:'.$id.':v2"');
+        $this->assertSchema(json_decode($page->getContent()), $this->document['components']['schemas']['LocalDraftVariantCollectionResponse']);
+        $this->assertSame('1.10.0', $this->document['info']['version']);
+    }
+
     private function resolve(string $reference): array
     {
         $this->assertStringStartsWith('#/', $reference);
@@ -359,6 +395,8 @@ class OpenApiContractTest extends TestCase
                 }
                 if (isset($schema['properties'][$key])) {
                     $this->assertSchema($property, $schema['properties'][$key]);
+                } elseif (is_array($schema['additionalProperties'] ?? null)) {
+                    $this->assertSchema($property, $schema['additionalProperties']);
                 }
             }
         }

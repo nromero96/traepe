@@ -64,3 +64,19 @@ catalog_local_draft_product_changes agrega una tabla privada vacía y forward-on
 Los cursores 03B se invalidan con catalog_changed al cambiar la revisión; las lecturas actuales muestran textos/versiones vigentes y las operaciones de alta conservan snapshots originales. ArchitectureTest enumera exactamente IdentityLocalDraftProductChangeAccess, LocalDraftProductChangeResourceResolver y PlatformLocalDraftProductChangeWriter con los mismos tipos públicos autorizados. Reutiliza el puente Marketplace, sin ciclo/dependencia privada o regla vertical en Shared.
 
 Solo ficticio local/testing; guard antes de sesión/CSRF/DI/SQL incluso con caché local reutilizada. Sin borrado, SKU, precios/stock/listings, activación, datos reales, frontend/dependencias nuevas o excepción MFA. Commit/push/CI requieren autorización de cierre después del resultado terminado.
+
+## Ampliación aprobada — 03D
+
+Aprobación explícita «si apruebo», 11 de octubre de 2026, [DP-038](pending-decisions.md#dp-038--variantes-draft-locales) y [plan completo](../../sprints/sprint-03/checkpoint-03d-plan.md). Autoriza alta de variante draft propia de producto inicial/adicional, colección actual paginada y operación original. Seis campos requeridos, SKU ASCII único por comercio incluido soft-delete, etiquetas descriptivas y mapa JSON objeto de strings acotado; sin precio/inventario/listing o venta.
+
+Catalog posee product_variants y catalog_local_draft_variant_operations; dos tablas aditivas vacías y forward-only con FK propias/unique/CHECK, mapa validado también en PostgreSQL, diario cifrado/append-only y lookup propio. JSON {} se conserva en entrada/snapshot/JSONB; fingerprint usa pares ordenados de arrays/primitivas sin cambiar RequestFingerprint de Platform.
+
+Claim → Merchant → Catalog → Product en transacción compartida, If-Match de catálogo y reautorización. Una alta incrementa en uno versiones/updated_at de catálogo y producto, preservando sus textos/identidad/relaciones; variante draft/version 1. SKU duplicado produce sku_conflict tras revisar versión; fallos parciales revierten filas/versiones/timestamps/diario/claim. Replay 201 original con create vigente y TTL 24h, sin read o reevaluar perfiles.
+
+Tres capacidades independientes create/read_current/read con scope FB2 y recursos FBE/FBF/FBG del plan; sesión/CSRF/DP-026 y buckets separados. Autoría/procedencia 03A/03B se acredita en Catalog; primera alta reutiliza OwnedLocalDraftMerchantV1 de Marketplace. Lecturas actuales solo incluyen variantes propias con diario 03D; historial solo lee diario. Sin grants/usuarios positivos de desarrollo.
+
+Una sentencia propia obtiene ambas revisiones/página. Cursor autenticado v1 ligado a actor/catalog/product/revisiones/limit/id interno y expiry original 15 minutos; toda revisión distinta exige reiniciar. Contratos/snapshots anteriores se conservan, cursores 03B se invalidan y perfiles actuales muestran el nuevo product.version.
+
+Se aprueban exactamente IdentityLocalDraftVariantAccess, LocalDraftVariantResourceResolver y PlatformLocalDraftVariantWriter como consumidores adicionales de los mismos tipos públicos enumerados en el plan. ArchitectureTest pasa de diez a trece consumidores Catalog; no se reemplaza resolver global ni se añade SQL privado cruzado, ciclo, regla vertical Shared, módulo/dependencia o contrato externo.
+
+Solo ficticio local/testing con guards previos a middleware/DI/SQL, incluso con route cache reutilizada. Diario audita este ejercicio sin efecto externo nuevo/evento/outbox sin consumidor; no extiende el criterio a operación real ni exime MFA sensible. Aplicación local de dos tablas vacías autorizada después de pruebas/preservación de 35 tablas anteriores. Commit/push/CI se solicitarán después del resultado terminado.

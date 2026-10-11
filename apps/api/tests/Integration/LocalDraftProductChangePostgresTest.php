@@ -428,12 +428,12 @@ final class LocalDraftProductChangePostgresTest extends PostgresTestCase
             $migrationRows = DB::table('migrations')->orderBy('id')->get()->toArray();
             $migrations = count($migrationRows);
             $this->assertFalse(Schema::hasTable('catalog_local_draft_product_changes'));
-            $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
+            $this->assertSame(0, Artisan::call('migrate', ['--path' => [database_path('migrations/'.self::MIGRATION)], '--realpath' => true, '--force' => true]));
             $this->assertSame($before, $this->snapshot($tables));
             $this->assertEquals($migrationRows, DB::table('migrations')->orderBy('id')->limit($migrations)->get()->toArray());
             $this->assertSame($migrations + 1, DB::table('migrations')->count());
             $this->assertSame(0, DB::table('catalog_local_draft_product_changes')->count());
-            $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
+            $this->assertSame(0, Artisan::call('migrate', ['--path' => [database_path('migrations/'.self::MIGRATION)], '--realpath' => true, '--force' => true]));
             $this->assertStringContainsString('Nothing to migrate', Artisan::output());
             $this->assertSame($migrations + 1, DB::table('migrations')->count());
             $this->assertSame($before, $this->snapshot($tables));

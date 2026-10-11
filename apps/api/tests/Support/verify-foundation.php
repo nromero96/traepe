@@ -68,7 +68,7 @@ try {
             && $identityCounts === array_map(fn ($table) => DB::table($table)->count(), $identityTables), 'anonymous catalog requests change no data, grants or claims');
     }
     if (app()->environment(['local', 'testing'])) {
-        $productTables = ['catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'catalog_local_draft_product_changes', 'platform_idempotency_keys', 'users', 'identity_permission_grants'];
+        $productTables = ['catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'catalog_local_draft_product_changes', 'product_variants', 'catalog_local_draft_variant_operations', 'platform_idempotency_keys', 'users', 'identity_permission_grants'];
         $productBefore = array_map(fn ($table) => DB::table($table)->count(), $productTables);
         $productBase = 'http://nginx/api/v1/catalog/local-draft-profiles/01ARZ3NDEKTSV4RRFFQ69G5FAZ';
         $responses = [
@@ -87,12 +87,22 @@ try {
         foreach ([$changePut, $changeGet] as $response) {
             foundationAssert(str_contains($response->header('Cache-Control'), 'no-store') && $response->header('X-Correlation-ID') === $response->json('error.correlation_id'), 'change rejection preserves privacy and correlation');
         }
+        $variantUrl = $productBase.'/products/01ARZ3NDEKTSV4RRFFQ69G5FB1/variants';
+        $variants = [
+            Http::timeout(15)->acceptJson()->post($variantUrl, []),
+            Http::timeout(15)->acceptJson()->get($variantUrl),
+            Http::timeout(15)->acceptJson()->get('http://nginx/api/v1/catalog/local-draft-variant-operations/01ARZ3NDEKTSV4RRFFQ69G5FAZ'),
+        ];
+        foundationAssert(array_map(fn ($response) => $response->status(), $variants) === [419, 401, 401] && $variants[0]->json('error.code') === 'csrf_token_mismatch', 'variant create requires CSRF; current variants and history require session');
+        foreach ($variants as $response) {
+            foundationAssert(str_contains($response->header('Cache-Control'), 'no-store') && $response->header('X-Correlation-ID') === $response->json('error.correlation_id'), 'variant rejection preserves privacy and correlation');
+        }
         foundationAssert($productBefore === array_map(fn ($table) => DB::table($table)->count(), $productTables), 'anonymous product requests preserve foundation data, grants and claims');
     }
     foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Catalog', 'Identity', 'Marketplace', 'Platform'], 'only approved Catalog, Identity, Marketplace and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));
-    foundationAssert(array_intersect(['orders', 'payments', 'product_variants', 'branch_listings', 'stores', 'inventories'], $tables) === [], 'no ordering, payment, sale or inventory tables');
-    foreach (['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'catalog_local_draft_product_changes'] as $table) {
+    foundationAssert(array_intersect(['orders', 'payments', 'branch_listings', 'stores', 'inventories'], $tables) === [], 'no operational ordering, payment, listing or inventory tables');
+    foreach (['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'catalog_local_draft_product_changes', 'product_variants', 'catalog_local_draft_variant_operations'] as $table) {
         foundationAssert(in_array($table, $tables, true) && DB::table($table)->count() === 0, 'approved Marketplace/Catalog foundation table remains empty');
     }
     if (app()->environment(['local', 'testing'])) {
