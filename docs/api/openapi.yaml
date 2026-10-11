@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "description": "Platform, Identity cliente y Marketplace local/testing. Lectura de borradores, creación de perfiles sintéticos y alta/consulta de comercio draft requieren sesión cookie y capacidades técnicas independientes. Sin mercados reales."
   },
   "servers": [
@@ -918,6 +918,169 @@
           }
         }
       }
+    },
+    "/api/v1/catalog/local-draft-catalogs": {
+      "post": {
+        "operationId": "createLocalDraftCatalogV1",
+        "summary": "Crear catálogo y primer producto conceptual draft del comercio propio en local/testing",
+        "description": "DP-035/ADR-008: sesión cookie, CSRF y catalog.local.draft_catalog.create con scope/recurso técnicos exactos. Marketplace confirma y bloquea el comercio draft creado por el mismo actor mediante 02I. Claim, catálogo, producto y diario cifrado append-only en una transacción. Textos exactos UTF-8; descripción nullable permite LF, marca nullable; product_type exclusivamente NULL y no expuesto. Idempotencia 24 horas por actor/scope sin extensión, purga o reuso; replay requiere create vigente y devuelve el snapshot original sin reevaluar datos comerciales. 404 merchant_not_available uniforme para comercio ausente, ajeno o no elegible; 409 idempotency_mismatch/idempotency_expired. Límite propio 30/minuto por actor. 404 fuera de local/testing antes de sesión o puertos. Sin SKU, precios, stock, publicación ni administración real.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "ASCII imprimible sin espacios/control; no se normaliza ni almacena en claro.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[!-~]{1,255}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Token CSRF obtenido de la cookie XSRF-TOKEN, decodificado por el cliente.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalDraftCatalogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Operación creada o replay autorizado del snapshot original; correlación de solicitud actual.",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftCatalogResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/local-draft-catalogs/{operationPublicId}": {
+      "get": {
+        "operationId": "readLocalDraftCatalogV1",
+        "summary": "Consultar snapshot original del catálogo propio en local/testing",
+        "description": "Permiso independiente catalog.local.draft_catalog.read y actor activo; creador del diario Catalog. Operación ajena o ausente devuelve el mismo 404 not_found. Consulta original inmutable aunque cambien catálogo/producto o deleted_at; sin lecturas de tablas privadas Marketplace ni mutaciones. Límite propio 30/minuto por actor, no-store/private y correlación actual. 404 fuera de local/testing antes de sesión o puertos.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "operationPublicId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            },
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshot original v1 exclusivo del creador con read vigente; no lee/modifica claim ni filas actuales de merchant/branch.",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftCatalogResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1726,6 +1889,210 @@
                         "enum": [
                           1
                         ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "LocalDraftCatalogRequest": {
+        "type": "object",
+        "required": [
+          "merchant_public_id",
+          "catalog",
+          "product"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "merchant_public_id": {
+            "type": "string",
+            "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+          },
+          "catalog": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+              }
+            }
+          },
+          "product": {
+            "type": "object",
+            "required": [
+              "name",
+              "description",
+              "brand"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 4000,
+                "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])"
+              },
+              "brand": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "LocalDraftCatalogResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local_draft_catalog_operation"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+              },
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "schema_version",
+                  "merchant_public_id",
+                  "catalog",
+                  "product"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "schema_version": {
+                    "enum": [
+                      1
+                    ],
+                    "type": "integer"
+                  },
+                  "merchant_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  },
+                  "catalog": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "name",
+                      "status",
+                      "version"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "status": {
+                        "enum": [
+                          "draft"
+                        ],
+                        "type": "string"
+                      },
+                      "version": {
+                        "enum": [
+                          1
+                        ],
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  "product": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "catalog_public_id",
+                      "name",
+                      "description",
+                      "brand",
+                      "status",
+                      "version"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "catalog_public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 4000,
+                        "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "brand": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                        "nullable": true
+                      },
+                      "status": {
+                        "enum": [
+                          "draft"
+                        ],
+                        "type": "string"
+                      },
+                      "version": {
+                        "enum": [
+                          1
+                        ],
+                        "type": "integer"
                       }
                     }
                   }

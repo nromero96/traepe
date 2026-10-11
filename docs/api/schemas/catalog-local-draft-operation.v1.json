@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Catalog local draft catalog snapshot v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "merchant_public_id",
+    "catalog",
+    "product"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "enum": [
+        1
+      ],
+      "type": "integer"
+    },
+    "merchant_public_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+    },
+    "catalog": {
+      "type": "object",
+      "required": [
+        "public_id",
+        "name",
+        "status",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "status": {
+          "enum": [
+            "draft"
+          ],
+          "type": "string"
+        },
+        "version": {
+          "enum": [
+            1
+          ],
+          "type": "integer"
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": [
+        "public_id",
+        "catalog_public_id",
+        "name",
+        "description",
+        "brand",
+        "status",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "catalog_public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000,
+          "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "brand": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "status": {
+          "enum": [
+            "draft"
+          ],
+          "type": "string"
+        },
+        "version": {
+          "enum": [
+            1
+          ],
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

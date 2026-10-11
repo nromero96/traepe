@@ -41,6 +41,6 @@ class ModuleScaffoldingTest extends TestCase
             (new Filesystem)->deleteDirectory($root);
         }
         $this->assertDirectoryDoesNotExist($root);
-        $this->assertSame(['Identity', 'Marketplace', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
+        $this->assertSame(['Catalog', 'Identity', 'Marketplace', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
     }
 }

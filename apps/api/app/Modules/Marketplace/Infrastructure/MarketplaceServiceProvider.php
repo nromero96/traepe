@@ -6,6 +6,7 @@ use App\Modules\Marketplace\Application\Commerce\LocalCommercialContextSource;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceStore;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceWriter;
+use App\Modules\Marketplace\Application\Commerce\OwnedLocalDraftMerchantV1;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedZoneSource;
 use App\Modules\Marketplace\Application\Coverage\LocalZoneSource;
@@ -16,6 +17,7 @@ use App\Modules\Marketplace\Infrastructure\Commerce\IdentityLocalDraftCommerceAc
 use App\Modules\Marketplace\Infrastructure\Commerce\PlatformLocalDraftCommerceWriter;
 use App\Modules\Marketplace\Infrastructure\Commerce\PostgresLocalCommercialContextSource;
 use App\Modules\Marketplace\Infrastructure\Commerce\PostgresLocalDraftCommerceStore;
+use App\Modules\Marketplace\Infrastructure\Commerce\PostgresOwnedLocalDraftMerchantV1;
 use App\Modules\Marketplace\Infrastructure\Coverage\IdentityLocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Infrastructure\Coverage\PostgisLocalPersistedZoneSource;
 use App\Modules\Marketplace\Infrastructure\Coverage\PostgisLocalZoneSource;
@@ -38,6 +40,7 @@ final class MarketplaceServiceProvider extends ServiceProvider
     public function register(): void
     {
         if ($this->app->environment(['local', 'testing'])) {
+            $this->app->bind(OwnedLocalDraftMerchantV1::class, PostgresOwnedLocalDraftMerchantV1::class);
             $this->app->bind(LocalDraftCommerceAccess::class, IdentityLocalDraftCommerceAccess::class);
             $this->app->bind(LocalDraftCommerceStore::class, PostgresLocalDraftCommerceStore::class);
             $this->app->bind(LocalDraftCommerceWriter::class, PlatformLocalDraftCommerceWriter::class);

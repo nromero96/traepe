@@ -11,6 +11,26 @@ class ArchitectureTest extends TestCase
 {
     /** Only explicitly approved Infrastructure adapters may use public module contracts. */
     private const CROSS_MODULE_CONTRACTS = [
+        'Catalog/Infrastructure/Drafts/IdentityLocalDraftCatalogAccess.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthenticatedActorDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthorizationDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\PermissionService',
+        ],
+        'Catalog/Infrastructure/Drafts/LocalDraftCatalogResourceResolver.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\ResourceContextResolver',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceContext',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceReference',
+            'App\\Modules\\Identity\\Domain\\Authorization\\Scope',
+        ],
+        'Catalog/Infrastructure/Drafts/PlatformLocalDraftCatalogWriter.php' => [
+            'App\\Modules\\Platform\\Application\\Delivery\\IdempotencyStore',
+            'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyExpired',
+            'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyMismatch',
+            'App\\Modules\\Platform\\Domain\\Delivery\\RequestFingerprint',
+        ],
+        'Catalog/Infrastructure/Drafts/MarketplaceLocalDraftMerchantSource.php' => [
+            'App\\Modules\\Marketplace\\Application\\Commerce\\OwnedLocalDraftMerchantV1',
+        ],
         'Marketplace/Infrastructure/Commerce/IdentityLocalDraftCommerceAccess.php' => [
             'App\\Modules\\Identity\\Application\\Authorization\\AuthenticatedActorDirectory',
             'App\\Modules\\Identity\\Application\\Authorization\\AuthorizationDirectory',
@@ -97,6 +117,6 @@ class ArchitectureTest extends TestCase
         foreach ((new Filesystem)->allFiles(app_path('Shared')) as $file) {
             $this->assertStringNotContainsString('App\\Modules\\', $file->getContents(), $file->getPathname());
         }
-        $this->assertSame(['Identity', 'Marketplace', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
+        $this->assertSame(['Catalog', 'Identity', 'Marketplace', 'Platform'], array_values(array_diff(scandir(app_path('Modules')), ['.', '..'])));
     }
 }

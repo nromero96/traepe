@@ -1,6 +1,6 @@
 # trae.pe
 
-Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 00A a 00F del Sprint 00 preparan la base del backend, su infraestructura local y los contratos técnicos; todavía no existen funcionalidades comerciales.
+Marketplace peruano multitienda, multicategoría y logístico. Sprint 00 preparó el backend y su infraestructura; Identity, Marketplace y Catalog incorporan flujos ficticios locales con contratos y pruebas, sin operación comercial real.
 
 ## Estado actual
 
@@ -13,6 +13,8 @@ Marketplace peruano multitienda, multicategoría y logístico. Los checkpoints 0
 - Horizon, Reverb, MinIO y Mailpit operativos en Docker; dashboard y canal técnico protegidos mediante credencial local aprobada. MinIO se construye desde commits oficiales fijos, solo para desarrollo. Sanctum 4.3.3 configura la base cookie/CSRF; GitHub Actions está configurado en 00F; su ejecución remota pasó tras la publicación autorizada. Véase [evidencia de 00F](docs/sprints/sprint-00/checkpoint-00f-evidence.md).
 - Platform, Shared HTTP y generador modular probados; API técnica versionada con [OpenAPI](docs/api/openapi.yaml).
 - Identity backend local (01A) implementado y validado, aprobado y publicado; CI verde para 748e937: OTP, consentimiento de prueba y sesión cookie. Sin frontend, SMS real ni dominios comerciales.
+
+- Marketplace 02I publicado en 0ab976d25c7e1c3993bc712ab437b5257ee4eed0 con CI correcta. [Catalog 03A](docs/sprints/sprint-03/README.md) tiene plan completo aprobado: alta de catálogo/primer producto conceptual draft y consulta original propia; validación local completa, publicación autorizada mediante «Si autorizo»; commit/push/CI en curso. Sin SKU, precios, stock, frontend o datos reales.
 
 ## Navegación
 
@@ -35,7 +37,7 @@ La estructura muestra el estado actual y los destinos futuros:
 ```text
 apps/
   api/                  Backend maestro Laravel 13
-    app/Modules/        Platform e Identity materializados
+    app/Modules/        Catalog, Identity, Marketplace y Platform materializados
     app/Shared/         Contratos HTTP transversales
   customer-web/         Web/PWA cliente
   merchant-dashboard/   Interfaz de comercio y sucursal
@@ -48,7 +50,7 @@ infrastructure/
 docs/
 ```
 
-Solo `apps/api` existe actualmente. Platform, Shared y el generador están implementados; Identity local se incorpora en 01A. Los demás módulos únicamente al iniciar su implementación. No se crean directorios vacíos para simular avance.
+Solo `apps/api` existe actualmente. Catalog, Identity, Marketplace, Platform, Shared y el generador tienen consumidores implementados. Los demás módulos únicamente al iniciar su implementación. No se crean directorios vacíos para simular avance.
 
 ## Fuente de verdad
 

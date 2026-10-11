@@ -1,5 +1,16 @@
 # Decisiones pendientes
 
+## DP-035 — Catálogo local con primer producto conceptual
+
+- **Estado:** resuelta por aprobación explícita del plan completo mediante «Aprobar plan completo 03A (recomendado)» el 10 de octubre de 2026.
+- **Fuente:** maestro v1.6 §§3.1, 9, 25, 32, 36–37, 49–50, 52–60, 72 y 78–79; ADR-002/ADR-007 y DP-026/DP-034.
+- **Vacíos:** §37 distingue catálogo/producto/variante/listing, pero no fija campos completos/estados ni política inicial de alta/lectura. Falta concretar ownership del comercio ficticio, capacidades/recursos, soft delete sin API de borrado, referencia pública/FK de integridad entre módulos y adopción explícita de los contratos Identity/Platform por Catalog respecto de §52.1.
+- **Reglas aprobadas:** [plan completo 03A](../../sprints/sprint-03/checkpoint-03a-plan.md): POST crea catálogo/primer producto conceptual draft para un comercio creado por el mismo actor en 02I; GET snapshot original propio con read independiente. Sesión/CSRF, permisos técnicos, idempotencia 24h, transacción/callback/contrato público Marketplace y diario cifrado append-only. Tres tablas inicialmente vacías, campos/restricciones/soft-delete/FK públicas exactas en el plan; product_type exclusivamente NULL y ningún SKU/precio/stock/venta implícitos.
+- **Arquitectura aprobada:** excepción técnica acotada de §52.1 para Infrastructure Catalog → contratos públicos Identity/Platform, además de Marketplace; [ADR-008](ADR-008-catalog-local-draft-foundation.md) documenta la decisión. Domain/Application puros, sin consultas privadas cruzadas/ciclos; FK restrict exclusivamente sobre public_id del Merchant como contrato de integridad documentado, no acceso privado runtime.
+- **Bloqueo resuelto:** la aprobación explícita del plan completo autoriza datos, API, permisos, contratos, pruebas y migración local vacía de 03A conforme a las reglas registradas.
+- **Trabajo autorizado:** implementar/validar el bloque completo y aplicar localmente tres tablas vacías; sin grants ni usuarios de desarrollo. El usuario autorizó commit/push/CI de 03A mediante «Si autorizo» después de revisar el resultado terminado.
+- **Límites:** ficticio local/testing, sin administración sensible/MFA real, activación, datos reales, frontend/dependencias, catálogo público, SKU, precios, inventario, categorías/restricciones/venta ni resolución de decisiones productivas. Conserva responsables/fechas de DP-001/DP-002/DP-007/DP-012 y demás decisiones abiertas.
+
 Las decisiones técnicas aprobadas para Sprint 00 se trasladaron a ADR. Este registro conserva únicamente asuntos todavía abiertos. El usuario asignó el 4 de octubre de 2026 a Nilton como responsable de las 13 decisiones abiertas, con revisión el 11 de octubre de 2026. La fecha es de revisión; no implica que las reglas o proveedores estén aprobados.
 
 ## Negocio pendiente

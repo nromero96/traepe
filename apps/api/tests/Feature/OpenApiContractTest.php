@@ -2,6 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogStore;
+use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogWriter;
+use App\Modules\Catalog\Domain\Drafts\DraftCatalogInput;
+use App\Modules\Catalog\Domain\Drafts\DraftCatalogOperation;
 use App\Modules\Identity\Infrastructure\IdentityUser;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceStore;
@@ -61,6 +66,9 @@ class OpenApiContractTest extends TestCase
         }
         sort($documented);
         $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /api/v1/marketplace/local-draft-commerces/{operationPublicId}', 'GET /api/v1/marketplace/local-persisted-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/marketplace/local-draft-commerces', 'POST /api/v1/marketplace/local-draft-fixtures', 'POST /api/v1/technical/broadcasting/auth'];
+        $expected[] = 'GET /api/v1/catalog/local-draft-catalogs/{operationPublicId}';
+        $expected[] = 'POST /api/v1/catalog/local-draft-catalogs';
+        sort($expected);
         $this->assertSame($expected, $documented);
         $actual = [];
         foreach (Route::getRoutes() as $route) {
@@ -180,6 +188,36 @@ class OpenApiContractTest extends TestCase
         $schema = json_decode(file_get_contents('/var/www/docs/api/schemas/marketplace-local-draft-commerce-operation.v1.json'), true, flags: JSON_THROW_ON_ERROR);
         unset($schema['$schema'], $schema['title']);
         $this->assertSame($schema, $this->document['components']['schemas']['LocalDraftCommerceResponse']['properties']['data']['properties']['attributes']);
+    }
+
+    public function test_catalog_create_read_and_nullable_snapshot_conform_to_closed_contract(): void
+    {
+        $this->app->detectEnvironment(fn () => 'testing');
+        config(['session.driver' => 'array']);
+        $url = '/api/v1/catalog/local-draft-catalogs';
+        foreach ([$this->document['paths'][$url]['post'], $this->document['paths'][$url.'/{operationPublicId}']['get']] as $endpoint) {
+            $this->assertSame([['LocalSessionCookie' => []]], $endpoint['security']);
+        }
+        $this->actingAs((new IdentityUser)->forceFill(['id' => 11]), 'web');
+        $id = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $this->mock(LocalDraftCatalogAccess::class)->shouldReceive('actor')->andReturn($id);
+        foreach ([[null, null], ["Synthetic\nliteral", 'Synthetic Brand']] as [$description, $brand]) {
+            $payload = ['merchant_public_id' => $id, 'catalog' => ['name' => ' Synthetic Catalog '], 'product' => ['name' => 'Synthetic Product', 'description' => $description, 'brand' => $brand]];
+            $operation = new DraftCatalogOperation($id, $id, $id, DraftCatalogInput::fromArray($payload));
+            $this->mock(LocalDraftCatalogWriter::class)->shouldReceive('execute')->once()->andReturn($operation);
+            $this->mock(LocalDraftCatalogStore::class)->shouldReceive('find')->once()->with($id, $id)->andReturn($operation);
+            foreach ([$this->withHeader('Idempotency-Key', 'catalog-contract-key')->postJson($url, $payload)->assertCreated(), $this->getJson($url.'/'.$id)->assertOk()] as $response) {
+                $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalDraftCatalogResponse']);
+            }
+        }
+        $schema = json_decode(file_get_contents('/var/www/docs/api/schemas/catalog-local-draft-operation.v1.json'), true, flags: JSON_THROW_ON_ERROR);
+        unset($schema['$schema'], $schema['title']);
+        foreach (['description', 'brand'] as $field) {
+            $this->assertSame(['string', 'null'], $schema['properties']['product']['properties'][$field]['type']);
+            $schema['properties']['product']['properties'][$field]['type'] = 'string';
+            $schema['properties']['product']['properties'][$field]['nullable'] = true;
+        }
+        $this->assertEquals($schema, $this->document['components']['schemas']['LocalDraftCatalogResponse']['properties']['data']['properties']['attributes']);
     }
 
     private function resolve(string $reference): array

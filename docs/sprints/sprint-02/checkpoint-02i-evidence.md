@@ -1,6 +1,6 @@
 # Evidencia de Checkpoint 02I — Alta y consulta de comercio con primera sucursal
 
-Fecha: 10 de octubre de 2026. **Estado: implementado y validado localmente; commit/push/CI autorizados por el usuario, publicación en curso.**
+Fecha: 10 de octubre de 2026. **Estado: implementado, publicado y validado con CI completa correcta.**
 
 Base main / origin/main a95999d4a35e31f6344b8434cfb7b273915de946, [02H publicado y CI completa correcta](https://github.com/nromero96/traepe/actions/runs/38096356398). El usuario aprobó DP-034 y el [plan completo 02I](checkpoint-02i-plan.md) mediante «si apruebo», incluyendo implementación, pruebas y migración local vacía; commit/push/CI se reservan al cierre. Maestro v1.6 §§3.1, 9, 25, 32–36, 49–50, 55–60, 72 y 78–79; [ADR-002](../../architecture/decisions/ADR-002-data-identifiers-messaging.md), [ADR-007](../../architecture/decisions/ADR-007-marketplace-commercial-foundation.md), [especificación](../../specifications/marketplace-and-purchase.md) y [contrato API](../../api/README.md).
 
@@ -92,3 +92,7 @@ Solo ejercicio ficticio local/testing; desarrollo no recibe usuarios/grants/seed
 El usuario autorizó commit, push y CI de este resultado mediante «si autorizo» el 10 de octubre de 2026, después de presentar el cierre concreto de 43 archivos y 255 pruebas correctas. Cumple AGENTS.md: «No realizar commit, push, merge, publicación o despliegue sin aprobación explícita» y la reserva del plan 02I. Se publica únicamente el manifiesto indicado, sin despliegue productivo.
 
 Antes del commit se verifican origen/base, staging, alcance exacto, secretos, enlaces, maestro y servicios. La CI debe corresponder al SHA publicado y completar build/migración, calidad/integración, reinicio/persistencia y limpieza. Este registro previo al commit no afirma una CI de 02I todavía; el SHA y run/job verificados se informarán en el cierre. La CI enlazada al comienzo pertenece exclusivamente a 02H.
+
+## Publicación comprobada al continuar
+
+02I se publicó en main 0ab976d25c7e1c3993bc712ab437b5257ee4eed0, con [CI completa correcta](https://github.com/nromero96/traepe/actions/runs/38098790155). Run 38098790155/job 114350184797 verifican ese SHA y el evento push; build/migración, calidad/integración, reinicio/persistencia y limpieza finalizaron success. Manifiesto publicado de 43 archivos, repositorio limpio y ocho servicios saludables. Se revalidó esta evidencia al preparar 03A; este añadido no modifica la implementación publicada.

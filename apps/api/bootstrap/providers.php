@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Catalog\Infrastructure\CatalogServiceProvider;
 use App\Modules\Identity\Infrastructure\IdentityServiceProvider;
 use App\Modules\Marketplace\Infrastructure\MarketplaceServiceProvider;
 use App\Modules\Platform\Infrastructure\PlatformServiceProvider;
@@ -12,4 +13,5 @@ return [
     PlatformServiceProvider::class,
     IdentityServiceProvider::class,
     MarketplaceServiceProvider::class,
+    CatalogServiceProvider::class,
 ];

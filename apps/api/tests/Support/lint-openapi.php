@@ -69,3 +69,30 @@ foreach ([['unexpected', true], ['schema_version', 2], ['merchant.status', 'acti
     }
 }
 echo "PASS: commerce snapshot v1; open shape, invalid references/state/names/coordinates/timezone rejected.\n";
+
+$catalogSchema = json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-operation.v1.json'), flags: JSON_THROW_ON_ERROR);
+$catalog = json_decode('{"schema_version":1,"merchant_public_id":"01ARZ3NDEKTSV4RRFFQ69G5FAZ","catalog":{"public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB0","name":" Synthetic Catalog ","status":"draft","version":1},"product":{"public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB1","catalog_public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB0","name":"Synthetic Product","description":null,"brand":null,"status":"draft","version":1}}', flags: JSON_THROW_ON_ERROR);
+foreach ([[null, null], [str_repeat('á', 3999)."\n", str_repeat('ñ', 255)], ['', 'Synthetic Brand']] as [$description, $brand]) {
+    $catalog->product->description = $description;
+    $catalog->product->brand = $brand;
+    $validator = new Validator;
+    $validator->validate($catalog, $catalogSchema);
+    if (! $validator->isValid()) {
+        throw new RuntimeException('Catalog snapshot contract rejected.');
+    }
+}
+foreach ([['unexpected', true], ['schema_version', 2], ['merchant_public_id', '11'], ['catalog.status', 'active'], ['catalog.name', ' '], ['product.public_id', "01ARZ3NDEKTSV4RRFFQ69G5FB1\n"], ['product.name', "control\n"], ['product.description', "\tcontrol"], ['product.description', str_repeat('á', 4001)], ['product.brand', ' '], ['product.brand', 1], ['product.product_type', 'unrestricted'], ['product.id', 11]] as [$path, $value]) {
+    $invalidCatalog = json_decode(json_encode($catalog, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $parts = explode('.', $path);
+    if (count($parts) === 1) {
+        $invalidCatalog->{$parts[0]} = $value;
+    } else {
+        $invalidCatalog->{$parts[0]}->{$parts[1]} = $value;
+    }
+    $negative = new Validator;
+    $negative->validate($invalidCatalog, $catalogSchema);
+    if ($negative->isValid()) {
+        throw new RuntimeException('Malformed catalog snapshot was accepted.');
+    }
+}
+echo "PASS: catalog snapshot v1; nullable and Unicode limits accepted; open shape, invalid references/state/text rejected.\n";

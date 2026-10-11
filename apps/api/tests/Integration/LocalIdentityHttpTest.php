@@ -2,6 +2,7 @@
 
 namespace Tests\Integration;
 
+use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Application\Fixtures\LocalDraftFixtureAccess;
@@ -393,6 +394,77 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->send('POST', $url, 401, $payload, $this->token(), headers: $headers);
         $this->assertSame([1, 1, 1, 1], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'platform_idempotency_keys']));
         $this->assertPrivateLogs(['+12025550135', $headers['Idempotency-Key'], 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', 'Private Synthetic Mismatch', $token]);
+    }
+
+    public function test_real_otp_commerce_catalog_chain_csrf_replay_owned_read_revocation_and_logout(): void
+    {
+        $url = '/api/v1/catalog/local-draft-catalogs';
+        $headers = ['Idempotency-Key' => 'private-catalog-http-key'];
+        $this->startServer();
+        $this->send('POST', $url, 419, [], headers: $headers);
+        $this->send('GET', '/sanctum/csrf-cookie', 204);
+        $this->send('POST', $url, 401, [], $this->token(), headers: $headers);
+        [$actor] = $this->login('+12025550136');
+        $this->send('POST', $url, 403, [], $this->token(), headers: $headers);
+        $user = DB::table('users')->where('public_id', $actor)->value('id');
+        $grant = function (string $capability, string $effect = 'allow') use ($user): int {
+            $permission = DB::table('identity_permissions')->where('code', $capability)->value('id') ?? DB::table('identity_permissions')->insertGetId(['public_id' => (string) Str::ulid(), 'code' => $capability]);
+
+            return DB::table('identity_permission_grants')->insertGetId(['public_id' => (string) Str::ulid(), 'user_id' => $user, 'permission_id' => $permission, 'scope_type' => 'platform', 'scope_public_id' => LocalDraftCatalogAccess::SCOPE_PUBLIC_ID, 'effect' => $effect]);
+        };
+        $grant(LocalDraftCommerceAccess::CREATE);
+        $country = DB::table('countries')->insertGetId(['public_id' => (string) Str::ulid(), 'code' => 'ZZ', 'name' => 'Synthetic Country', 'currency_code' => 'ZZZ']);
+        $market = (string) Str::ulid();
+        DB::table('markets')->insert(['public_id' => $market, 'country_id' => $country, 'name' => 'Synthetic Market', 'timezone' => 'Etc/UTC', 'currency_code' => 'XXX']);
+        $commercePayload = ['merchant' => ['legal_name' => 'Private Synthetic Legal', 'trade_name' => 'Private Synthetic Trade'], 'branch' => ['market_public_id' => $market, 'name' => 'Private Synthetic Branch', 'longitude' => 0.5, 'latitude' => 1.5, 'timezone' => 'Etc/UTC']];
+        $commerce = $this->body($this->send('POST', '/api/v1/marketplace/local-draft-commerces', 201, $commercePayload, $this->token(), headers: ['Idempotency-Key' => 'private-chain-commerce-key']));
+        $payload = ['merchant_public_id' => $commerce['data']['attributes']['merchant']['public_id'], 'catalog' => ['name' => ' Private Synthetic Catalog '], 'product' => ['name' => 'Private Synthetic Product', 'description' => "Private Synthetic Description\nliteral", 'brand' => null]];
+        $this->send('POST', $url, 403, $payload, $this->token(), headers: $headers);
+        $grant(LocalDraftCatalogAccess::CREATE);
+        $this->send('POST', $url, 422, [], $this->token(), headers: $headers);
+        $this->send('POST', $url, 415, $payload, $this->token(), headers: $headers + ['Content-Type' => 'text/plain']);
+        $missing = $payload;
+        $missing['merchant_public_id'] = (string) Str::ulid();
+        $this->send('POST', $url, 404, $missing, $this->token(), headers: $headers);
+        $this->send('POST', $url, 419, $payload, headers: $headers);
+        $this->send('POST', $url, 419, $payload, 'invalid-token', headers: $headers);
+        $created = $this->send('POST', $url, 201, $payload, $this->token(), headers: $headers);
+        $first = $this->body($created);
+        $this->assertTrue(str_contains($created->getHeaderLine('Cache-Control'), 'no-store'));
+        $second = $this->body($this->send('POST', $url, 201, $payload, $this->token(), headers: $headers));
+        $this->assertSame($first['data'], $second['data']);
+        $this->assertNotSame($first['meta']['correlation_id'], $second['meta']['correlation_id']);
+        $this->assertSame($first['meta']['correlation_id'], DB::table('catalog_local_draft_operations')->value('correlation_id'));
+        $mismatch = $payload;
+        $mismatch['product']['description'] = 'Private Synthetic Mismatch';
+        $this->send('POST', $url, 409, $mismatch, $this->token(), headers: $headers);
+        $read = $url.'/'.$first['data']['id'];
+        $this->send('GET', $read, 403);
+        $readGrant = $grant(LocalDraftCatalogAccess::READ);
+        $this->assertSame($first['data'], $this->body($this->send('GET', $read, 200))['data']);
+        $this->send('GET', $url.'/'.(string) Str::ulid(), 404);
+        DB::table('identity_permission_grants')->where('id', $readGrant)->delete();
+        $this->send('GET', $read, 403);
+        $this->send('POST', $url, 201, $payload, $this->token(), headers: $headers);
+        $grant(LocalDraftCatalogAccess::READ);
+        $deny = $grant(LocalDraftCatalogAccess::CREATE, 'deny');
+        $this->send('POST', $url, 403, $payload, $this->token(), headers: $headers);
+        $this->send('GET', $read, 200);
+        DB::table('identity_permission_grants')->where('id', $deny)->delete();
+        DB::table('users')->where('id', $user)->update(['status' => 'blocked']);
+        $this->send('POST', $url, 403, $payload, $this->token(), headers: $headers);
+        $this->send('GET', $read, 403);
+        DB::table('users')->where('id', $user)->update(['status' => 'active']);
+        $this->send('POST', $url, 201, $payload, $this->token(), headers: $headers);
+        $copy = new CookieJar(false, $this->cookies->toArray());
+        $token = $this->token();
+        $this->send('POST', '/api/v1/auth/logout', 200, token: $token);
+        $this->send('POST', $url, 419, $payload, $token, client: $this->clientFor($copy), headers: $headers);
+        $this->send('GET', $read, 401, client: $this->clientFor($copy));
+        $this->send('GET', '/sanctum/csrf-cookie', 204);
+        $this->send('POST', $url, 401, $payload, $this->token(), headers: $headers);
+        $this->assertSame([1, 1, 1, 1, 1, 1, 2], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'platform_idempotency_keys']));
+        $this->assertPrivateLogs(['+12025550136', $headers['Idempotency-Key'], 'private-chain-commerce-key', 'Private Synthetic Catalog', 'Private Synthetic Product', "Private Synthetic Description\nliteral", 'Private Synthetic Mismatch', 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', $token]);
     }
 
     private function assertPrivateLogs(#[\SensitiveParameter] array $secrets): void
