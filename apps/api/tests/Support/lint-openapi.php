@@ -46,3 +46,26 @@ foreach (['unexpected' => true, 'profile_version' => 'operational', 'country_pub
     }
 }
 echo "PASS: fixture snapshot v1; open shape, invalid profile/reference and repeated zones rejected.\n";
+
+$commerceSchema = json_decode(file_get_contents($directory.'/schemas/marketplace-local-draft-commerce-operation.v1.json'), flags: JSON_THROW_ON_ERROR);
+$commerce = json_decode('{"schema_version":1,"merchant":{"public_id":"01ARZ3NDEKTSV4RRFFQ69G5FAZ","legal_name":" Synthetic Legal ","trade_name":"Synthetic Trade","status":"draft","version":1},"branch":{"public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB0","market_public_id":"01ARZ3NDEKTSV4RRFFQ69G5FB1","name":"Synthetic Branch","longitude":0.5,"latitude":1.5,"timezone":"Etc/UTC","status":"draft","version":1}}', flags: JSON_THROW_ON_ERROR);
+$validator = new Validator;
+$validator->validate($commerce, $commerceSchema);
+if (! $validator->isValid()) {
+    throw new RuntimeException('Commerce snapshot contract rejected.');
+}
+foreach ([['unexpected', true], ['schema_version', 2], ['merchant.status', 'active'], ['merchant.public_id', '11'], ['merchant.legal_name', ' '], ['merchant.trade_name', "control\n"], ['branch.longitude', 181], ['branch.latitude', '1.5'], ['branch.timezone', 'America/Lima'], ['branch.version', 0], ['branch.id', 11]] as [$path, $value]) {
+    $invalidCommerce = json_decode(json_encode($commerce, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $parts = explode('.', $path);
+    if (count($parts) === 1) {
+        $invalidCommerce->{$parts[0]} = $value;
+    } else {
+        $invalidCommerce->{$parts[0]}->{$parts[1]} = $value;
+    }
+    $negative = new Validator;
+    $negative->validate($invalidCommerce, $commerceSchema);
+    if ($negative->isValid()) {
+        throw new RuntimeException('Malformed commerce snapshot was accepted.');
+    }
+}
+echo "PASS: commerce snapshot v1; open shape, invalid references/state/names/coordinates/timezone rejected.\n";

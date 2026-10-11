@@ -38,7 +38,7 @@ try {
             && str_contains($persisted->header('Cache-Control'), 'no-store')
             && $persisted->header('X-Correlation-ID') === $persisted->json('error.correlation_id'), 'persisted coverage HTTP requires session and preserves privacy');
         foundationAssert($identityCounts === array_map(fn ($table) => DB::table($table)->count(), $identityTables), 'anonymous persisted diagnostic creates no users or permissions');
-        $fixtureTables = ['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'platform_idempotency_keys'];
+        $fixtureTables = ['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations', 'platform_idempotency_keys'];
         $fixtureCounts = array_map(fn ($table) => DB::table($table)->count(), $fixtureTables);
         $creation = Http::timeout(15)->acceptJson()->withHeaders(['Idempotency-Key' => 'synthetic-foundation-key'])->post('http://nginx/api/v1/marketplace/local-draft-fixtures', ['fixture_profile' => 'synthetic-origin-a-v1']);
         foundationAssert($creation->status() === 419 && $creation->json('error.code') === 'csrf_token_mismatch'
@@ -46,11 +46,21 @@ try {
             && $creation->header('X-Correlation-ID') === $creation->json('error.correlation_id'), 'real fixture creation requires CSRF before session access');
         foundationAssert($fixtureCounts === array_map(fn ($table) => DB::table($table)->count(), $fixtureTables)
             && $identityCounts === array_map(fn ($table) => DB::table($table)->count(), $identityTables), 'anonymous fixture creation changes no foundation data or idempotency claims');
+        $commerce = Http::timeout(15)->acceptJson()->withHeaders(['Idempotency-Key' => 'synthetic-commerce-foundation-key'])->post('http://nginx/api/v1/marketplace/local-draft-commerces', []);
+        $readCommerce = Http::timeout(15)->acceptJson()->get('http://nginx/api/v1/marketplace/local-draft-commerces/01ARZ3NDEKTSV4RRFFQ69G5FAZ');
+        foundationAssert($commerce->status() === 419 && $commerce->json('error.code') === 'csrf_token_mismatch'
+            && $readCommerce->status() === 401 && $readCommerce->json('error.code') === 'unauthenticated', 'commerce creation requires CSRF and commerce read requires session');
+        foreach ([$commerce, $readCommerce] as $response) {
+            foundationAssert(str_contains($response->header('Cache-Control'), 'no-store')
+                && $response->header('X-Correlation-ID') === $response->json('error.correlation_id'), 'commerce rejection preserves privacy and correlation');
+        }
+        foundationAssert($fixtureCounts === array_map(fn ($table) => DB::table($table)->count(), $fixtureTables)
+            && $identityCounts === array_map(fn ($table) => DB::table($table)->count(), $identityTables), 'anonymous commerce requests change no data, grants or claims');
     }
     foundationAssert(array_values(array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR))) === ['Identity', 'Marketplace', 'Platform'], 'only approved Identity, Marketplace and Platform modules are materialized');
     $tables = array_map(fn ($row) => $row->tablename, DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"));
     foundationAssert(array_intersect(['orders', 'payments', 'products', 'stores', 'inventories'], $tables) === [], 'no ordering, payment, catalog or inventory tables');
-    foreach (['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches'] as $table) {
+    foreach (['countries', 'markets', 'service_zones', 'marketplace_local_fixture_operations', 'merchants', 'branches', 'marketplace_local_commerce_operations'] as $table) {
         foundationAssert(in_array($table, $tables, true) && DB::table($table)->count() === 0, 'approved Marketplace foundation table remains empty');
     }
     if (app()->environment(['local', 'testing'])) {

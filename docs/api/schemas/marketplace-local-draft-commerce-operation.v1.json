@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Marketplace local draft commerce snapshot v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "merchant",
+    "branch"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [
+        1
+      ]
+    },
+    "merchant": {
+      "type": "object",
+      "required": [
+        "public_id",
+        "legal_name",
+        "trade_name",
+        "status",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "legal_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "trade_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        }
+      }
+    },
+    "branch": {
+      "type": "object",
+      "required": [
+        "public_id",
+        "market_public_id",
+        "name",
+        "longitude",
+        "latitude",
+        "timezone",
+        "status",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "market_public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "timezone": {
+          "type": "string",
+          "enum": [
+            "Etc/UTC"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        }
+      }
+    }
+  }
+}

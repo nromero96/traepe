@@ -3,11 +3,18 @@
 namespace Tests\Feature;
 
 use App\Modules\Identity\Infrastructure\IdentityUser;
+use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
+use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceStore;
+use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceWriter;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedZoneSource;
 use App\Modules\Marketplace\Application\Coverage\LocalZoneSource;
 use App\Modules\Marketplace\Application\Fixtures\LocalDraftFixtureAccess;
 use App\Modules\Marketplace\Application\Fixtures\LocalFixtureWriter;
+use App\Modules\Marketplace\Domain\Commerce\BranchPublicId;
+use App\Modules\Marketplace\Domain\Commerce\DraftCommerceInput;
+use App\Modules\Marketplace\Domain\Commerce\DraftCommerceOperation;
+use App\Modules\Marketplace\Domain\Commerce\MerchantPublicId;
 use App\Modules\Marketplace\Domain\Coverage\ZoneCandidate;
 use App\Modules\Marketplace\Domain\Fixtures\FixtureOperation;
 use App\Modules\Marketplace\Domain\Fixtures\FixtureProfile;
@@ -53,7 +60,7 @@ class OpenApiContractTest extends TestCase
             }
         }
         sort($documented);
-        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /api/v1/marketplace/local-persisted-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/marketplace/local-draft-fixtures', 'POST /api/v1/technical/broadcasting/auth'];
+        $expected = ['GET /api/v1/auth/me', 'GET /api/v1/health/ready', 'GET /api/v1/identity/local-authorization-probe', 'GET /api/v1/marketplace/local-coverage-probe', 'GET /api/v1/marketplace/local-draft-commerces/{operationPublicId}', 'GET /api/v1/marketplace/local-persisted-coverage-probe', 'GET /sanctum/csrf-cookie', 'POST /api/v1/auth/logout', 'POST /api/v1/auth/otp/request', 'POST /api/v1/auth/otp/verify', 'POST /api/v1/marketplace/local-draft-commerces', 'POST /api/v1/marketplace/local-draft-fixtures', 'POST /api/v1/technical/broadcasting/auth'];
         $this->assertSame($expected, $documented);
         $actual = [];
         foreach (Route::getRoutes() as $route) {
@@ -151,6 +158,30 @@ class OpenApiContractTest extends TestCase
         $this->assertSame($schema, $this->document['components']['schemas']['LocalDraftFixtureResponse']['properties']['data']['properties']['attributes']);
     }
 
+    public function test_commerce_create_read_and_snapshot_conform_to_the_closed_versioned_contract(): void
+    {
+        $this->app->detectEnvironment(fn () => 'testing');
+        config(['session.driver' => 'array']);
+        $url = '/api/v1/marketplace/local-draft-commerces';
+        foreach ([$this->document['paths'][$url]['post'], $this->document['paths'][$url.'/{operationPublicId}']['get']] as $endpoint) {
+            $this->assertSame([['LocalSessionCookie' => []]], $endpoint['security']);
+        }
+        $this->actingAs((new IdentityUser)->forceFill(['id' => 11]), 'web');
+        $id = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $payload = ['merchant' => ['legal_name' => ' Synthetic Legal ', 'trade_name' => 'Synthetic Trade'], 'branch' => ['market_public_id' => $id, 'name' => 'Synthetic Branch', 'longitude' => 0.5, 'latitude' => 1.5, 'timezone' => 'Etc/UTC']];
+        $input = DraftCommerceInput::fromArray($payload);
+        $operation = new DraftCommerceOperation($id, new MerchantPublicId($id), new BranchPublicId($id), $input);
+        $this->mock(LocalDraftCommerceAccess::class)->shouldReceive('actor')->andReturn($id);
+        $this->mock(LocalDraftCommerceWriter::class)->shouldReceive('execute')->once()->andReturn($operation);
+        $this->mock(LocalDraftCommerceStore::class)->shouldReceive('find')->once()->with($id, $id)->andReturn($operation);
+        foreach ([$this->withHeader('Idempotency-Key', 'commerce-contract-key')->postJson($url, $payload)->assertCreated(), $this->getJson($url.'/'.$id)->assertOk()] as $response) {
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalDraftCommerceResponse']);
+        }
+        $schema = json_decode(file_get_contents('/var/www/docs/api/schemas/marketplace-local-draft-commerce-operation.v1.json'), true, flags: JSON_THROW_ON_ERROR);
+        unset($schema['$schema'], $schema['title']);
+        $this->assertSame($schema, $this->document['components']['schemas']['LocalDraftCommerceResponse']['properties']['data']['properties']['attributes']);
+    }
+
     private function resolve(string $reference): array
     {
         $this->assertStringStartsWith('#/', $reference);
@@ -178,6 +209,8 @@ class OpenApiContractTest extends TestCase
             'object' => $value instanceof stdClass,
             'array' => is_array($value),
             'string' => is_string($value),
+            'integer' => is_int($value),
+            'number' => is_int($value) || is_float($value),
             default => false,
         });
         if (isset($schema['const'])) {
@@ -188,6 +221,16 @@ class OpenApiContractTest extends TestCase
         }
         if (isset($schema['pattern'])) {
             $this->assertMatchesRegularExpression('~'.$schema['pattern'].'~', $value);
+        }
+        foreach (['minimum' => 'assertGreaterThanOrEqual', 'maximum' => 'assertLessThanOrEqual'] as $limit => $assertion) {
+            if (isset($schema[$limit])) {
+                $this->{$assertion}($schema[$limit], $value);
+            }
+        }
+        foreach (['minLength' => 'assertGreaterThanOrEqual', 'maxLength' => 'assertLessThanOrEqual'] as $limit => $assertion) {
+            if (isset($schema[$limit])) {
+                $this->{$assertion}($schema[$limit], mb_strlen($value, 'UTF-8'));
+            }
         }
         if ($schema['type'] === 'object') {
             $properties = get_object_vars($value);

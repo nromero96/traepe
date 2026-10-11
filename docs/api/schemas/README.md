@@ -1,5 +1,7 @@
 # Esquema de validación OpenAPI
 
+El [snapshot comercial local v1](marketplace-local-draft-commerce-operation.v1.json) corresponde a DP-034/02I y OpenAPI 1.6.0. JSON Schema Draft-04 cerrado con schema_version=1, Merchant/Branch draft/version=1, IDs públicos, nombres explícitos sin controles, coordenadas WGS84 y timezone Etc/UTC. El lint valida un positivo y rechaza forma abierta, IDs/estado/nombres/coordenadas/timezone inválidos; la prueba de contrato compara exactamente este esquema con OpenAPI y las respuestas POST/GET. No dependencia nueva. [Plan](../../sprints/sprint-02/checkpoint-02i-plan.md) y [evidencia](../../sprints/sprint-02/checkpoint-02i-evidence.md).
+
 `openapi-3.0-2024-10-18.json` es una copia sin modificaciones del [esquema oficial OAS 3.0](https://spec.openapis.org/oas/3.0/schema/2024-10-18), descargada el 3 de octubre de 2026.
 
 SHA-256: `2385f5bbb8c37878daae73baeabe7f34b2f022a4a8c049329ee61f71796f039c`.
