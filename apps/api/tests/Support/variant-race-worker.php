@@ -68,8 +68,8 @@ try {
     }
     echo json_encode(['code' => $code, 'operation' => $op->publicId], JSON_THROW_ON_ERROR);
 } catch (DraftCatalogFailure $e) {
-    echo json_encode(['code' => $e->getMessage()],JSON_THROW_ON_ERROR);
+    echo json_encode(['code' => $e->getMessage()], JSON_THROW_ON_ERROR);
 } catch (Throwable) {
-    fwrite(STDERR,"Variant worker failed.\n");
+    fwrite(STDERR, "Variant worker failed.\n");
     exit(1);
 }

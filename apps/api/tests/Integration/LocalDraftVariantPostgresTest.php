@@ -563,10 +563,10 @@ final class LocalDraftVariantPostgresTest extends PostgresTestCase
                     $call();
                     $this->fail('Expected nonlocal guard');
                 } catch (HttpException $e) {
-                    $this->assertSame(404,$e->getStatusCode());
+                    $this->assertSame(404, $e->getStatusCode());
                 }
             }
-            $this->assertSame([],DB::getQueryLog());
+            $this->assertSame([], DB::getQueryLog());
             DB::disableQueryLog();
         }
     }
