@@ -1,6 +1,6 @@
 # Evidencia de Checkpoint 03E — Edición de variantes draft e historial
 
-Fecha: 11 de octubre de 2026. **Estado: implementado y validado localmente. Plan completo aprobado mediante «Si apruebo» antes del código; migración local vacía/CHECK ampliado aplicada. Commit/push/CI de 03E autorizados mediante «si autorizo» después del resultado terminado; publicación en curso.**
+Fecha: 11 de octubre de 2026. **Estado: implementado y validado localmente. Plan completo aprobado mediante «Si apruebo» antes del código; migración local vacía/CHECK ampliado aplicada. Commit/push/CI de 03E autorizados mediante «si autorizo» después del resultado terminado; publicación funcional confirmada en main b0be84e1ccb126059a9fa551a3a98a370547465e y Foundation CI 38170842832 correcta.**
 
 ## Fuente, aprobación y base
 
@@ -41,6 +41,7 @@ ArchitectureTest enumera dieciséis consumidores Catalog (trece previos más tre
 | PostgreSQL/races | PASS dentro de Integration: misma clave/replay/mismatch, claves distintas, variantes/productos/catálogos distintos y carreras con 03B/C/D/E |
 | Rollback/restauración | PASS: todos los puntos de escritura, ambas reautorizaciones, tres revisiones/max/no_changes/cifrado/hash/forma/metadata/mapa/append-only |
 | Migración fresca/aditiva/idempotente | PASS en DB propias: precondición CHECK exacta, filas anteriores conservadas, CHECK ampliado y segunda ejecución sin cambios |
+| Foundation CI sobre b0be84e1ccb126059a9fa551a3a98a370547465e | PASS: run 38170842832/job 114562936788, SHA exactos, cuatro etapas correctas y 380/12982 remotos iguales a locales |
 | Foundation local | PASS: HTTP/dependencias/privacidad, rechazos anónimos preservan datos/grants/claims, quince tablas Marketplace/Catalog vacías y sin DB temporales |
 
 Durante los focos se corrigió el alcance de la transacción para incluir la última reautorización y restauración. También se adaptaron los validadores/mocks de colección a v2 y el comprobador de patrones OpenAPI al delimitador presente en barcode ASCII. Todos los fallos detectados quedaron resueltos antes de las suites completas; tras corregir dos mensajes genéricos que aún nombraban producto, el foco HTTP 03E volvió a pasar (6/151), junto con Pint completo/PHPStan. Estos reruns no se suman al total.
@@ -61,7 +62,20 @@ Después de presentar el resultado completo de 51 archivos, 380 pruebas/12982 as
 
 [AGENTS.md](../../../AGENTS.md#restricciones) exige «No realizar commit, push, merge, publicación o despliegue sin aprobación explícita». La autorización de 03E se recibió sobre este resultado terminado y no reutiliza la publicación de 03D. Base al aprobar: main/HEAD/origin/main/remote 268bae47233697f659be7600a4335f5bff702c2c, staging vacío.
 
-Publicación en curso: commit del manifiesto exacto, push normal y comprobación del SHA en main/remoto. Foundation CI debe corresponder a ese SHA/main/evento push, con run/job completed/success y build/migración, calidad/integración, reinicio/persistencia y limpieza correctos. Los conteos de las suites se comprobarán en los logs; aún no se declara CI de 03E correcta.
+## Publicación confirmada
+
+Commit funcional **b0be84e1ccb126059a9fa551a3a98a370547465e**, padre 268bae47233697f659be7600a4335f5bff702c2c: 51 archivos exactos, 3778 inserciones/62 eliminaciones. Push normal a origin/main verificado; main/HEAD/origin/main/remote coincidieron y working tree limpio.
+
+[Foundation CI 38170842832](https://github.com/nromero96/traepe/actions/runs/38170842832), job **114562936788**: run y job completed/success, ambos head_sha=b0be84e1ccb126059a9fa551a3a98a370547465e, branch main/event push y cuatro etapas obligatorias completed/success:
+
+1. Build and migrate fresh stack.
+2. Blocking quality and integration checks.
+3. Restart and verify persistence.
+4. Remove disposable resources.
+
+Logs de ese job comprobados: 247 Unit/Feature/9249 aserciones y 133 Integration/3733; **380 pruebas/12982 aserciones**, iguales a las locales. Se conservan Pint 343/PHPStan 8/OpenAPI/JSON Schema y puertas técnicas de infraestructura/colas/WebSocket/delivery/persistencia/foundation. Ningún fallo pendiente.
+
+Este registro documental incorpora la autorización y el cierre verificado dentro del mismo manifiesto aprobado; no agrega código, datos, dependencias o reglas de negocio. El recibo del commit que publica este registro se comunica tras comprobar también su SHA/CI en la conversación.
 
 ## Manifiesto exacto
 

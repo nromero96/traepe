@@ -12,7 +12,7 @@
 - **Aprobación recibida:** «Si apruebo» autoriza conjuntamente todas las reglas/contrato v2/código/pruebas/migración local vacía y CHECK ampliado. Commit/push/CI de 03E autorizados mediante «si autorizo» el 11 de octubre de 2026 después de presentar el resultado terminado; no se reutiliza la publicación de 03D.
 - **Límites:** solo ficticio local/testing, positivos en DB temporales propias y desarrollo vacío. Sin cambio/reuso de SKU, borrado/restauración, precio/stock/listing, venta/activación, frontend/dependencias/datos reales o exención MFA; criterio SKU local no fija producción. DP-001/DP-002/DP-007/DP-012 y demás productivas conservan responsable/fecha.
 - **Responsable:** Nilton; revisión solicitada el 11 de octubre de 2026.
-- **Evidencia:** [implementación y validación de 03E](../../sprints/sprint-03/checkpoint-03e-evidence.md): 380 pruebas/12982 aserciones, migración vacía aplicada con 37 tablas previas y demás constraints preservados; publicación de 03E autorizada y en curso.
+- **Evidencia:** [implementación y validación de 03E](../../sprints/sprint-03/checkpoint-03e-evidence.md): 380 pruebas/12982 aserciones, migración vacía aplicada con 37 tablas previas y demás constraints preservados; [publicación funcional confirmada](../../sprints/sprint-03/checkpoint-03e-evidence.md#publicación-confirmada) en main b0be84e1ccb126059a9fa551a3a98a370547465e, Foundation CI 38170842832/job 114562936788, SHA exactos/cuatro etapas correctas y 380/12982 remotos iguales a locales.
 
 ## DP-038 — Variantes draft locales
 

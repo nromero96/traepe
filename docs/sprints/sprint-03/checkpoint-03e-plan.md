@@ -1,6 +1,6 @@
 # Plan de Checkpoint 03E — Edición de variantes draft e historial
 
-Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «Si apruebo» el 11 de octubre de 2026; DP-039 resuelta antes del código. Implementación y validación local terminadas: 380 pruebas/12982 aserciones. Colección actual v2 y migración local vacía/CHECK ampliado aplicados, 37 tablas previas preservadas. Commit/push/CI autorizados mediante «si autorizo» después de presentar el resultado terminado; publicación en curso.**
+Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «Si apruebo» el 11 de octubre de 2026; DP-039 resuelta antes del código. Implementación y validación local terminadas: 380 pruebas/12982 aserciones. Colección actual v2 y migración local vacía/CHECK ampliado aplicados, 37 tablas previas preservadas. Commit/push/CI autorizados mediante «si autorizo» después de presentar el resultado terminado; publicación funcional confirmada en main b0be84e1ccb126059a9fa551a3a98a370547465e, Foundation CI 38170842832/job 114562936788 y cuatro etapas correctas.**
 
 ## Base y fuente
 
@@ -168,4 +168,4 @@ El usuario aprobó el plan completo mediante «Si apruebo» el 11 de octubre de 
 
 La última reautorización y restauración del resultado permanecen dentro de la transacción hasta confirmar: un fallo revierte también campos/revisiones/timestamps, diario y claim. Las carreras reales con altas 03B/03D y cambios 03C/03E, replay y mismatch están verificadas; no se promete serialización con futura administración de grants.
 
-[AGENTS.md](../../../AGENTS.md#restricciones) exige «No realizar commit, push, merge, publicación o despliegue sin aprobación explícita». Después de presentar este resultado terminado, el usuario autorizó commit/push/CI de 03E mediante «si autorizo» el 11 de octubre de 2026. La publicación está en curso y se verificará Foundation CI sobre el SHA exacto, incluidas sus cuatro etapas obligatorias. La publicación de 03D permanece confirmada e independiente.
+[AGENTS.md](../../../AGENTS.md#restricciones) exige «No realizar commit, push, merge, publicación o despliegue sin aprobación explícita». Después de presentar este resultado terminado, el usuario autorizó commit/push/CI de 03E mediante «si autorizo» el 11 de octubre de 2026. La [publicación funcional está confirmada](checkpoint-03e-evidence.md#publicación-confirmada) en main b0be84e1ccb126059a9fa551a3a98a370547465e: Foundation CI 38170842832/job 114562936788, run/job SHA exactos y cuatro etapas obligatorias correctas. Logs remotos confirman 380 pruebas/12982 aserciones, iguales a las locales. La publicación de 03D permanece confirmada e independiente.
