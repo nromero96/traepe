@@ -14,6 +14,9 @@ use App\Modules\Catalog\Application\Drafts\LocalDraftProductCursorCodec;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductWriter;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantChangeAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantChangeStore;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantChangeWriter;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantCursorCodec;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantWriter;
@@ -23,19 +26,23 @@ use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftCatalogAccess;
 use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftProductAccess;
 use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftProductChangeAccess;
 use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftVariantAccess;
+use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftVariantChangeAccess;
 use App\Modules\Catalog\Infrastructure\Drafts\MarketplaceLocalDraftMerchantSource;
 use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftCatalogWriter;
 use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftProductChangeWriter;
 use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftProductWriter;
+use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftVariantChangeWriter;
 use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftVariantWriter;
 use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftCatalogStore;
 use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftProductChangeStore;
 use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftProductStore;
+use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftVariantChangeStore;
 use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftVariantStore;
 use App\Modules\Catalog\Interfaces\Http\LocalCatalogEnvironment;
 use App\Modules\Catalog\Interfaces\Http\LocalDraftCatalogController;
 use App\Modules\Catalog\Interfaces\Http\LocalDraftProductChangeController;
 use App\Modules\Catalog\Interfaces\Http\LocalDraftProductController;
+use App\Modules\Catalog\Interfaces\Http\LocalDraftVariantChangeController;
 use App\Modules\Catalog\Interfaces\Http\LocalDraftVariantController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -45,6 +52,9 @@ final class CatalogServiceProvider extends ServiceProvider
     public function register(): void
     {
         if ($this->app->environment(['local', 'testing'])) {
+            $this->app->bind(LocalDraftVariantChangeAccess::class, IdentityLocalDraftVariantChangeAccess::class);
+            $this->app->bind(LocalDraftVariantChangeStore::class, PostgresLocalDraftVariantChangeStore::class);
+            $this->app->bind(LocalDraftVariantChangeWriter::class, PlatformLocalDraftVariantChangeWriter::class);
             $this->app->bind(LocalDraftVariantAccess::class, IdentityLocalDraftVariantAccess::class);
             $this->app->bind(LocalDraftVariantStore::class, PostgresLocalDraftVariantStore::class);
             $this->app->bind(LocalDraftVariantWriter::class, PlatformLocalDraftVariantWriter::class);
@@ -68,6 +78,10 @@ final class CatalogServiceProvider extends ServiceProvider
         if (! $this->app->environment(['local', 'testing'])) {
             return;
         }
+        Route::put('api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants/{variantPublicId}', [LocalDraftVariantChangeController::class, 'update'])
+            ->middleware([LocalCatalogEnvironment::class, 'web', 'auth:web', 'throttle:30,1,local-draft-variant-update:']);
+        Route::get('api/v1/catalog/local-draft-variant-change-operations/{operationPublicId}', [LocalDraftVariantChangeController::class, 'read'])
+            ->middleware([LocalCatalogEnvironment::class, 'web', 'auth:web', 'throttle:30,1,local-draft-variant-change-read:']);
         Route::post('api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants', [LocalDraftVariantController::class, 'create'])
             ->middleware([LocalCatalogEnvironment::class, 'web', 'auth:web', 'throttle:30,1,local-draft-variant-create:']);
         Route::get('api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants', [LocalDraftVariantController::class, 'variants'])

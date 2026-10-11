@@ -64,7 +64,7 @@ final class LocalDraftVariantController
         }
         $data = array_map(fn ($product) => ['type' => 'local_draft_variant', 'id' => $product->publicId, 'attributes' => $product->snapshot()], $page->variants);
 
-        return response()->json(['data' => $data, 'meta' => ['correlation_id' => $request->attributes->get('correlation_id'), 'catalog_version' => $page->catalogVersion, 'product_version' => $page->productVersion,
+        return response()->json(['data' => $data, 'meta' => ['schema_version' => 2, 'correlation_id' => $request->attributes->get('correlation_id'), 'catalog_version' => $page->catalogVersion, 'product_version' => $page->productVersion,
             'next_cursor' => $page->nextCursor, 'has_more' => $page->hasMore, 'filters' => ['catalog_public_id' => $catalogPublicId, 'product_public_id' => $productPublicId, 'limit' => (int) $limit]]])->header('ETag', '"catalog:'.$catalogPublicId.':v'.$page->catalogVersion.'"');
     }
 

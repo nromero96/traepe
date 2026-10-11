@@ -1,0 +1,299 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Catalog local draft variant change operation snapshot v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "merchant_public_id",
+    "catalog",
+    "product",
+    "variant"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "enum": [
+        1
+      ],
+      "type": "integer"
+    },
+    "merchant_public_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+    },
+    "catalog": {
+      "type": "object",
+      "required": [
+        "public_id",
+        "name",
+        "status",
+        "version_before",
+        "version_after"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "status": {
+          "enum": [
+            "draft"
+          ],
+          "type": "string"
+        },
+        "version_before": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483646
+        },
+        "version_after": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": [
+        "public_id",
+        "catalog_public_id",
+        "name",
+        "description",
+        "brand",
+        "status",
+        "version_before",
+        "version_after"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "catalog_public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000,
+          "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "brand": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft"
+          ]
+        },
+        "version_before": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483646
+        },
+        "version_after": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "required": [
+        "public_id",
+        "product_public_id",
+        "before",
+        "after"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "product_public_id": {
+          "type": "string",
+          "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+        },
+        "before": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+            },
+            "sku": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[A-Z0-9][A-Z0-9._-]{0,63}(?![\\s\\S])"
+            },
+            "size": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+            },
+            "barcode": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[!-~]{1,64}(?![\\s\\S])"
+            },
+            "attributes": {
+              "type": "object",
+              "maxProperties": 20,
+              "additionalProperties": false,
+              "patternProperties": {
+                "^[a-z][a-z0-9_]{0,63}(?![\\s\\S])": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                }
+              }
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft"
+              ]
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "required": [
+            "name",
+            "sku",
+            "size",
+            "unit",
+            "barcode",
+            "attributes",
+            "status",
+            "version"
+          ]
+        },
+        "after": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+            },
+            "sku": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[A-Z0-9][A-Z0-9._-]{0,63}(?![\\s\\S])"
+            },
+            "size": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+            },
+            "barcode": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[!-~]{1,64}(?![\\s\\S])"
+            },
+            "attributes": {
+              "type": "object",
+              "maxProperties": 20,
+              "additionalProperties": false,
+              "patternProperties": {
+                "^[a-z][a-z0-9_]{0,63}(?![\\s\\S])": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                }
+              }
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft"
+              ]
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "required": [
+            "name",
+            "sku",
+            "size",
+            "unit",
+            "barcode",
+            "attributes",
+            "status",
+            "version"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -9,6 +9,9 @@ use App\Modules\Catalog\Application\Drafts\LocalDraftProductAccess;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductWriter;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantChangeAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantChangeStore;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantChangeWriter;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantWriter;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogInput;
@@ -19,6 +22,8 @@ use App\Modules\Catalog\Domain\Drafts\DraftProductData;
 use App\Modules\Catalog\Domain\Drafts\DraftProductOperation;
 use App\Modules\Catalog\Domain\Drafts\DraftProductPage;
 use App\Modules\Catalog\Domain\Drafts\DraftProductProfile;
+use App\Modules\Catalog\Domain\Drafts\DraftVariantChangeOperation;
+use App\Modules\Catalog\Domain\Drafts\DraftVariantCurrentProfile;
 use App\Modules\Catalog\Domain\Drafts\DraftVariantData;
 use App\Modules\Catalog\Domain\Drafts\DraftVariantOperation;
 use App\Modules\Catalog\Domain\Drafts\DraftVariantPage;
@@ -93,6 +98,8 @@ class OpenApiContractTest extends TestCase
         $expected[] = 'POST /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants';
         $expected[] = 'GET /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants';
         $expected[] = 'GET /api/v1/catalog/local-draft-variant-operations/{operationPublicId}';
+        $expected[] = 'PUT /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants/{variantPublicId}';
+        $expected[] = 'GET /api/v1/catalog/local-draft-variant-change-operations/{operationPublicId}';
         sort($expected);
         $this->assertSame($expected, $documented);
         $actual = [];
@@ -321,7 +328,7 @@ class OpenApiContractTest extends TestCase
             new DraftProductProfile($product, $id, new DraftProductData('Product', null, null), 1), $variant);
         $this->mock(LocalDraftVariantWriter::class)->shouldReceive('execute')->once()->andReturn($op);
         $this->mock(LocalDraftVariantStore::class)->shouldReceive('find')->once()->andReturn($op)
-            ->shouldReceive('page')->once()->andReturn(new DraftVariantPage(2, 2, [$variant], false, 1));
+            ->shouldReceive('page')->once()->andReturn(new DraftVariantPage(2, 2, [new DraftVariantCurrentProfile($id, $id, $product, $data, 1)], false, 1));
         $url = '/api/v1/catalog/local-draft-profiles/'.$id.'/products/'.$product.'/variants';
         $created = $this->withHeaders(['If-Match' => '"catalog:'.$id.':v1"', 'Idempotency-Key' => 'contract-variant-key'])->postJson($url, ['variant' => $data->snapshot()])->assertCreated();
         $history = $this->getJson('/api/v1/catalog/local-draft-variant-operations/'.$id)->assertOk();
@@ -329,8 +336,55 @@ class OpenApiContractTest extends TestCase
             $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalDraftVariantOperationResponse']);
         }
         $page = $this->getJson($url)->assertOk()->assertHeader('ETag', '"catalog:'.$id.':v2"');
-        $this->assertSchema(json_decode($page->getContent()), $this->document['components']['schemas']['LocalDraftVariantCollectionResponse']);
-        $this->assertSame('1.10.0', $this->document['info']['version']);
+        $this->assertSchema(json_decode($page->getContent()), $this->document['components']['schemas']['LocalDraftVariantCollectionResponseV2']);
+        $this->assertSame('2.0.0', $this->document['info']['version']);
+    }
+
+    public function test_variant_change_http_and_edited_or_empty_current_pages_match_new_contracts(): void
+    {
+        $this->app->detectEnvironment(fn () => 'testing');
+        config(['session.driver' => 'array', 'cache.limiter' => 'array']);
+        $id = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $product = '01ARZ3NDEKTSV4RRFFQ69G5FB1';
+        $this->actingAs((new IdentityUser)->forceFill(['id' => 11, 'public_id' => $id, 'status' => 'active']), 'web');
+        $this->mock(LocalDraftVariantChangeAccess::class)->shouldReceive('actor')->andReturn($id);
+        $this->mock(LocalDraftVariantAccess::class)->shouldReceive('actor')->andReturn($id);
+        $before = new DraftVariantData('Before', 'DEMO-001', null, 'unit', null, []);
+        $after = new DraftVariantData('After', 'DEMO-001', 'opaque', 'unit', '!ASCII', ['color' => ' azul ']);
+        $current = new DraftVariantCurrentProfile($id, $id, $product, $after, 2);
+        $op = new DraftVariantChangeOperation($id, new DraftCatalogProfile($id, $id, 'Catalog', 2),
+            new DraftProductProfile($product, $id, new DraftProductData('Product', null, null), 2),
+            new DraftVariantCurrentProfile($id, $id, $product, $before, 1), $current);
+        $this->mock(LocalDraftVariantChangeWriter::class)->shouldReceive('execute')->once()->andReturn($op);
+        $this->mock(LocalDraftVariantChangeStore::class)->shouldReceive('find')->once()->andReturn($op);
+        $this->mock(LocalDraftVariantStore::class)->shouldReceive('page')->andReturn(
+            new DraftVariantPage(3, 3, [$current], false, 1), new DraftVariantPage(3, 3, [], false, 0));
+        $url = '/api/v1/catalog/local-draft-profiles/'.$id.'/products/'.$product.'/variants';
+        $payload = $after->snapshot();
+        unset($payload['sku']);
+        foreach ([
+            $this->withHeaders(['If-Match' => '"catalog:'.$id.':v2"', 'Idempotency-Key' => 'change-contract'])->putJson($url.'/'.$id, ['variant' => $payload])->assertOk(),
+            $this->getJson('/api/v1/catalog/local-draft-variant-change-operations/'.$id)->assertOk(),
+        ] as $response) {
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalDraftVariantChangeOperationResponse']);
+        }
+        foreach ([2, null] as $version) {
+            $response = $this->getJson($url)->assertOk()->assertJsonPath('meta.schema_version', 2);
+            if ($version !== null) {
+                $response->assertJsonPath('data.0.attributes.version', $version);
+            }
+            $this->assertSchema(json_decode($response->getContent()), $this->document['components']['schemas']['LocalDraftVariantCollectionResponseV2']);
+        }
+        foreach (['/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants/{variantPublicId}' => 'put',
+            '/api/v1/catalog/local-draft-variant-change-operations/{operationPublicId}' => 'get'] as $path => $method) {
+            $this->assertSame([['LocalSessionCookie' => []]], $this->document['paths'][$path][$method]['security']);
+            $this->assertSame('#/components/schemas/LocalDraftVariantChangeOperationResponse',
+                $this->document['paths'][$path][$method]['responses']['200']['content']['application/json']['schema']['$ref']);
+        }
+        $legacy = $this->document['components']['schemas']['LocalDraftVariantCollectionResponse'];
+        $this->assertSame([1], $legacy['properties']['data']['items']['properties']['attributes']['properties']['version']['enum']);
+        $this->assertSame('#/components/schemas/LocalDraftVariantCollectionResponseV2',
+            $this->document['paths']['/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}/variants']['get']['responses']['200']['content']['application/json']['schema']['$ref']);
     }
 
     private function resolve(string $reference): array
@@ -372,7 +426,7 @@ class OpenApiContractTest extends TestCase
             $this->assertContains($value, $schema['enum']);
         }
         if (isset($schema['pattern'])) {
-            $this->assertMatchesRegularExpression('~'.$schema['pattern'].'~', $value);
+            $this->assertMatchesRegularExpression('~'.str_replace('~', '\\~', $schema['pattern']).'~', $value);
         }
         foreach (['minimum' => 'assertGreaterThanOrEqual', 'maximum' => 'assertLessThanOrEqual'] as $limit => $assertion) {
             if (isset($schema[$limit])) {

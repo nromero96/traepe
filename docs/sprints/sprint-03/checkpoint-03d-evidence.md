@@ -1,6 +1,6 @@
 # Evidencia de Checkpoint 03D — Variantes draft
 
-Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «si apruebo»; implementado y validado localmente. Migración aditiva de dos tablas vacías aplicada y las 35 anteriores preservadas. Commit/push/CI autorizados mediante «Autorizado y continuar»; publicación en curso.**
+Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «si apruebo»; implementado y validado localmente. Migración aditiva de dos tablas vacías aplicada y las 35 anteriores preservadas. Publicación autorizada mediante «Autorizado y continuar» y confirmada en main 268bae47233697f659be7600a4335f5bff702c2c, con Foundation CI completa correcta del SHA exacto.**
 
 ## Base y aprobación
 
@@ -110,7 +110,7 @@ Totales solo de suites completas finales, sin sumar focalizados/reruns. Se corri
 
 ## Límites y cierre
 
-Solo ficticio local/testing, datos positivos exclusivamente en bases temporales propias y desarrollo vacío. Sin edición/borrado de variante, SKU activado, precio/stock/listing, disponibilidad/venta, categorías/tipos/restricciones, frontend/dependencias o datos reales. DP-001/DP-002/DP-007/DP-012 y demás productivas conservan responsables/fechas y siguen abiertas; no exención de MFA sensible real. No se avanzó a otro checkpoint.
+Solo ficticio local/testing, datos positivos exclusivamente en bases temporales propias y desarrollo vacío. Sin edición/borrado de variante, SKU activado, precio/stock/listing, disponibilidad/venta, categorías/tipos/restricciones, frontend/dependencias o datos reales. DP-001/DP-002/DP-007/DP-012 y demás productivas conservan responsables/fechas y siguen abiertas; no exención de MFA sensible real. Al publicar 03D no se había avanzado a otro checkpoint.
 
 «si apruebo» cubrió el plan completo, implementación/pruebas y migración local vacía; la publicación quedó reservada al resultado terminado. [AGENTS.md](../../../AGENTS.md#restricciones) dispone «No realizar commit, push, merge, publicación o despliegue sin aprobación explícita».
 
@@ -124,4 +124,12 @@ Publicación inicial: commit 52a0850b6b7918ed66738ac1e6ff842ff3d934c4, manifiest
 
 [Foundation CI inicial 38160766560](https://github.com/nromero96/traepe/actions/runs/38160766560), job 114533007109, del SHA exacto 52a0850b6b7918ed66738ac1e6ff842ff3d934c4: build/migración y limpieza correctos; Check falló en Pint por dos archivos, por lo que no ejecutó análisis/suites ni reinicio. El check local previo había informado PASS; una nueva caché de Pint reprodujo los errores de espaciado en LocalDraftVariantPostgresTest.php y variant-race-worker.php.
 
-Se corrigió exclusivamente el formato de ambos archivos. Pint completo con nueva caché: 322 archivos correctos; PHPStan nivel 8 y git diff --check correctos. Sin cambios de comportamiento, reglas, dependencias, migraciones o datos; los totales de suites completas locales siguen siendo 355/11260 y no se suman reruns. Se publica la corrección con esta evidencia dentro de la autorización de cierre recibida, y se exige una nueva Foundation CI completa del SHA final antes de declarar cerrado 03D.
+Se corrigió exclusivamente el formato de ambos archivos. Pint completo con nueva caché: 322 archivos correctos; PHPStan nivel 8 y git diff --check correctos. Sin cambios de comportamiento, reglas, dependencias, migraciones o datos; los totales de suites completas locales siguen siendo 355/11260 y no se suman reruns. La corrección se publicó dentro de la autorización de cierre recibida y su nueva Foundation CI completa quedó correcta antes de declarar cerrado 03D.
+
+## Publicación confirmada
+
+Commit inicial 52a0850b6b7918ed66738ac1e6ff842ff3d934c4 y corrección 268bae47233697f659be7600a4335f5bff702c2c (tres archivos, 11 inserciones/5 eliminaciones; dos cambios PHP exclusivamente de espacios y esta evidencia). Resultado acumulado de 03D dentro del mismo manifiesto de 51 archivos. Push normal; main/HEAD/origin/main/remote 268bae47233697f659be7600a4335f5bff702c2c, working tree limpio al terminar.
+
+[Foundation CI 38161448476](https://github.com/nromero96/traepe/actions/runs/38161448476), job 114535038415: run/job completed/success, ambos SHA exactos 268bae47233697f659be7600a4335f5bff702c2c y cuatro etapas correctas: build/migración fresca, calidad/integración, reinicio/persistencia y limpieza. Logs finales corroboran 233 Unit/Feature/7958 aserciones y 122 Integration/3302 aserciones: 355/11260, iguales a las suites locales. Se comprobó después el remoto, working tree limpio y ocho servicios locales saludables.
+
+El usuario pidió «continuar» tras este cierre. Se preparó el [plan completo 03E](checkpoint-03e-plan.md) de edición/historial de variantes, con [DP-039 pendiente](../../architecture/decisions/pending-decisions.md#dp-039--edición-local-de-variantes-draft); sin implementar o aplicar sus cambios hasta aprobar todas sus reglas. [Evidencia de preparación](checkpoint-03e-evidence.md).

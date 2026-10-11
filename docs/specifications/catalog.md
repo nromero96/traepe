@@ -59,3 +59,11 @@ Tres permisos nuevos independientes, sesión/CSRF/DP-026, If-Match de catálogo,
 Colección keyset con dos revisiones y página en una sentencia, variantes propias con diario 03D, cursor cifrado ligado a actor/catálogo/producto/limit/revisiones, TTL 15 minutos original. Mutaciones 03B/03C/03D invalidan cursores anteriores del catálogo. Historial cifrado/append-only y replay conservan original aunque cambien perfiles; snapshots/contratos previos no cambian.
 
 Dos tablas locales vacías aditivas y forward-only, pruebas positivas solo en bases temporales propias. No edición/borrado de variante, precio/stock/listing, venta/activación, categorías/tipos/restricciones, frontend/dependencias o datos reales. [Evidencia](../sprints/sprint-03/checkpoint-03d-evidence.md).
+
+## Edición de variantes draft e historial — 03E
+
+Fuente: maestro v1.6 §§37, 49–50, 58–60, 72 y 90; [DP-039 aprobada](../architecture/decisions/pending-decisions.md#dp-039--edición-local-de-variantes-draft), [plan completo](../sprints/sprint-03/checkpoint-03e-plan.md). «Si apruebo» autoriza todas las reglas antes del código. PUT reemplaza name/size/unit/barcode/attributes de variante propia 03D, con SKU inmutable local; dos permisos update/read de cambios independientes, If-Match de catálogo, no_changes sin escritura, idempotencia 24h y lock claim → Merchant → Catalog → Product → Variant. Tres revisiones +1, diario original cifrado antes/después append-only y GET/replay sin reconstruir perfiles.
+
+GET de colección actual evoluciona expresamente a v2 (recursos/meta.schema_version=2 y versión real 1–2147483647); cursor v2/TTL original 15 minutos, v1 rechazado 422 y reinicio. Página v1 congelada y consumidores actuales actualizados; OpenAPI 2.0.0 declara la incompatibilidad de ese único GET previo. Historias/replays de alta 03D siguen originales v1/versión 1; demás contratos anteriores intactos. Todo cambio de catálogo invalida páginas anteriores.
+
+Una tabla de cambios vacía y CHECK de variante ampliado de version=1 a >=1, preservando 37 tablas/filas migrations/demás constraints. Solo ficticio local/testing, positivos en DB temporales y desarrollo vacío. Sin editar/reusar SKU, borrar/restaurar, precio/stock/listing, venta/activación, frontend/dependencias/datos reales o excepción MFA. Implementación y validación autorizadas; publicación reservada al cierre.

@@ -336,7 +336,7 @@ final class LocalDraftVariantPostgresTest extends PostgresTestCase
         foreach (['[]', 'null', '1', '"text"', '{"a":null}', '{"a":true}', '{"a":1}', '{"a":[]}', '{"a":{}}', '{"a":""}', '{"a":" "}', '{"A":"x"}', '{"bad-key":"x"}', '{"a":"x\\n"}', json_encode((object) array_fill_keys(array_map(fn ($i) => 'k'.$i, range(0, 20)), 'x')), json_encode((object) ['a' => str_repeat('é', 256)])] as $json) {
             $reject(['attributes' => $json]);
         }
-        foreach ([['name' => ''], ['unit' => ' '], ['size' => ''], ['name' => "x\n"], ['barcode' => ' '], ['sku' => 'lower'], ['sku' => "A\n"], ['status' => 'active'], ['version' => 2], ['public_id' => 'invalid']] as $invalid) {
+        foreach ([['name' => ''], ['unit' => ' '], ['size' => ''], ['name' => "x\n"], ['barcode' => ' '], ['sku' => 'lower'], ['sku' => "A\n"], ['status' => 'active'], ['version' => 0], ['public_id' => 'invalid']] as $invalid) {
             $reject($invalid);
         }
         $reject(['sku' => $op->variant->variant->sku], '23505');

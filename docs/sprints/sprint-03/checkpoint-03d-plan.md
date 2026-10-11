@@ -1,6 +1,6 @@
 # Plan de Checkpoint 03D — Variantes draft y consulta por producto
 
-Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «si apruebo»; DP-038 resuelta antes del código. Implementado y validado: 355 pruebas/11260 aserciones. Migración local de dos tablas vacías aplicada y 35 tablas anteriores preservadas. Commit/push/CI autorizados mediante «Autorizado y continuar»; publicación en curso.**
+Fecha: 11 de octubre de 2026. **Estado: plan completo aprobado mediante «si apruebo»; DP-038 resuelta antes del código. Implementado y validado: 355 pruebas/11260 aserciones. Migración local de dos tablas vacías aplicada y 35 tablas anteriores preservadas. Commit/push/CI autorizados mediante «Autorizado y continuar»; publicación confirmada en main 268bae47233697f659be7600a4335f5bff702c2c con Foundation CI completa correcta del SHA exacto.**
 
 ## Base y fuente
 
@@ -12,7 +12,7 @@ Fuente: maestro v1.6 §§9, 25, 32–33, 36–37, 49–50, 52–60, 64, 72, 78�
 
 Crear variantes draft de un producto conceptual propio de 03A/03B, recorrer sus variantes actuales y consultar el snapshot original de cada alta. Ejemplo: producto conceptual “Artículo ficticio”, variante “Presentación pequeña”, SKU DEMO-001, size “250”, unit “unidad ficticia”, barcode NULL y attributes {"color":"azul"}. Las etiquetas descriptivas no producen conversiones, cantidades, importes ni reglas de venta.
 
-La aprobación inicial mediante «si apruebo» abarcó todas las reglas de este plan, código en las cuatro capas, pruebas reales, contratos y aplicación local aditiva de dos tablas inicialmente vacías. Positivos exclusivamente en bases temporales propias; desarrollo permanece vacío, sin usuarios/grants nuevos. Después de presentar el resultado terminado conforme a AGENTS.md, el usuario autorizó commit/push/CI mediante «Autorizado y continuar» el 11 de octubre de 2026; publicación en curso.
+La aprobación inicial mediante «si apruebo» abarcó todas las reglas de este plan, código en las cuatro capas, pruebas reales, contratos y aplicación local aditiva de dos tablas inicialmente vacías. Positivos exclusivamente en bases temporales propias; desarrollo permanece vacío, sin usuarios/grants nuevos. Después de presentar el resultado terminado conforme a AGENTS.md, el usuario autorizó commit/push/CI mediante «Autorizado y continuar» el 11 de octubre de 2026; publicación confirmada en main 268bae47233697f659be7600a4335f5bff702c2c con Foundation CI completa correcta del SHA exacto.
 
 Solo ficticio local/testing. No edición/borrado/restauración de variantes, reasignación de catálogo/producto, categorías/tipos/restricciones, opciones/modificadores, medios/combos, precios, stock, listings por sucursal, disponibilidad, venta, discovery público, activación, datos reales, frontend o dependencias nuevas. El precio base y demás campos operativos de T-13/§90 se implementarán en bloques posteriores con sus decisiones; no se considera completada la administración productiva de variantes. DP-001/DP-002/DP-007/DP-012 y restantes decisiones productivas mantienen responsable/fecha. No exime del MFA de administración sensible real.
 

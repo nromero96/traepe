@@ -7,6 +7,7 @@ use App\Modules\Catalog\Domain\Drafts\DraftCatalogFailure;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogProfile;
 use App\Modules\Catalog\Domain\Drafts\DraftProductData;
 use App\Modules\Catalog\Domain\Drafts\DraftProductProfile;
+use App\Modules\Catalog\Domain\Drafts\DraftVariantCurrentProfile;
 use App\Modules\Catalog\Domain\Drafts\DraftVariantCursor;
 use App\Modules\Catalog\Domain\Drafts\DraftVariantData;
 use App\Modules\Catalog\Domain\Drafts\DraftVariantInput;
@@ -108,12 +109,12 @@ final class PostgresLocalDraftVariantStore implements LocalDraftVariantStore
     {
         abort_unless(app()->environment(['local', 'testing']), 404);
         $rows = DB::select(<<<'SQL'
-            SELECT c.version AS catalog_version,p.version AS product_version,v.id,v.public_id,v.name,v.sku,v.size,v.unit,v.barcode,v.attributes
+            SELECT c.version AS catalog_version,p.version AS product_version,v.id,v.public_id,v.name,v.sku,v.size,v.unit,v.barcode,v.attributes,v.version
             FROM catalogs c
             JOIN catalog_local_draft_operations o ON o.catalog_id=c.id AND o.merchant_public_id=c.merchant_public_id
             JOIN products p ON p.catalog_id=c.id
             LEFT JOIN LATERAL (
-                SELECT v.id,v.public_id,v.name,v.sku,v.size,v.unit,v.barcode,v.attributes FROM product_variants v
+                SELECT v.id,v.public_id,v.name,v.sku,v.size,v.unit,v.barcode,v.attributes,v.version FROM product_variants v
                 JOIN catalog_local_draft_variant_operations j ON j.variant_id=v.id AND j.product_id=p.id AND j.catalog_id=c.id
                     AND j.merchant_public_id=c.merchant_public_id AND j.actor_public_id=o.actor_public_id
                 WHERE v.product_id=p.id AND v.catalog_id=c.id AND v.merchant_public_id=c.merchant_public_id AND v.status='draft' AND v.deleted_at IS NULL AND v.id>?
@@ -138,9 +139,9 @@ final class PostgresLocalDraftVariantStore implements LocalDraftVariantStore
         $valid = array_values(array_filter($rows, fn ($row) => $row->id !== null));
         $hasMore = count($valid) > $limit;
         $slice = array_slice($valid, 0, $limit);
-        $variants = array_map(fn ($row) => new DraftVariantProfile($row->public_id, $catalogPublicId, $productPublicId,
+        $variants = array_map(fn ($row) => new DraftVariantCurrentProfile($row->public_id, $catalogPublicId, $productPublicId,
             DraftVariantData::fromArray(['name' => $row->name, 'sku' => $row->sku, 'size' => $row->size, 'unit' => $row->unit, 'barcode' => $row->barcode,
-                'attributes' => json_decode($row->attributes, false, 16, JSON_THROW_ON_ERROR)])), $slice);
+                'attributes' => json_decode($row->attributes, false, 16, JSON_THROW_ON_ERROR)]), (int) $row->version), $slice);
 
         return new DraftVariantPage($catalogVersion, $productVersion, $variants, $hasMore, $slice === [] ? 0 : (int) $slice[array_key_last($slice)]->id);
     }

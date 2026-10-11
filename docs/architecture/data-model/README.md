@@ -93,3 +93,11 @@ Variant tiene bigint/ULID, FK compuestas propias catálogo/comercio y producto/c
 Diario tiene variante única y FK variant_id,product_id, más FK producto/catálogo y catálogo/comercio; ULIDs actor/merchant sin FK Identity, pares de revisiones consecutivos/unique por catálogo y producto, hashes/correlación/ciphertext y created_at UTC. Trigger rechaza UPDATE/DELETE. Snapshot original conserva producto/catálogo/variante y se valida contra metadata, sin reconstrucción mutable.
 
 Una alta confirma variante/diario y versiones catálogo/producto +1 junto al claim; no modifica textos/identidad/estado. Migración aditiva conserva las 35 tablas anteriores y agrega exactamente dos vacías, con segundo migrate sin cambios; sin seeds/reset/rollback de desarrollo. No precio, inventario, listings o tablas de otros módulos.
+
+## Revisiones e historial de variantes — 03E
+
+[DP-039](../decisions/pending-decisions.md#dp-039--edición-local-de-variantes-draft)/[plan completo](../../sprints/sprint-03/checkpoint-03e-plan.md) aprobados mediante «Si apruebo». Una migración nueva amplía exclusivamente product_variants_version_check de version=1 a >=1 (default 1, integer máximo 2147483647), y agrega catalog_local_draft_variant_changes inicialmente vacía. Tres incrementos +1 por edición, SKU/identidades/relaciones/created_at/estados conservados; solo cinco campos de variante y versiones/updated_at propios.
+
+Diario privado con bigint/ULID, FK compuestas restrict Catalog/Product/Variant propias, merchant/actor públicos sin FK privada ajena, tres pares de revisión positivos/consecutivos, SHA-256/correlación/ciphertext/created_at UTC y trigger append-only. Unique por catálogo/producto/variante y revisión posterior, índices usados por FK/lookup; múltiples cambios por variante y down forward-only. Snapshot v1 antes/después/SKU igual, cifrado/hash/restore/metadata verificados sin perfiles mutables; diario de alta 03D intacto.
+
+Aplicación local aprobada tras suites: 37 tablas previas/filas migrations y demás constraints preservados; una tabla vacía/una fila migración, 38 tablas no-migrations y quince Marketplace/Catalog vacías; segundo migrate sin cambios. Sin reset/rollback/seeds o datos positivos de desarrollo. Colección actual v2 muestra la revisión real; no altera snapshots de alta v1.

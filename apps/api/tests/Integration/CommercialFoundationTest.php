@@ -296,7 +296,7 @@ final class CommercialFoundationTest extends PostgresTestCase
         try {
             config(['database.connections.pgsql.database' => $legacy]);
             DB::purge('pgsql');
-            $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn ($path) => ! in_array(basename($path), [self::MIGRATION, '2026_10_10_000006_create_marketplace_local_commerce_operations.php', '2026_10_10_000007_create_local_draft_catalog_foundation.php', '2026_10_10_000008_create_local_draft_product_operations.php', '2026_10_11_000009_create_local_draft_product_changes.php', '2026_10_11_000010_create_local_draft_variants.php'], true)));
+            $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn ($path) => ! in_array(basename($path), [self::MIGRATION, '2026_10_10_000006_create_marketplace_local_commerce_operations.php', '2026_10_10_000007_create_local_draft_catalog_foundation.php', '2026_10_10_000008_create_local_draft_product_operations.php', '2026_10_11_000009_create_local_draft_product_changes.php', '2026_10_11_000010_create_local_draft_variants.php', '2026_10_11_000011_create_local_draft_variant_changes.php'], true)));
             $this->assertSame(0, Artisan::call('migrate', ['--path' => $paths, '--realpath' => true, '--force' => true]));
             $this->assertFalse(Schema::hasTable('merchants'));
             $this->assertFalse(Schema::hasTable('branches'));
@@ -307,12 +307,12 @@ final class CommercialFoundationTest extends PostgresTestCase
             $migrations = DB::table('migrations')->count();
             $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
             $this->assertSame($before, $this->snapshot($tables));
-            $this->assertSame($migrations + 6, DB::table('migrations')->count());
+            $this->assertSame($migrations + 7, DB::table('migrations')->count());
             $this->assertSame(0, DB::table('merchants')->count());
             $this->assertSame(0, DB::table('branches')->count());
             $this->assertSame(0, DB::table('marketplace_local_commerce_operations')->count());
             $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
-            $this->assertSame($migrations + 6, DB::table('migrations')->count());
+            $this->assertSame($migrations + 7, DB::table('migrations')->count());
             $this->assertSame($before, $this->snapshot($tables));
         } finally {
             config(['database.connections.pgsql.database' => 'postgres']);

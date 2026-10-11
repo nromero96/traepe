@@ -1,5 +1,19 @@
 # Decisiones pendientes
 
+## DP-039 — Edición local de variantes draft
+
+- **Estado:** resuelta mediante «Si apruebo» el 11 de octubre de 2026, antes del código; plan completo 03E aprobado.
+- **Fuente:** maestro v1.6 §§9, 25, 37, 49–50, 56, 58–60, 64, 72 y 90; ADR-008/DP-026/DP-035 a DP-038.
+- **Vacío:** 03D excluyó edición y fijó version=1 en CHECK/colección v1. No se concretaron SKU editable/inmutable, campos/revisiones, no_changes, capacidades, historial ni transición de la colección a revisiones reales. “Continuar” no determina esas reglas ni aprueba una incompatibilidad de contrato silenciosa.
+- **Plan completo aprobado:** [plan 03E](../../sprints/sprint-03/checkpoint-03e-plan.md): PUT de cinco campos descriptivos de variante draft propia 03D, SKU inmutable en el ejercicio y GET del cambio original propio. Dos capacidades independientes, If-Match de catálogo, no_changes sin escritura, claim 24h y lock claim → Merchant → Catalog → Product → Variant; tres incrementos +1 y diario cifrado append-only.
+- **Contrato aprobado:** mismo GET actual de variantes con respuesta/cursor v2 y revisión real; meta.schema_version=2 también vacío. Página/componente v1 congelados como históricos, consumidores locales actualizados y cursor v1 rechazado 422. OpenAPI 2.0.0 declara la incompatibilidad local; todos los demás paths/componentes/historias/replays previos permanecen originales. No versiones ficticias ni filas revisadas escondidas.
+- **Migración aprobada:** nueva tabla catalog_local_draft_variant_changes vacía y solo CHECK product_variants_version_check ampliado de version=1 a >=1; las 37 tablas/filas migrations y demás constraints previos preservados. Aplicación local aditiva tras suites, quince Marketplace/Catalog vacías y 38 tablas no-migrations; segunda ejecución sin cambios.
+- **Arquitectura aprobada:** tres consumidores Infrastructure adicionales de los mismos tipos públicos Identity/Platform, trece → dieciséis enumerados; puente Merchant existente, Domain/Application puros, sin SQL privado cruzado/ciclos/Shared vertical o dependencias nuevas.
+- **Aprobación recibida:** «Si apruebo» autoriza conjuntamente todas las reglas/contrato v2/código/pruebas/migración local vacía y CHECK ampliado. Commit/push/CI de 03E autorizados mediante «si autorizo» el 11 de octubre de 2026 después de presentar el resultado terminado; no se reutiliza la publicación de 03D.
+- **Límites:** solo ficticio local/testing, positivos en DB temporales propias y desarrollo vacío. Sin cambio/reuso de SKU, borrado/restauración, precio/stock/listing, venta/activación, frontend/dependencias/datos reales o exención MFA; criterio SKU local no fija producción. DP-001/DP-002/DP-007/DP-012 y demás productivas conservan responsable/fecha.
+- **Responsable:** Nilton; revisión solicitada el 11 de octubre de 2026.
+- **Evidencia:** [implementación y validación de 03E](../../sprints/sprint-03/checkpoint-03e-evidence.md): 380 pruebas/12982 aserciones, migración vacía aplicada con 37 tablas previas y demás constraints preservados; publicación de 03E autorizada y en curso.
+
 ## DP-038 — Variantes draft locales
 
 - **Estado:** resuelta mediante «si apruebo» el 11 de octubre de 2026, antes del código; plan completo 03D aprobado.
@@ -8,8 +22,9 @@
 - **Plan completo aprobado:** [plan 03D](../../sprints/sprint-03/checkpoint-03d-plan.md): alta de variante draft propia, colección actual paginada y snapshot original; seis campos requeridos, SKU ASCII único por comercio incluido soft-delete, mapa de atributos acotado, tres permisos independientes, If-Match, claim 24h, lock claim → Merchant → Catalog → Product y ambos incrementos +1. Dos tablas inicialmente vacías; reglas de FK/CHECK/append-only/cifrado/cursor y pruebas en el plan.
 - **Arquitectura aprobada:** mismos contratos públicos Identity/Platform/Marketplace existentes, tres nuevos consumidores Infrastructure explícitos y puente Merchant reutilizado; Domain/Application puros, Shared/resolver global intactos, sin SQL privado cruzado o nuevas dependencias.
 - **Bloqueo resuelto:** «si apruebo» autoriza las reglas completas, código/API/capacidades, nuevas tablas/diario, revisiones y pruebas de 03D; preparación y cierre retrospectivo de 03C verificados previamente.
-- **Aprobación recibida:** todas las reglas del plan, implementación/pruebas y aplicación local aditiva de dos tablas vacías. Después de presentar el resultado terminado, el usuario autorizó commit/push/CI mediante «Autorizado y continuar» el 11 de octubre de 2026; publicación en curso.
+- **Aprobación recibida:** todas las reglas del plan, implementación/pruebas y aplicación local aditiva de dos tablas vacías. Después de presentar el resultado terminado, el usuario autorizó commit/push/CI mediante «Autorizado y continuar» el 11 de octubre de 2026; [publicación confirmada](../../sprints/sprint-03/checkpoint-03d-evidence.md#publicación-confirmada).
 - **Resultado local:** 51 archivos, 355 pruebas/11260 aserciones, Pint 322/PHPStan 8/contratos correctos; dos tablas vacías aplicadas y 35 previas preservadas, segundo migrate sin cambios. Catorce tablas Marketplace/Catalog vacías, ocho servicios saludables y verify-foundation correcto. Publicación autorizada sobre este resultado terminado.
+- **Resultado publicado:** main 268bae47233697f659be7600a4335f5bff702c2c; Foundation CI 38161448476/job 114535038415 con run/job SHA exactos y cuatro etapas correctas. Suites remotas 355/11260; corrección de formato documentada dentro del mismo alcance.
 - **Límites:** solo ficticio local/testing; positivos en bases temporales propias y desarrollo vacío. Sin edición/borrado de variantes, precios/stock/listings, venta/activación, frontend/dependencias/datos reales o exención MFA. DP-001/DP-002/DP-007/DP-012 y las demás productivas conservan responsables/fechas.
 - **Responsable:** Nilton; revisión solicitada en esta continuidad el 11 de octubre de 2026.
 - **Evidencia:** [implementación y validaciones de 03D](../../sprints/sprint-03/checkpoint-03d-evidence.md).

@@ -221,3 +221,80 @@ foreach (['product_version' => 0, 'next_cursor' => 'invalid cursor', 'extra' => 
     }
 }
 echo "PASS: variant operation/page v1; object map, SKU/text/revision/cursor closed positives and negatives verified.\n";
+
+$variantChangeSchema = json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-variant-change-operation.v1.json'), flags: JSON_THROW_ON_ERROR);
+$variantChange = json_decode(json_encode($variant, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+$before = clone $variantChange->variant;
+unset($before->public_id, $before->product_public_id);
+$after = clone $before;
+$after->name = 'Changed Presentation';
+$after->version = 2;
+$variantChange->variant = (object) ['public_id' => $productId, 'product_public_id' => $productId, 'before' => $before, 'after' => $after];
+$check = new Validator;
+$check->validate($variantChange, $variantChangeSchema);
+if (! $check->isValid()) {
+    throw new RuntimeException('Variant change snapshot rejected.');
+}
+foreach ([
+    ['unexpected', true], ['schema_version', 2], ['variant.before.version', 0], ['variant.after.version', 2147483648],
+    ['variant.before.attributes', []], ['variant.after.attributes', null], ['variant.after.attributes', (object) ['a' => 1]],
+    ['variant.after.attributes', (object) ['bad-key' => 'x']], ['variant.after.sku', 'lower'], ['variant.after.name', "bad\n"],
+    ['variant.after.unit', ' '], ['variant.after.barcode', ' '], ['variant.after.size', ''], ['variant.after.actor', 'private'],
+    ['product.version_before', 0], ['catalog.version_after', 2147483648], ['variant.public_id', '11'],
+] as [$path,$value]) {
+    $bad = json_decode(json_encode($variantChange, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $node = $bad;
+    $parts = explode('.', $path);
+    $leaf = array_pop($parts);
+    foreach ($parts as $part) {
+        $node = $node->{$part};
+    }
+    $node->{$leaf} = $value;
+    $reject = new Validator;
+    $reject->validate($bad, $variantChangeSchema);
+    if ($reject->isValid()) {
+        throw new RuntimeException('Invalid variant change accepted.');
+    }
+}
+echo "PASS: variant change v1; closed before/after object maps, text and three revision limits verified.\n";
+
+$variantPageV2Schema = json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-variants-page.v2.json'), flags: JSON_THROW_ON_ERROR);
+$pageV2 = json_decode(json_encode($variantPage, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+$pageV2->meta->schema_version = 2;
+foreach ([[], [$variantResource]] as $data) {
+    $pageV2->data = json_decode(json_encode($data, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    if ($data !== []) {
+        $pageV2->data[0]->attributes->schema_version = 2;
+        $pageV2->data[0]->attributes->version = 2147483647;
+    }
+    $check = new Validator;
+    $check->validate($pageV2, $variantPageV2Schema);
+    if (! $check->isValid()) {
+        throw new RuntimeException('Current variant page v2 rejected.');
+    }
+}
+foreach ([['meta.schema_version', 1], ['meta.product_version', 0], ['meta.next_cursor', 'invalid cursor'],
+    ['data.0.attributes.schema_version', 1], ['data.0.attributes.version', 0], ['data.0.attributes.version', 2147483648],
+    ['data.0.attributes.attributes', []], ['data.0.attributes.private', true], ['meta.extra', 'private']] as [$path,$value]) {
+    $bad = json_decode(json_encode($pageV2, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $node = $bad;
+    $parts = explode('.', $path);
+    $leaf = array_pop($parts);
+    foreach ($parts as $part) {
+        $node = is_array($node) ? $node[(int) $part] : $node->{$part};
+    }
+    $node->{$leaf} = $value;
+    $reject = new Validator;
+    $reject->validate($bad, $variantPageV2Schema);
+    if ($reject->isValid()) {
+        throw new RuntimeException('Invalid current variant page v2 accepted.');
+    }
+}
+$bad = json_decode(json_encode($pageV2, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+unset($bad->meta->schema_version);
+$reject = new Validator;
+$reject->validate($bad, $variantPageV2Schema);
+if ($reject->isValid()) {
+    throw new RuntimeException('Unversioned current variant page accepted.');
+}
+echo "PASS: current variant page v2; empty/nonempty, real revisions and explicit meta version; legacy schemas remain validated.\n";

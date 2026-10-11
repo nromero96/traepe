@@ -6,6 +6,7 @@ use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogAccess;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductAccess;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductChangeAccess;
 use App\Modules\Catalog\Application\Drafts\LocalDraftVariantAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftVariantChangeAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Application\Fixtures\LocalDraftFixtureAccess;
@@ -536,6 +537,7 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $variantContent = $grant(LocalDraftVariantAccess::CONTENT);
         $emptyVariants = $this->body($this->send('GET', $variantUrl, 200));
         $this->assertSame([], $emptyVariants['data']);
+        $this->assertSame(2, $emptyVariants['meta']['schema_version']);
         $this->assertSame(2, $emptyVariants['meta']['product_version']);
         $variantResponse = $this->send('POST', $variantUrl, 201, $variantBody, $this->token(), headers: $variantHeaders);
         $variantFirst = $this->body($variantResponse);
@@ -557,6 +559,7 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $variantPage = $this->body($variantPageResponse);
         $this->assertSame('"catalog:'.$catalogId.':v6"', $variantPageResponse->getHeaderLine('ETag'));
         $this->assertSame(4, $variantPage['meta']['product_version']);
+        $this->assertSame(2, $variantPage['meta']['schema_version']);
         $this->assertTrue($variantPage['meta']['has_more']);
         $variantCursor = $variantPage['meta']['next_cursor'];
         $variantEnd = $this->body($this->send('GET', $variantUrl.'?limit=1&cursor='.rawurlencode($variantCursor), 200));
@@ -570,6 +573,67 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->assertSame('sku_conflict', $this->body($this->send('POST', $variantUrl, 409, $variantBody, $this->token(), headers: ['Idempotency-Key' => 'duplicate-sku-http', 'If-Match' => '"catalog:'.$catalogId.':v7"']))['error']['code']);
         $this->assertSame('version_conflict', $this->body($this->send('POST', $variantUrl, 409, $variantBody, $this->token(), headers: array_replace($variantHeaders, ['Idempotency-Key' => 'stale-variant-http'])))['error']['code']);
         $this->assertSame('idempotency_mismatch', $this->body($this->send('POST', $variantUrl, 409, $variantSecondBody, $this->token(), headers: $variantHeaders))['error']['code']);
+
+        $variantChangeUrl = $variantUrl.'/'.$variantFirst['data']['attributes']['variant']['public_id'];
+        $variantChangeBody = ['variant' => ['name' => 'Private Edited Variant', 'size' => null, 'unit' => 'Private Edited Unit', 'barcode' => null, 'attributes' => (object) []]];
+        $variantChangeHeaders = ['Idempotency-Key' => 'private-variant-change-key', 'If-Match' => '"catalog:'.$catalogId.':v7"'];
+        $preEditPage = $this->body($this->send('GET', $variantUrl.'?limit=1', 200));
+        $this->send('PUT', $variantChangeUrl, 403, $variantChangeBody, $this->token(), headers: $variantChangeHeaders);
+        $variantUpdate = $grant(LocalDraftVariantChangeAccess::UPDATE);
+        $this->send('PUT', $variantChangeUrl, 419, $variantChangeBody, headers: $variantChangeHeaders);
+        $this->send('PUT', $variantChangeUrl, 428, $variantChangeBody, $this->token(), headers: ['Idempotency-Key' => 'missing-edit-version']);
+        $badEdit = $variantChangeBody;
+        $badEdit['variant']['sku'] = 'PRIVATE-VARIANT-001';
+        $this->send('PUT', $variantChangeUrl, 422, $badEdit, $this->token(), headers: $variantChangeHeaders);
+        $badEdit = $variantChangeBody;
+        $badEdit['variant']['attributes'] = [];
+        $this->send('PUT', $variantChangeUrl, 422, $badEdit, $this->token(), headers: $variantChangeHeaders);
+        $editedResponse = $this->send('PUT', $variantChangeUrl, 200, $variantChangeBody, $this->token(), headers: $variantChangeHeaders);
+        $editedVariant = $this->body($editedResponse);
+        $this->assertSame('', $editedResponse->getHeaderLine('ETag'));
+        $this->assertInstanceOf(\stdClass::class, json_decode((string) $editedResponse->getBody())->data->attributes->variant->after->attributes);
+        $this->assertSame(8, $editedVariant['data']['attributes']['catalog']['version_after']);
+        $this->assertSame(5, $editedVariant['data']['attributes']['product']['version_after']);
+        $this->assertSame(2, $editedVariant['data']['attributes']['variant']['after']['version']);
+        $this->assertSame('PRIVATE-VARIANT-001', $editedVariant['data']['attributes']['variant']['after']['sku']);
+        $this->assertSame($editedVariant['data'], $this->body($this->send('PUT', $variantChangeUrl, 200, $variantChangeBody, $this->token(), headers: $variantChangeHeaders))['data']);
+        $editHistory = '/api/v1/catalog/local-draft-variant-change-operations/'.$editedVariant['data']['id'];
+        $this->send('GET', $editHistory, 403);
+        $editRead = $grant(LocalDraftVariantChangeAccess::READ);
+        $this->assertSame($editedVariant['data'], $this->body($this->send('GET', $editHistory, 200))['data']);
+        $this->assertSame('catalog_changed', $this->body($this->send('GET', $variantUrl.'?limit=1&cursor='.rawurlencode($preEditPage['meta']['next_cursor']), 409))['error']['code']);
+        $now = $this->body($this->send('GET', $variantUrl.'?limit=1', 200));
+        $this->assertSame(2, $now['meta']['schema_version']);
+        $this->assertSame(2, $now['data'][0]['attributes']['version']);
+        $this->assertSame('Private Edited Variant', $now['data'][0]['attributes']['name']);
+        $this->assertSame('no_changes', $this->body($this->send('PUT', $variantChangeUrl, 409, $variantChangeBody, $this->token(),
+            headers: ['Idempotency-Key' => 'no-change-edit', 'If-Match' => '"catalog:'.$catalogId.':v8"']))['error']['code']);
+        $this->assertSame('version_conflict', $this->body($this->send('PUT', $variantChangeUrl, 409, $variantChangeBody, $this->token(),
+            headers: ['Idempotency-Key' => 'stale-edit', 'If-Match' => '"catalog:'.$catalogId.':v7"']))['error']['code']);
+        $this->assertSame('idempotency_mismatch', $this->body($this->send('PUT', $variantChangeUrl, 409, $variantChangeBody, $this->token(),
+            headers: array_replace($variantChangeHeaders, ['If-Match' => '"catalog:'.$catalogId.':v8"'])))['error']['code']);
+        $secondEditBody = $variantChangeBody;
+        $secondEditBody['variant']['name'] = 'Private Next Variant';
+        $secondEditBody['variant']['attributes'] = (object) ['color' => 'Private Next Color'];
+        $secondEdit = $this->body($this->send('PUT', $variantChangeUrl, 200, $secondEditBody, $this->token(),
+            headers: ['Idempotency-Key' => 'private-next-variant-change', 'If-Match' => '"catalog:'.$catalogId.':v8"']));
+        $this->assertSame(3, $secondEdit['data']['attributes']['variant']['after']['version']);
+        $this->assertSame($editedVariant['data'], $this->body($this->send('GET', $editHistory, 200))['data']);
+        $this->assertSame($variantFirst['data'], $this->body($this->send('GET', $variantHistory, 200))['data']);
+        $this->assertSame($variantFirst['data'], $this->body($this->send('POST', $variantUrl, 201, $variantBody, $this->token(), headers: $variantHeaders))['data']);
+        DB::table('identity_permission_grants')->where('id', $editRead)->delete();
+        $this->send('GET', $editHistory, 403);
+        $this->send('PUT', $variantChangeUrl, 200, $variantChangeBody, $this->token(), headers: $variantChangeHeaders);
+        $grant(LocalDraftVariantChangeAccess::READ);
+        $editDeny = $grant(LocalDraftVariantChangeAccess::UPDATE, 'deny');
+        $this->send('PUT', $variantChangeUrl, 403, $variantChangeBody, $this->token(), headers: $variantChangeHeaders);
+        $this->send('GET', $editHistory, 200);
+        $this->send('GET', $variantUrl, 200);
+        DB::table('identity_permission_grants')->where('id', $editDeny)->delete();
+        DB::table('identity_permission_grants')->where('id', $variantUpdate)->delete();
+        $this->send('PUT', $variantChangeUrl, 403, $variantChangeBody, $this->token(), headers: $variantChangeHeaders);
+        $this->send('GET', $editHistory, 200);
+
         DB::table('identity_permission_grants')->where('id', $variantRead)->delete();
         $this->send('GET', $variantHistory, 403);
         $this->send('POST', $variantUrl, 201, $variantBody, $this->token(), headers: $variantHeaders);
@@ -603,8 +667,10 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->send('POST', $url, 401, $payload, $this->token(), headers: $headers);
         $this->send('GET', $historyUrl, 401, client: $this->clientFor($copy));
         $this->send('GET', $variantHistory, 401, client: $this->clientFor($copy));
-        $this->assertSame([1, 1, 1, 1, 2, 1, 1, 2, 3, 3, 8], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'catalog_local_draft_product_changes', 'product_variants', 'catalog_local_draft_variant_operations', 'platform_idempotency_keys']));
-        $this->assertPrivateLogs(['private-variant-http-key', 'private-second-variant-key', 'private-additional-variant-key', 'Private Variant Label', 'PRIVATE-VARIANT-001', 'Private Unit', 'PRIVATE-BARCODE', 'Private Variant Color', 'Private Material', $variantCursor, '+12025550136', $headers['Idempotency-Key'], 'private-change-http-key', 'private-second-change-http-key', 'Private Synthetic Updated', 'private-additional-http-key', 'Private Synthetic Additional', "Private Additional Description\nliteral", $cursor, 'private-chain-commerce-key', 'Private Synthetic Catalog', 'Private Synthetic Product', "Private Synthetic Description\nliteral", 'Private Synthetic Mismatch', 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', $token]);
+        $this->send('GET', $editHistory, 401, client: $this->clientFor($copy));
+        $this->send('PUT', $variantChangeUrl, 419, $variantChangeBody, $token, client: $this->clientFor($copy), headers: $variantChangeHeaders);
+        $this->assertSame([1, 1, 1, 1, 2, 1, 1, 2, 3, 3, 2, 10], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'catalog_local_draft_product_changes', 'product_variants', 'catalog_local_draft_variant_operations', 'catalog_local_draft_variant_changes', 'platform_idempotency_keys']));
+        $this->assertPrivateLogs(['private-variant-change-key', 'private-next-variant-change', 'Private Edited Variant', 'Private Edited Unit', 'Private Next Variant', 'Private Next Color', $preEditPage['meta']['next_cursor'], 'private-variant-http-key', 'private-second-variant-key', 'private-additional-variant-key', 'Private Variant Label', 'PRIVATE-VARIANT-001', 'Private Unit', 'PRIVATE-BARCODE', 'Private Variant Color', 'Private Material', $variantCursor, '+12025550136', $headers['Idempotency-Key'], 'private-change-http-key', 'private-second-change-http-key', 'Private Synthetic Updated', 'private-additional-http-key', 'Private Synthetic Additional', "Private Additional Description\nliteral", $cursor, 'private-chain-commerce-key', 'Private Synthetic Catalog', 'Private Synthetic Product', "Private Synthetic Description\nliteral", 'Private Synthetic Mismatch', 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', $token]);
     }
 
     private function assertPrivateLogs(#[\SensitiveParameter] array $secrets): void

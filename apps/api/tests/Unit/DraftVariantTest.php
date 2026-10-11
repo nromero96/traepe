@@ -151,7 +151,7 @@ final class DraftVariantTest extends TestCase
                 $this->invalid(fn () => DraftVariantCursor::restore($value));
             }
         }
-        foreach (['catalog_version' => 2147483648, 'product_version' => 2147483648, 'limit' => 51, 'schema_version' => 2, 'purpose' => 'other', 'extra' => true] as $field => $bad) {
+        foreach (['catalog_version' => 2147483648, 'product_version' => 2147483648, 'limit' => 51, 'schema_version' => 3, 'purpose' => 'other', 'extra' => true] as $field => $bad) {
             $value = $cursor->snapshot();
             $value[$field] = $bad;
             $this->invalid(fn () => DraftVariantCursor::restore($value));
