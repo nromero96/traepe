@@ -7,19 +7,26 @@ use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogWriter;
 use App\Modules\Catalog\Application\Drafts\LocalDraftMerchantSource;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductChangeAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductChangeStore;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductChangeWriter;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductCursorCodec;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductStore;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductWriter;
 use App\Modules\Catalog\Infrastructure\Drafts\CryptLocalDraftProductCursorCodec;
 use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftCatalogAccess;
 use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftProductAccess;
+use App\Modules\Catalog\Infrastructure\Drafts\IdentityLocalDraftProductChangeAccess;
 use App\Modules\Catalog\Infrastructure\Drafts\MarketplaceLocalDraftMerchantSource;
 use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftCatalogWriter;
+use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftProductChangeWriter;
 use App\Modules\Catalog\Infrastructure\Drafts\PlatformLocalDraftProductWriter;
 use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftCatalogStore;
+use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftProductChangeStore;
 use App\Modules\Catalog\Infrastructure\Drafts\PostgresLocalDraftProductStore;
 use App\Modules\Catalog\Interfaces\Http\LocalCatalogEnvironment;
 use App\Modules\Catalog\Interfaces\Http\LocalDraftCatalogController;
+use App\Modules\Catalog\Interfaces\Http\LocalDraftProductChangeController;
 use App\Modules\Catalog\Interfaces\Http\LocalDraftProductController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +36,9 @@ final class CatalogServiceProvider extends ServiceProvider
     public function register(): void
     {
         if ($this->app->environment(['local', 'testing'])) {
+            $this->app->bind(LocalDraftProductChangeAccess::class, IdentityLocalDraftProductChangeAccess::class);
+            $this->app->bind(LocalDraftProductChangeStore::class, PostgresLocalDraftProductChangeStore::class);
+            $this->app->bind(LocalDraftProductChangeWriter::class, PlatformLocalDraftProductChangeWriter::class);
             $this->app->bind(LocalDraftProductAccess::class, IdentityLocalDraftProductAccess::class);
             $this->app->bind(LocalDraftProductStore::class, PostgresLocalDraftProductStore::class);
             $this->app->bind(LocalDraftProductWriter::class, PlatformLocalDraftProductWriter::class);
@@ -45,6 +55,10 @@ final class CatalogServiceProvider extends ServiceProvider
         if (! $this->app->environment(['local', 'testing'])) {
             return;
         }
+        Route::put('api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}', [LocalDraftProductChangeController::class, 'update'])
+            ->middleware([LocalCatalogEnvironment::class, 'web', 'auth:web', 'throttle:30,1,local-draft-product-update:']);
+        Route::get('api/v1/catalog/local-draft-product-change-operations/{operationPublicId}', [LocalDraftProductChangeController::class, 'read'])
+            ->middleware([LocalCatalogEnvironment::class, 'web', 'auth:web', 'throttle:30,1,local-draft-product-change-read:']);
         Route::post('api/v1/catalog/local-draft-profiles/{catalogPublicId}/products', [LocalDraftProductController::class, 'create'])
             ->middleware([LocalCatalogEnvironment::class, 'web', 'auth:web', 'throttle:30,1,local-draft-product-create:']);
         Route::get('api/v1/catalog/local-draft-profiles/{catalogPublicId}', [LocalDraftProductController::class, 'profile'])

@@ -16,13 +16,30 @@ class ArchitectureTest extends TestCase
             'App\\Modules\\Identity\\Application\\Authorization\\AuthorizationDirectory',
             'App\\Modules\\Identity\\Application\\Authorization\\PermissionService',
         ],
+        'Catalog/Infrastructure/Drafts/IdentityLocalDraftProductChangeAccess.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthenticatedActorDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\AuthorizationDirectory',
+            'App\\Modules\\Identity\\Application\\Authorization\\PermissionService',
+        ],
         'Catalog/Infrastructure/Drafts/LocalDraftProductResourceResolver.php' => [
             'App\\Modules\\Identity\\Application\\Authorization\\ResourceContextResolver',
             'App\\Modules\\Identity\\Domain\\Authorization\\ResourceContext',
             'App\\Modules\\Identity\\Domain\\Authorization\\ResourceReference',
             'App\\Modules\\Identity\\Domain\\Authorization\\Scope',
         ],
+        'Catalog/Infrastructure/Drafts/LocalDraftProductChangeResourceResolver.php' => [
+            'App\\Modules\\Identity\\Application\\Authorization\\ResourceContextResolver',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceContext',
+            'App\\Modules\\Identity\\Domain\\Authorization\\ResourceReference',
+            'App\\Modules\\Identity\\Domain\\Authorization\\Scope',
+        ],
         'Catalog/Infrastructure/Drafts/PlatformLocalDraftProductWriter.php' => [
+            'App\\Modules\\Platform\\Application\\Delivery\\IdempotencyStore',
+            'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyExpired',
+            'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyMismatch',
+            'App\\Modules\\Platform\\Domain\\Delivery\\RequestFingerprint',
+        ],
+        'Catalog/Infrastructure/Drafts/PlatformLocalDraftProductChangeWriter.php' => [
             'App\\Modules\\Platform\\Application\\Delivery\\IdempotencyStore',
             'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyExpired',
             'App\\Modules\\Platform\\Domain\\Delivery\\IdempotencyMismatch',

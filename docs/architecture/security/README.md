@@ -79,3 +79,11 @@ Cookie en cuatro rutas y CSRF en POST; guard antes de sesión/CSRF/DI/SQL aun co
 Cursor v1 cifrado/autenticado por Crypt, ligado a actor/catálogo/limit/revisión y expiración original de 15 minutos; reautoriza cada página. Manipulación/contexto 422 genérico, vencimiento/cambio 409; último bigint solo dentro del ciphertext, nunca logs/errores/payload público. Diario completo cifrado/hash/restauración cerrada y append-only; Platform solo hashes/referencia, snapshot/replay original incluso después de soft-delete. Errores/logs técnicos sanitizados, no-store/private y correlación actual. Pruebas HTTP reales incluyen cookies, CSRF, claves, nombres/descripción y cursor como canaries privados.
 
 Solo ficticio local/testing. MFA para administración sensible real y decisiones de retención/datos reales siguen vigentes; no habilita catálogo publicable o vendible.
+
+## Edición de productos ficticios — 03C
+
+DP-037/ADR-008 aprobados requieren cookie/sesión y CSRF para PUT, actor activo y capacidades independientes catalog.local.draft_product.update / catalog.local.draft_product_change.read. Scope FB2 y recursos FBC/FBD exactos de servidor en el [plan aprobado](../../sprints/sprint-03/checkpoint-03c-plan.md); DP-026 completa y reautorización, sin grants automáticos o reemplazo del resolver global.
+
+Procedencia propia de catálogo/producto en diarios Catalog 03A/03B y confirmación Merchant/02I pública para primera escritura. GET filtra actor del diario propio, sin perfiles mutables/claims. Idempotencia 24h con fingerprints exactos, If-Match/revisión, rollback íntegro, cifrado y append-only. Dos buckets 30/minuto separados de permisos/budgets anteriores, errores sanitizados, no-store/private y correlación actual; sin entrada/historia, claves/cursors o SQL en logs.
+
+Guard local/testing antes de sesión/CSRF/DI/SQL aun con caché de rutas reutilizada. No usuarios/grants positivos en desarrollo, borrado, operación real o excepción al MFA sensible; positivos en bases temporales propias.

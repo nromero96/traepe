@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "trae.pe — API técnica",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "description": "Platform, Identity cliente, Marketplace y Catalog local/testing. Creación/consulta de comercio y catálogo draft, productos adicionales y contenido actual requieren sesión cookie y capacidades técnicas independientes. Sin mercados reales."
   },
   "servers": [
@@ -1371,6 +1371,174 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}": {
+      "put": {
+        "operationId": "updateLocalDraftProductV1",
+        "summary": "Editar campos conceptuales de producto draft propio y conservar antes/después",
+        "description": "DP-037 aprobado: solo ficticio local/testing. Cookie/CSRF y catalog.local.draft_product.update independiente, recursos técnicos de servidor y autoría/procedencia Catalog 03A/03B. PUT reemplaza exactamente nombre/descripción/marca con JSON cerrado de 03B; no query ni campos omitidos. Idempotency-Key/TTL 24h e If-Match del catálogo. Primera ejecución reautoriza y bloquea claim→Merchant público/02I→Catalog→Product; comprueba elegibilidad/revisión/límites, actualiza producto y catálogo +1 e inserta diario cifrado append-only. Mismos valores=409 no_changes sin escrituras; stale/máximo=409 version_conflict. Falla revierte todos los cambios/claim. Replay 200 original con update vigente sin read ni reevaluar perfiles. Fingerprint incluye catálogo/producto/revisión/campos; mismatch/expired=409. Edición invalida cursores antiguos 03B. Guard antes de sesión/CSRF/DI/SQL incluso con caché local reutilizada fuera del entorno; 30/minuto por actor independiente, no-store/private y correlación actual. Sin ID interno, permiso automático o administración real.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "catalogPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "productPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "ASCII imprimible sin espacios/control; no se normaliza ni almacena en claro.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[!-~]{1,255}(?![\\s\\S])"
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Token CSRF obtenido de la cookie XSRF-TOKEN, decodificado por el cliente.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "description": "ETag fuerte exacto de GET perfil, ligado al ULID de ruta; una versión decimal 1–2147483647. Sin *, listas o ETag débil. Se comprueba bajo bloqueo solo en primera ejecución.",
+            "schema": {
+              "type": "string",
+              "pattern": "^\"catalog:[0-7][0-9A-HJKMNP-TV-Z]{25}:v[1-9][0-9]{0,9}\"(?![\\s\\S])"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalDraftProductRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Snapshot original antes/después de edición o replay autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftProductChangeOperationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "419": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "428": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ApiError"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/local-draft-product-change-operations/{operationPublicId}": {
+      "get": {
+        "operationId": "readLocalDraftProductChangeOperationV1",
+        "summary": "Consultar cambio original propio de producto draft",
+        "description": "DP-037 aprobado: catalog.local.draft_product_change.read independiente, cookie/sesión y actor propio del diario. Devuelve snapshot cifrado validado de antes/después incluso tras otros cambios/borrado de perfiles; solo lectura Catalog, sin claims o reconstrucción mutable. Operación ajena/inexistente=404 indistinguible; no query. 30/minuto por actor/bucket independiente, correlación actual y no-store/private. Guard local/testing antes de sesión/CSRF/DI/SQL incluso con caché local reutilizada; sin administración real.",
+        "security": [
+          {
+            "LocalSessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "operationPublicId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cambio histórico original propio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalDraftProductChangeOperationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ApiError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "500": {
             "$ref": "#/components/responses/ApiError"
@@ -2792,6 +2960,207 @@
                           1
                         ],
                         "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "LocalDraftProductChangeOperationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "id",
+              "attributes"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local_draft_product_change_operation"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+              },
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "schema_version",
+                  "merchant_public_id",
+                  "catalog",
+                  "product"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "schema_version": {
+                    "enum": [
+                      1
+                    ],
+                    "type": "integer"
+                  },
+                  "merchant_public_id": {
+                    "type": "string",
+                    "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                  },
+                  "catalog": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "name",
+                      "status",
+                      "version_before",
+                      "version_after"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                      },
+                      "status": {
+                        "enum": [
+                          "draft"
+                        ],
+                        "type": "string"
+                      },
+                      "version_before": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483646
+                      },
+                      "version_after": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 2147483647
+                      }
+                    }
+                  },
+                  "product": {
+                    "type": "object",
+                    "required": [
+                      "public_id",
+                      "catalog_public_id",
+                      "before",
+                      "after"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "catalog_public_id": {
+                        "type": "string",
+                        "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}(?![\\s\\S])"
+                      },
+                      "before": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "description",
+                          "brand",
+                          "status",
+                          "version"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255,
+                            "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                          },
+                          "description": {
+                            "type": "string",
+                            "maxLength": 4000,
+                            "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])",
+                            "nullable": true
+                          },
+                          "brand": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255,
+                            "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                            "nullable": true
+                          },
+                          "status": {
+                            "enum": [
+                              "draft"
+                            ],
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 2147483646
+                          }
+                        }
+                      },
+                      "after": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "description",
+                          "brand",
+                          "status",
+                          "version"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255,
+                            "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])"
+                          },
+                          "description": {
+                            "type": "string",
+                            "maxLength": 4000,
+                            "pattern": "^[^\\x00-\\x09\\x0B-\\x1F\\x7F]*(?![\\s\\S])",
+                            "nullable": true
+                          },
+                          "brand": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255,
+                            "pattern": "^[^\\x00-\\x1F\\x7F]*[^ \\x00-\\x1F\\x7F][^\\x00-\\x1F\\x7F]*(?![\\s\\S])",
+                            "nullable": true
+                          },
+                          "status": {
+                            "enum": [
+                              "draft"
+                            ],
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 2,
+                            "maximum": 2147483647
+                          }
+                        }
                       }
                     }
                   }

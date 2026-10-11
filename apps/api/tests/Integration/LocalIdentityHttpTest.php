@@ -4,6 +4,7 @@ namespace Tests\Integration;
 
 use App\Modules\Catalog\Application\Drafts\LocalDraftCatalogAccess;
 use App\Modules\Catalog\Application\Drafts\LocalDraftProductAccess;
+use App\Modules\Catalog\Application\Drafts\LocalDraftProductChangeAccess;
 use App\Modules\Marketplace\Application\Commerce\LocalDraftCommerceAccess;
 use App\Modules\Marketplace\Application\Coverage\LocalPersistedCoverageAccess;
 use App\Modules\Marketplace\Application\Fixtures\LocalDraftFixtureAccess;
@@ -489,6 +490,38 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $grant(LocalDraftProductAccess::READ);
         $this->assertSame($additional['data'], $this->body($this->send('GET', $historyUrl, 200))['data']);
         $this->assertSame($first['data'], $this->body($this->send('GET', $read, 200))['data']);
+        $changeUrl = $productUrl.'/'.$first['data']['attributes']['product']['public_id'];
+        $changeHeaders = ['Idempotency-Key' => 'private-change-http-key', 'If-Match' => '"catalog:'.$catalogId.':v2"'];
+        $changeBody = ['product' => ['name' => 'Private Synthetic Updated', 'description' => '', 'brand' => null]];
+        $this->send('PUT', $changeUrl, 403, $changeBody, $this->token(), headers: $changeHeaders);
+        $grant(LocalDraftProductChangeAccess::UPDATE);
+        $this->send('PUT', $changeUrl, 419, $changeBody, headers: $changeHeaders);
+        $this->send('PUT', $changeUrl, 428, $changeBody, $this->token(), headers: ['Idempotency-Key' => 'missing-change-version']);
+        $this->send('PUT', $changeUrl, 422, [], $this->token(), headers: $changeHeaders);
+        $this->assertSame('no_changes', $this->body($this->send('PUT', $changeUrl, 409, ['product' => $payload['product']], $this->token(), headers: array_replace($changeHeaders, ['Idempotency-Key' => 'unchanged-http-key'])))['error']['code']);
+        $changed = $this->body($this->send('PUT', $changeUrl, 200, $changeBody, $this->token(), headers: $changeHeaders));
+        $this->assertSame(3, $changed['data']['attributes']['catalog']['version_after']);
+        $this->assertSame(2, $changed['data']['attributes']['product']['after']['version']);
+        $this->assertSame($payload['product']['name'], $changed['data']['attributes']['product']['before']['name']);
+        $this->assertSame($changed['data'], $this->body($this->send('PUT', $changeUrl, 200, $changeBody, $this->token(), headers: $changeHeaders))['data']);
+        $this->assertSame('catalog_changed', $this->body($this->send('GET', $productUrl.'?limit=1&cursor='.rawurlencode($cursor), 409))['error']['code']);
+        $changeHistory = '/api/v1/catalog/local-draft-product-change-operations/'.$changed['data']['id'];
+        $this->send('GET', $changeHistory, 403);
+        $changeRead = $grant(LocalDraftProductChangeAccess::READ);
+        $this->assertSame($changed['data'], $this->body($this->send('GET', $changeHistory, 200))['data']);
+        DB::table('identity_permission_grants')->where('id', $changeRead)->delete();
+        $this->send('GET', $changeHistory, 403);
+        $grant(LocalDraftProductChangeAccess::READ);
+        $secondChangeHeaders = ['Idempotency-Key' => 'private-second-change-http-key', 'If-Match' => '"catalog:'.$catalogId.':v3"'];
+        $this->send('PUT', $productUrl.'/'.$additional['data']['attributes']['product']['public_id'], 200, $changeBody, $this->token(), headers: $secondChangeHeaders);
+        $this->assertSame('"catalog:'.$catalogId.':v4"', $this->send('GET', $profileUrl, 200)->getHeaderLine('ETag'));
+        $newPage = $this->body($this->send('GET', $productUrl, 200));
+        $this->assertSame([2, 2], array_column(array_column($newPage['data'], 'attributes'), 'version'));
+        $this->assertSame($first['data'], $this->body($this->send('GET', $read, 200))['data']);
+        $this->assertSame($additional['data'], $this->body($this->send('GET', $historyUrl, 200))['data']);
+        $changeDeny = $grant(LocalDraftProductChangeAccess::UPDATE, 'deny');
+        $this->send('PUT', $changeUrl, 403, $changeBody, $this->token(), headers: $changeHeaders);
+        DB::table('identity_permission_grants')->where('id', $changeDeny)->delete();
         DB::table('identity_permission_grants')->where('id', $contentGrant)->delete();
         $this->send('GET', $profileUrl, 403);
         $this->send('GET', $historyUrl, 200);
@@ -503,8 +536,8 @@ final class LocalIdentityHttpTest extends PostgresTestCase
         $this->send('GET', '/sanctum/csrf-cookie', 204);
         $this->send('POST', $url, 401, $payload, $this->token(), headers: $headers);
         $this->send('GET', $historyUrl, 401, client: $this->clientFor($copy));
-        $this->assertSame([1, 1, 1, 1, 2, 1, 1, 3], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'platform_idempotency_keys']));
-        $this->assertPrivateLogs(['+12025550136', $headers['Idempotency-Key'], 'private-additional-http-key', 'Private Synthetic Additional', "Private Additional Description\nliteral", $cursor, 'private-chain-commerce-key', 'Private Synthetic Catalog', 'Private Synthetic Product', "Private Synthetic Description\nliteral", 'Private Synthetic Mismatch', 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', $token]);
+        $this->assertSame([1, 1, 1, 1, 2, 1, 1, 2, 5], array_map(fn ($table) => DB::table($table)->count(), ['merchants', 'branches', 'marketplace_local_commerce_operations', 'catalogs', 'products', 'catalog_local_draft_operations', 'catalog_local_draft_product_operations', 'catalog_local_draft_product_changes', 'platform_idempotency_keys']));
+        $this->assertPrivateLogs(['+12025550136', $headers['Idempotency-Key'], 'private-change-http-key', 'private-second-change-http-key', 'Private Synthetic Updated', 'private-additional-http-key', 'Private Synthetic Additional', "Private Additional Description\nliteral", $cursor, 'private-chain-commerce-key', 'Private Synthetic Catalog', 'Private Synthetic Product', "Private Synthetic Description\nliteral", 'Private Synthetic Mismatch', 'Private Synthetic Legal', 'Private Synthetic Trade', 'Private Synthetic Branch', $token]);
     }
 
     private function assertPrivateLogs(#[\SensitiveParameter] array $secrets): void

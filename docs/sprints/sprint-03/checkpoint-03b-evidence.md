@@ -1,6 +1,6 @@
 # Evidencia de Checkpoint 03B — Productos adicionales y contenido actual
 
-Preparación/aprobación: 10 de octubre de 2026. Validación y autorización de publicación: 11 de octubre de 2026. **Estado: implementado y validado localmente; migración aditiva vacía aplicada y datos previos preservados; commit/push/CI autorizados mediante «Autorizado», publicación y verificación remota en curso.**
+Preparación/aprobación: 10 de octubre de 2026. Validación y autorización de publicación: 11 de octubre de 2026. **Estado: implementado, publicado en main ad395112e4f261ea4a5450068957eab1cf76e8d2 y CI completa correcta; migración aditiva vacía aplicada y datos previos preservados.**
 
 Base publicada main/origin/main 0690cc0ec63493a163652ec68db52c184f700e26, [03A/CI completa correcta](https://github.com/nromero96/traepe/actions/runs/38109718961), run 38109718961/job 114382575818 y cuatro etapas completed/success sobre ese SHA. [Plan 03B completo](checkpoint-03b-plan.md) aprobado mediante «Aprobar plan completo 03B (recomendado)»; [DP-036](../../architecture/decisions/pending-decisions.md#dp-036--productos-adicionales-y-consulta-del-catálogo-actual) resuelta antes de escribir código. Esa aprobación autorizó implementación/pruebas y una tabla/índice locales vacíos. Después de presentar el resultado terminado, el usuario autorizó commit/push/CI mediante «Autorizado».
 
@@ -117,4 +117,12 @@ Solo datos ficticios en bases temporales propias; desarrollo vacío. MFA sensibl
 
 El 11 de octubre de 2026, tras presentar los 55 archivos y la validación completa de 307 pruebas/8532 aserciones, el usuario respondió «Autorizado» a la solicitud de commit, push y CI de 03B. La autorización se registra antes del commit conforme a AGENTS.md:81. Comprende un commit del manifiesto revisado, push normal a origin/main y comprobación de Foundation CI sobre el SHA enviado.
 
-La publicación está en curso al registrar esta evidencia. El cierre remoto requiere run/job completed/success y las cuatro etapas obligatorias correctas: Build and migrate fresh stack, Blocking quality and integration checks, Restart and verify persistence y Remove disposable resources. El resultado remoto se comunicará tras verificar ese SHA; los conteos locales anteriores corresponden a la validación previa a publicar.
+Antes del commit se registró la publicación en curso y el requisito de cierre remoto: run/job completed/success y las cuatro etapas obligatorias correctas —Build and migrate fresh stack, Blocking quality and integration checks, Restart and verify persistence y Remove disposable resources—. Los conteos locales anteriores corresponden a la validación previa a publicar. La comprobación posterior queda registrada a continuación.
+
+## Publicación confirmada
+
+Commit ad395112e4f261ea4a5450068957eab1cf76e8d2, padre 0690cc0ec63493a163652ec68db52c184f700e26: 55 archivos, 3306 inserciones y 29 eliminaciones. Push normal a origin/main autorizado mediante «Autorizado»; main/HEAD/origin/main/remote iguales y repositorio limpio al terminar. Se conservan las 307 pruebas locales/8532 aserciones y verificaciones anteriores, sin sumar ejecuciones focalizadas.
+
+[CI 38115708725 completa correcta](https://github.com/nromero96/traepe/actions/runs/38115708725), job 114400068772: run/job completed/success, ambos head_sha ad395112e4f261ea4a5450068957eab1cf76e8d2 y las cuatro etapas obligatorias completed/success. Incluye construcción/migraciones frescas, calidad/integración, reinicio/persistencia y limpieza de recursos desechables.
+
+Resultado corroborado al iniciar la continuidad solicitada por el usuario: ocho servicios locales running/healthy, 34 tablas no-migrations y once tablas Marketplace/Catalog vacías. [03C](checkpoint-03c-plan.md) prepara edición de productos draft e historial antes/después; DP-037 fue aprobada mediante «aprobar y continuar» después de esta preparación; ese bloque está implementado y validado localmente, con migración vacía aplicada y commit/push/CI autorizados mediante «autorizado» el 11 de octubre de 2026; publicación y comprobación de CI en curso.

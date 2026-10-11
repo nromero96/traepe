@@ -1,6 +1,6 @@
 # Plan de Checkpoint 03B — Productos adicionales y consulta del catálogo actual
 
-Fecha: 10 de octubre de 2026. **Estado: plan completo aprobado mediante «Aprobar plan completo 03B (recomendado)»; implementado y validado localmente, con migración vacía aplicada y datos anteriores preservados. Commit/push/CI autorizados mediante «Autorizado» el 11 de octubre de 2026; publicación y verificación remota en curso.**
+Fecha: 10 de octubre de 2026. **Estado: plan completo aprobado mediante «Aprobar plan completo 03B (recomendado)»; implementado y validado localmente, con migración vacía aplicada y datos anteriores preservados. Commit/push/CI autorizados mediante «Autorizado» el 11 de octubre de 2026; [publicado en main ad395112e4f261ea4a5450068957eab1cf76e8d2 con CI completa correcta](checkpoint-03b-evidence.md#publicación-confirmada).**
 
 Base publicada main/origin/main: 0690cc0ec63493a163652ec68db52c184f700e26, [03A](checkpoint-03a-evidence.md) y [CI completa correcta](https://github.com/nromero96/traepe/actions/runs/38109718961). Run 38109718961/job 114382575818 verificados sobre ese SHA, incluidos los cuatro pasos obligatorios. El usuario solicitó continuar el proyecto después de ingresar a PostgreSQL con pgAdmin.
 

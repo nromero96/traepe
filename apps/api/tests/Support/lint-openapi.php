@@ -135,3 +135,30 @@ if ($reject->isValid()) {
     throw new RuntimeException('Invalid cursor contract accepted.');
 }
 echo "PASS: product operation/profile/page v1; closed shape, text and cursor negatives rejected.\n";
+
+$changeSchema = json_decode(file_get_contents($directory.'/schemas/catalog-local-draft-product-change-operation.v1.json'), flags: JSON_THROW_ON_ERROR);
+$change = clone $productOperation;
+$change->product = (object) ['public_id' => $productId, 'catalog_public_id' => $catalogId,
+    'before' => (object) ['name' => 'Synthetic', 'description' => null, 'brand' => null, 'status' => 'draft', 'version' => 1],
+    'after' => (object) ['name' => 'Changed', 'description' => '', 'brand' => null, 'status' => 'draft', 'version' => 2]];
+$check = new Validator;
+$check->validate($change, $changeSchema);
+if (! $check->isValid()) {
+    throw new RuntimeException('Change snapshot rejected.');
+}
+foreach ([['unexpected', true], ['product.before.version', 0], ['product.after.version', 2147483648], ['product.before.status', 'active'], ['product.after.name', ' '], ['product.after.description', "\tbad"], ['product.before.brand', 1], ['product.after.actor', 'private'], ['product.catalog_public_id', "invalid\n"]] as [$path, $value]) {
+    $bad = json_decode(json_encode($change, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+    $node = $bad;
+    $parts = explode('.', $path);
+    $leaf = array_pop($parts);
+    foreach ($parts as $part) {
+        $node = $node->{$part};
+    }
+    $node->{$leaf} = $value;
+    $reject = new Validator;
+    $reject->validate($bad, $changeSchema);
+    if ($reject->isValid()) {
+        throw new RuntimeException('Invalid change snapshot accepted.');
+    }
+}
+echo "PASS: product change snapshot v1; closed before/after, text and revision limits verified.\n";

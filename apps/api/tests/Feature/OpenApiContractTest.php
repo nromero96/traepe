@@ -11,6 +11,7 @@ use App\Modules\Catalog\Application\Drafts\LocalDraftProductWriter;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogInput;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogOperation;
 use App\Modules\Catalog\Domain\Drafts\DraftCatalogProfile;
+use App\Modules\Catalog\Domain\Drafts\DraftProductChangeOperation;
 use App\Modules\Catalog\Domain\Drafts\DraftProductData;
 use App\Modules\Catalog\Domain\Drafts\DraftProductOperation;
 use App\Modules\Catalog\Domain\Drafts\DraftProductPage;
@@ -59,7 +60,7 @@ class OpenApiContractTest extends TestCase
         $documented = [];
         foreach ($this->document['paths'] as $path => $methods) {
             foreach ($methods as $method => $operation) {
-                $this->assertContains($method, ['get', 'post']);
+                $this->assertContains($method, ['get', 'post', 'put']);
                 $this->assertNotContains($operation['operationId'], $operations);
                 $operations[] = $operation['operationId'];
                 $this->assertNotEmpty($operation['responses']);
@@ -80,6 +81,8 @@ class OpenApiContractTest extends TestCase
         $expected[] = 'GET /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products';
         $expected[] = 'POST /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products';
         $expected[] = 'GET /api/v1/catalog/local-draft-product-operations/{operationPublicId}';
+        $expected[] = 'PUT /api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}';
+        $expected[] = 'GET /api/v1/catalog/local-draft-product-change-operations/{operationPublicId}';
         sort($expected);
         $this->assertSame($expected, $documented);
         $actual = [];
@@ -265,6 +268,32 @@ class OpenApiContractTest extends TestCase
         $this->assertEquals($snap, $this->document['components']['schemas']['LocalDraftProductOperationResponse']['properties']['data']['properties']['attributes']);
         foreach (['/api/v1/catalog/local-draft-profiles/{catalogPublicId}' => 'get', '/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products' => 'post', '/api/v1/catalog/local-draft-product-operations/{operationPublicId}' => 'get'] as $path => $method) {
             $this->assertSame([['LocalSessionCookie' => []]], $this->document['paths'][$path][$method]['security']);
+        }
+    }
+
+    public function test_product_change_closed_snapshot_and_response_match_additive_openapi(): void
+    {
+        $id = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+        $op = new DraftProductChangeOperation($id,
+            new DraftCatalogProfile($id, $id, 'Synthetic', 2),
+            new DraftProductProfile($id, $id, new DraftProductData('Original', null, null)),
+            new DraftProductProfile($id, $id, new DraftProductData('Changed', '', null), 2));
+        $response = json_decode(json_encode(['data' => ['type' => 'local_draft_product_change_operation', 'id' => $id, 'attributes' => $op->snapshot()], 'meta' => ['correlation_id' => $id]], JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+        $this->assertSchema($response, $this->document['components']['schemas']['LocalDraftProductChangeOperationResponse']);
+        $snapshotPath = is_file(base_path('../docs/api/schemas/catalog-local-draft-product-change-operation.v1.json'))
+            ? base_path('../docs/api/schemas/catalog-local-draft-product-change-operation.v1.json') : base_path('../../docs/api/schemas/catalog-local-draft-product-change-operation.v1.json');
+        $snap = json_decode(file_get_contents($snapshotPath), true, flags: JSON_THROW_ON_ERROR);
+        unset($snap['$schema'], $snap['title']);
+        foreach (['before', 'after'] as $side) {
+            foreach (['description', 'brand'] as $field) {
+                $snap['properties']['product']['properties'][$side]['properties'][$field]['type'] = 'string';
+                $snap['properties']['product']['properties'][$side]['properties'][$field]['nullable'] = true;
+            }
+        }
+        $this->assertEquals($snap, $this->document['components']['schemas']['LocalDraftProductChangeOperationResponse']['properties']['data']['properties']['attributes']);
+        foreach (['/api/v1/catalog/local-draft-profiles/{catalogPublicId}/products/{productPublicId}' => 'put', '/api/v1/catalog/local-draft-product-change-operations/{operationPublicId}' => 'get'] as $path => $method) {
+            $this->assertSame([['LocalSessionCookie' => []]], $this->document['paths'][$path][$method]['security']);
+            $this->assertSame('#/components/schemas/LocalDraftProductChangeOperationResponse', $this->document['paths'][$path][$method]['responses']['200']['content']['application/json']['schema']['$ref']);
         }
     }
 

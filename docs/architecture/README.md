@@ -114,3 +114,9 @@ Marketplace es dueño de la consulta de propiedad y del bloqueo mediante OwnedLo
 [DP-036/ADR-008](decisions/ADR-008-catalog-local-draft-foundation.md#ampliación-aprobada--03b) aprueban alta de producto adicional, perfil/colección actuales y snapshot propio. Nuevos casos de uso/puertos Catalog, dominio puro, adaptadores de persistencia/cursor/Identity/Platform y controlador delgado. Marketplace conserva su SQL y bloqueo mediante el contrato público existente; las lecturas actuales consultan solo Catalog. ArchitectureTest añade tres archivos/tipos públicos concretos, sin ampliar dependencias globales, ciclos o Shared.
 
 [Plan completo](../sprints/sprint-03/checkpoint-03b-plan.md) registra propiedad, versión/transacción, cursor cifrado, integridad y límites. Una migración vacía adicional y un índice keyset con consumidores reales; sin arquitectura futura vacía o dependencia instalada. [Evidencia](../sprints/sprint-03/checkpoint-03b-evidence.md).
+
+## Edición de Catalog local — 03C
+
+[DP-037/ADR-008](decisions/ADR-008-catalog-local-draft-foundation.md#ampliación-aprobada--03c) aprobados agregan update/read de cambios, entrada/snapshot puros, puertos propios y persistencia del diario antes/después. Tres consumidores Infrastructure explícitos adicionales de los tipos públicos Identity/Platform existentes, enumerados por ArchitectureTest; reutiliza OwnedLocalDraftMerchantV1 mediante el puente Marketplace aprobado.
+
+Transacción compartida claim → Merchant → Catalog → Product compatible con alta 03B, versiones +1 e historial cifrado. GET histórico solo lee Catalog; contenido actual/cursores 03B mantienen contrato. No SQL privado cruzado, Shared vertical, contrato externo, dependencia instalada o carpetas futuras. [Plan completo](../sprints/sprint-03/checkpoint-03c-plan.md).

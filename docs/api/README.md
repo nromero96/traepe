@@ -115,3 +115,18 @@ GET perfil devuelve ETag/revisión actual; GET products admite solo limit decima
 Historial adicional incluye catalog {public_id,name,status,version_before,version_after} y product original version 1; GET no lee perfiles/claim. Ownership/404 indistinguible, capacidades independientes, actor activo/DP-026 y reautorización; guard anterior a sesión/CSRF/DI/SQL en local/testing. No-store/private y correlación actual; buckets alta/contenido/historial 30/minuto independientes, perfil/colección comparten contenido. Otros errores 401/403/404/415/419/422/429/500 sanitizados.
 
 Esquemas cerrados: [operación v1](schemas/catalog-local-draft-product-operation.v1.json), [perfil v1](schemas/catalog-local-draft-profile.v1.json), [página v1](schemas/catalog-local-draft-products-page.v1.json). No SKU/dinero/stock/listings/activación o datos reales; desarrollo vacío y positivos solo en bases temporales propias. [Evidencia](../sprints/sprint-03/checkpoint-03b-evidence.md).
+
+## Edición de producto draft e historial — 03C / OpenAPI 1.9.0
+
+[DP-037 aprobada](../architecture/decisions/pending-decisions.md#dp-037--edición-local-de-productos-draft) y [plan completo](../sprints/sprint-03/checkpoint-03c-plan.md), «aprobar y continuar» el 11 de octubre de 2026.
+
+| Método y ruta bajo /api/v1/catalog | Capacidad | Éxito |
+|---|---|---|
+| PUT /local-draft-profiles/{catalogPublicId}/products/{productPublicId} | catalog.local.draft_product.update | 200 operación original de cambio o replay |
+| GET /local-draft-product-change-operations/{operationPublicId} | catalog.local.draft_product_change.read | 200 snapshot original propio |
+
+PUT reemplaza product {name,description,brand} requerido/cerrado, reglas de texto/null exactas de 03B; sin query, campos adicionales o versión de producto del cliente. Cookie/CSRF, Idempotency-Key e If-Match fuerte de catálogo. Referencias elegibles solo por autoría/procedencia 03A/03B y Merchant/02I público. 428 sin If-Match; 422 formato/entrada; 404 no disponible indistinguible; 409 no_changes/version_conflict/idempotency_mismatch/idempotency_expired. Versiones catálogo/producto incrementadas en uno e historial atómicos; replay sin read o reevaluación mutable.
+
+[Snapshot de cambio v1](schemas/catalog-local-draft-product-change-operation.v1.json) con catálogo/revisiones y producto antes/después, cifrado/hash/forma/metadata verificados en servidor. GET histórico propio incluso tras cambios/borrado; sin IDs internos, actor/hashes/clave/ciphertext. Los contratos de alta y lecturas 03A/03B se conservan; los cursores viejos se invalidan con catalog_changed tras edición. Aritmética entre revisiones/igualdad de referencias se comprueba en dominio/DB; JSON Schema valida forma, tipos y límites.
+
+Todas las respuestas/errores mantienen no-store/private y correlación actual; buckets separados 30/minuto por actor. Guard local/testing antes de sesión/CSRF/DI/SQL con caché reutilizada. Solo ficticio, sin grants en desarrollo o administración real; commit/push/CI se solicitan al cierre.

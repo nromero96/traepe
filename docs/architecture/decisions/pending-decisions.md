@@ -1,5 +1,19 @@
 # Decisiones pendientes
 
+## DP-037 — Edición local de productos draft
+
+- **Estado:** resuelta mediante «aprobar y continuar» el 11 de octubre de 2026, antes de iniciar implementación; plan completo 03C aprobado.
+- **Fuente:** maestro v1.6 §§9, 25, 29, 32–33, 37, 49–50, 52–60, 64, 72, 78–80, 90 y 95; ADR-008/DP-026/DP-035/DP-036.
+- **Vacío:** 03A/03B aprueban altas y lecturas, no edición. El maestro no concreta reemplazo de campos del ejercicio ficticio, capacidades update/read de cambios, elegibilidad por procedencia, operación sin cambios, incremento de revisión de producto ni snapshot antes/después. No se pueden extender permisos ni mutabilidad silenciosamente.
+- **Plan completo aprobado:** [plan 03C](../../sprints/sprint-03/checkpoint-03c-plan.md): PUT reemplaza nombre/descripción/marca de producto draft propio de 03A/03B y GET consulta el cambio original propio. Dos permisos independientes, If-Match de catálogo, idempotencia 24h, no_changes sin escrituras, lock claim → Merchant → Catalog → Product, versiones catálogo/producto +1 y diario cifrado append-only. Una tabla inicialmente vacía; contratos, reglas completas y pruebas en el plan.
+- **Arquitectura aprobada:** mismos contratos públicos Identity/Platform/Marketplace ya autorizados, tres nuevos consumidores Infrastructure explícitos y puente Merchant existente; Domain/Application puros, Shared y resolver global intactos, sin SQL privado ajeno/ciclos.
+- **Bloqueo resuelto:** el usuario aprobó el plan completo mediante «aprobar y continuar». Autoriza implementación, pruebas y aplicación local aditiva vacía conforme a todas sus reglas, después de la preparación documental verificada.
+- **Límites:** ficticio local/testing; desarrollo vacío, positivos en bases temporales propias. Sin borrado/restauración, catálogo renombrado/reasignación, categorías/tipo/restricciones, SKU/precio/stock/listings, publicación/activación, frontend/dependencias, datos reales o excepción MFA. DP-001/DP-002/DP-007/DP-012 y demás productivas permanecen abiertas.
+- **Aprobación recibida:** todas las reglas del plan, implementación/pruebas y aplicación local aditiva de una tabla vacía. Después de presentar el resultado terminado, commit/push/CI de 03C fueron autorizados mediante «autorizado» el 11 de octubre de 2026; [registro](../../sprints/sprint-03/checkpoint-03c-evidence.md#aprobación-y-publicación-autorizadas).
+- **Resultado local:** implementado y validado, 329 pruebas/9445 aserciones, migración vacía aplicada y 34 tablas anteriores preservadas; doce tablas Marketplace/Catalog vacías y ocho servicios saludables. 44 archivos revisados; publicación autorizada y comprobación de CI en curso. [Evidencia](../../sprints/sprint-03/checkpoint-03c-evidence.md).
+- **Responsable:** Nilton; revisión solicitada en esta continuidad el 11 de octubre de 2026. No cambia responsabilidades/fechas de decisiones productivas.
+- **Evidencia:** [preparación, aprobación y resultado de 03C](../../sprints/sprint-03/checkpoint-03c-evidence.md).
+
 ## DP-036 — Productos adicionales y consulta del catálogo actual
 
 - **Estado:** resuelta mediante «Aprobar plan completo 03B (recomendado)»; detectada y aprobada el 10 de octubre de 2026 al continuar después de 03A publicado.
